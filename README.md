@@ -9,10 +9,10 @@ interface SystemConnection {
   type: "system_connection"
   system_diagram_id: string
   system_connection_id: string
-  source_system_block_port_id?: string
-  target_system_block_port_id?: string
+  source_system_port_id?: string
+  target_system_port_id?: string
   system_port_ids?: string[]
-  path: SystemPathPoint[]
+  path: Point[]
   label?: string
 }
 ```
@@ -28,7 +28,7 @@ interface SystemPort {
   system_port_id: string
   system_block_id: string
   label?: string
-  side_of_block?: "top" | "bottom" | "left" | "right"
+  side_of_block: "top" | "bottom" | "left" | "right"
 }
 ```
 
@@ -44,7 +44,9 @@ interface SystemBlock {
   center: Point
   size: Size
   label?: string
-  category: Category[]
+  category: Category[] // Battery, Voltage regulator, .... etc
+  icon?: string
+  part_number?: string
   description?: string
   subcircuit_id?: string
 }
