@@ -14,7 +14,6 @@ interface SystemConnection {
   system_port_ids?: string[]
   path: SystemPathPoint[]
   label?: string
-  subcircuit_id?: string
 }
 ```
 
@@ -30,7 +29,6 @@ interface SystemPort {
   system_block_id: string
   label?: string
   side_of_block?: "top" | "bottom" | "left" | "right"
-  subcircuit_id?: string
 }
 ```
 
@@ -43,7 +41,6 @@ interface SystemBlock {
   type: "system_block"
   system_diagram_id: string
   system_block_id: string
-  schematic_component_ids?: string[]
   center: Point
   size: Size
   label?: string
