@@ -1,3 +1,3 @@
-import { SmartLocksPage } from "./SmartLocks.page";
+import { SmartLocksPage } from "./SmartLocks.page"
 
-export default <SmartLocksPage />;
+export default <SmartLocksPage />

@@ -1,7 +1,7 @@
-import { BomView } from "./BomView";
+import { BomView } from "./BomView"
 
 export function BomView01Page() {
-	return <BomView />;
+  return <BomView />
 }
 
-export default BomView01Page;
+export default BomView01Page

@@ -1,7 +1,7 @@
-import { DesignCanvas } from "./DesignCanvas";
+import { DesignCanvas } from "./DesignCanvas"
 
 export function DesignCanvas01Page() {
-	return <DesignCanvas />;
+  return <DesignCanvas />
 }
 
-export default DesignCanvas01Page;
+export default DesignCanvas01Page

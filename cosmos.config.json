@@ -1,9 +1,9 @@
 {
-	"plugins": ["react-cosmos-plugin-vite"],
-	"rootDir": ".",
-	"fixturesDir": ".",
-	"globalImports": ["./components/DesignCanvas/design-canvas.css"],
-	"vite": {
-		"configPath": "./vite.config.ts"
-	}
+  "plugins": ["react-cosmos-plugin-vite"],
+  "rootDir": ".",
+  "fixturesDir": ".",
+  "globalImports": ["./components/DesignCanvas/design-canvas.css"],
+  "vite": {
+    "configPath": "./vite.config.ts"
+  }
 }

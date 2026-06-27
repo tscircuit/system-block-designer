@@ -1,3 +1,3 @@
-import { DesignCanvas01Page } from "./DesignCanvas01.page";
+import { DesignCanvas01Page } from "./DesignCanvas01.page"
 
-export default <DesignCanvas01Page />;
+export default <DesignCanvas01Page />

@@ -1,7 +1,7 @@
-import { BomView } from "../../components/BOMView/BomView";
+import { BomView } from "../../components/BOMView/BomView"
 
 export function SmartLockBomViewPage() {
-	return <BomView />;
+  return <BomView />
 }
 
-export default SmartLockBomViewPage;
+export default SmartLockBomViewPage
