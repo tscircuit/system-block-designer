@@ -1,7 +1,5 @@
-import {
-  pathPointsToSvgPath,
-  routePath,
-} from "../../lib/design-system/geometry"
+import { pathPointsToSvgPath } from "../../lib/design-system/pathPointsToSvgPath"
+import { routeOrthogonalPath } from "../../lib/design-system/routeOrthogonalPath"
 import { defaultPorts } from "../../lib/design-system/library"
 import type { Side } from "../../lib/design-system/types"
 import type {
@@ -137,7 +135,7 @@ export function routeSystemConnection(
 ) {
   const source = getSystemPortPosition(sourceBlock, sourcePort, ports)
   const target = getSystemPortPosition(targetBlock, targetPort, ports)
-  return routePath(
+  return routeOrthogonalPath(
     source,
     SYSTEM_DIR[sourcePort.side_of_block],
     target,

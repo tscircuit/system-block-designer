@@ -1,5 +1,5 @@
 import { DesignCanvas } from "../../components/DesignCanvas/DesignCanvas"
-import { createSmartLockSystemJson } from "./SmartLocksSeed"
+import { createSmartLockSystemJson } from "./createSmartLockSystemJson"
 
 interface SmartLocksPageProps {
   debug?: boolean

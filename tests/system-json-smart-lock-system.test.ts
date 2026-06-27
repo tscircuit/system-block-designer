@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { createSmartLockSystemJson } from "../app/SmartLock/SmartLocksSeed"
+import { createSmartLockSystemJson } from "../app/SmartLock/createSmartLockSystemJson"
 import { systemJsonToSvgSnapshot } from "./fixtures/system-json-to-svg-snapshot"
 
 test("matches smart lock system-block json snapshot", async () => {
