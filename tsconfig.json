@@ -16,5 +16,12 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": ["src", "app", "components", "lib", "cosmos.config.json"]
+  "include": [
+    "app",
+    "components",
+    "lib",
+    "cosmos.config.json",
+    "main.tsx",
+    "vite-env.d.ts"
+  ]
 }

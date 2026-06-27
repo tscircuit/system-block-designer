@@ -1,4 +1,4 @@
-import type { BlockPorts, DesignBlock, LibraryCategory } from "./types"
+import type { BlockPorts, LibraryCategory } from "./types"
 
 export const LIBRARY: LibraryCategory[] = [
   {
@@ -99,33 +99,4 @@ export function defaultPorts(type: string): BlockPorts {
   }
 
   return ports
-}
-
-export function makeBlock(
-  type: string,
-  x: number,
-  y: number,
-  id: string,
-  num: number,
-): DesignBlock {
-  const item = findLibraryItem(type)
-
-  return {
-    id,
-    num,
-    type,
-    x,
-    y,
-    w: item?.w ?? 128,
-    h: item?.h ?? 104,
-    icon: item?.icon ?? "chip",
-    ports: defaultPorts(type),
-  }
-}
-
-export function nextBlockNum(blocks: DesignBlock[]) {
-  const used = new Set(blocks.map((block) => block.num))
-  let number = 1
-  while (used.has(number)) number += 1
-  return number
 }

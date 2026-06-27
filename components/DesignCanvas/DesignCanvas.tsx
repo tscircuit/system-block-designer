@@ -10,9 +10,9 @@ import { useDesignCanvasController } from "./useDesignCanvasController"
 
 export function DesignCanvas({
   projectTitle = "Smart Lock (UWB Smart Lock)",
-  initialDoc,
+  initialSystemJson,
 }: DesignCanvasProps) {
-  const canvas = useDesignCanvasController(initialDoc)
+  const canvas = useDesignCanvasController(initialSystemJson)
 
   return (
     <div className="app">
@@ -44,10 +44,13 @@ export function DesignCanvas({
               onClickItem={canvas.addBlockCentered}
             />
             <CanvasStage
-              doc={canvas.doc}
+              blocks={canvas.blocks}
+              ports={canvas.ports}
+              connections={canvas.connections}
               view={canvas.view}
               selection={canvas.selection}
               blockMap={canvas.blockMap}
+              portMap={canvas.portMap}
               connected={canvas.connected}
               collapsed={canvas.collapsed}
               dropActive={canvas.dropActive}
