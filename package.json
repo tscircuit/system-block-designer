@@ -1,0 +1,29 @@
+{
+	"name": "system-block-designer",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"start": "vite",
+		"dev": "vite",
+		"build": "tsc --noEmit && vite build",
+		"preview": "vite preview",
+		"cosmos": "cosmos",
+		"cosmos:export": "cosmos-export",
+		"format": "biome format --write"
+	},
+	"dependencies": {
+		"@vitejs/plugin-react": "latest",
+		"vite": "latest",
+		"typescript": "latest",
+		"react": "latest",
+		"react-dom": "latest"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.1",
+		"@types/react": "latest",
+		"@types/react-dom": "latest",
+		"react-cosmos": "latest",
+		"react-cosmos-plugin-vite": "latest"
+	}
+}
