@@ -1,3 +1,5 @@
 import { DesignCanvas01Page } from "./DesignCanvas01.page"
 
-export default <DesignCanvas01Page />
+export default function DesignCanvas01Fixture() {
+  return <DesignCanvas01Page />
+}

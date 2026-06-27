@@ -1,3 +1,5 @@
 import { SmartLocksPage } from "./SmartLocks.page"
 
-export default <SmartLocksPage />
+export default function SmartLocksFixture() {
+  return <SmartLocksPage />
+}
