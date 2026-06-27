@@ -1,4 +1,5 @@
 import { BomView } from "../BOMView/BomView"
+import { OutputFiles } from "../OutputFiles/OutputFiles"
 import { CanvasStage } from "./CanvasStage"
 import { DesignCanvasFooter } from "./DesignCanvasFooter"
 import type { DesignCanvasProps } from "./DesignCanvas.types"
@@ -28,6 +29,8 @@ export function DesignCanvas({
       />
       {canvas.activeTab === "bom" ? (
         <BomView />
+      ) : canvas.activeTab === "out" ? (
+        <OutputFiles />
       ) : (
         <>
           <div className="body">
