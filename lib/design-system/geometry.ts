@@ -1,37 +1,4 @@
-import type { DesignBlock, Point, Side } from "./types"
-
-export const DIR: Record<Side, Point> = {
-  L: { x: -1, y: 0 },
-  R: { x: 1, y: 0 },
-  T: { x: 0, y: -1 },
-  B: { x: 0, y: 1 },
-}
-
-export const SIDES: Side[] = ["L", "R", "T", "B"]
-
-export function portPos(block: DesignBlock, side: Side, idx: number): Point {
-  const count = Math.max(block.ports[side].length, 1)
-
-  if (side === "L") {
-    return { x: block.x, y: block.y + (block.h * (idx + 1)) / (count + 1) }
-  }
-
-  if (side === "R") {
-    return {
-      x: block.x + block.w,
-      y: block.y + (block.h * (idx + 1)) / (count + 1),
-    }
-  }
-
-  if (side === "T") {
-    return { x: block.x + (block.w * (idx + 1)) / (count + 1), y: block.y }
-  }
-
-  return {
-    x: block.x + (block.w * (idx + 1)) / (count + 1),
-    y: block.y + block.h,
-  }
-}
+import type { Point } from "./types"
 
 export function routePath(p1: Point, d1: Point, p2: Point, d2: Point) {
   const step = 24

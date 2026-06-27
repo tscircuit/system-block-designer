@@ -1,44 +1,336 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { DIR, portPos, routePath } from "../../lib/design-system/geometry"
+import {
+  pathPointsToSvgPath,
+  routePath,
+} from "../../lib/design-system/geometry"
 import {
   LIBRARY,
-  makeBlock,
-  nextBlockNum,
+  defaultPorts,
+  findLibraryItem,
 } from "../../lib/design-system/library"
-import { createSmartLockSeed } from "../../lib/design-system/seed"
+import { createSmartLockSystemJson } from "../../lib/design-system/seed"
+import type { LibraryCategory, Side } from "../../lib/design-system/types"
 import type {
-  DesignDocument,
-  LibraryCategory,
-  PortRef,
-} from "../../lib/design-system/types"
+  Point,
+  SystemBlock,
+  SystemConnection,
+  SystemJson,
+  SystemPort,
+} from "../../lib/system-json/system-json"
+import { SystemJsonArray } from "../../lib/system-json/system-json"
 import type { CanvasView, Editing, Selection } from "./DesignCanvas.types"
 
 const MIN_ZOOM = 0.25
 const MAX_ZOOM = 2.5
 
-export function useDesignCanvasController(initialDoc?: DesignDocument) {
-  const seed = useRef(createSmartLockSeed())
-  const [doc, setDocState] = useState(initialDoc ?? seed.current.doc)
+const SIDE_TO_SYSTEM_SIDE: Record<Side, SystemPort["side_of_block"]> = {
+  L: "left",
+  R: "right",
+  T: "top",
+  B: "bottom",
+}
+
+const SYSTEM_DIR: Record<SystemPort["side_of_block"], Point> = {
+  left: { x: -1, y: 0 },
+  right: { x: 1, y: 0 },
+  top: { x: 0, y: -1 },
+  bottom: { x: 0, y: 1 },
+}
+
+interface NormalizedSystemJson {
+  blocks: SystemBlock[]
+  ports: SystemPort[]
+  connections: SystemConnection[]
+}
+
+type WireInteraction = {
+  type: "wire"
+  fromSystemPortId: string
+}
+
+function normalizeSystemJson(systemJson: SystemJson[]): NormalizedSystemJson {
+  return {
+    blocks: systemJson.filter(
+      (item): item is SystemBlock => item.type === "system_block",
+    ),
+    ports: systemJson.filter(
+      (item): item is SystemPort => item.type === "system_port",
+    ),
+    connections: systemJson.filter(
+      (item): item is SystemConnection => item.type === "system_connection",
+    ),
+  }
+}
+
+function getNextUid(systemJson: SystemJson[]) {
+  const maxId = systemJson.reduce((max, item) => {
+    const ids =
+      item.type === "system_block"
+        ? [item.system_block_id]
+        : item.type === "system_port"
+          ? [item.system_port_id]
+          : item.type === "system_connection"
+            ? [item.system_connection_id]
+            : [item.system_diagram_id]
+
+    return ids.reduce((innerMax, id) => {
+      const match = id.match(/_(\d+)$/)
+      return match ? Math.max(innerMax, Number(match[1])) : innerMax
+    }, max)
+  }, 0)
+
+  return maxId + 1
+}
+
+function getBlockTopLeft(block: SystemBlock) {
+  return {
+    x: block.center.x - block.size.width / 2,
+    y: block.center.y - block.size.height / 2,
+  }
+}
+
+export function getSystemPortPosition(
+  block: SystemBlock,
+  port: SystemPort,
+  ports: SystemPort[],
+) {
+  const topLeft = getBlockTopLeft(block)
+  const sidePorts = ports.filter(
+    (candidate) =>
+      candidate.system_block_id === block.system_block_id &&
+      candidate.side_of_block === port.side_of_block,
+  )
+  const count = Math.max(sidePorts.length, 1)
+  const index = Math.max(
+    sidePorts.findIndex(
+      (candidate) => candidate.system_port_id === port.system_port_id,
+    ),
+    0,
+  )
+
+  if (port.side_of_block === "left") {
+    return {
+      x: topLeft.x,
+      y: topLeft.y + (block.size.height * (index + 1)) / (count + 1),
+    }
+  }
+  if (port.side_of_block === "right") {
+    return {
+      x: topLeft.x + block.size.width,
+      y: topLeft.y + (block.size.height * (index + 1)) / (count + 1),
+    }
+  }
+  if (port.side_of_block === "top") {
+    return {
+      x: topLeft.x + (block.size.width * (index + 1)) / (count + 1),
+      y: topLeft.y,
+    }
+  }
+  return {
+    x: topLeft.x + (block.size.width * (index + 1)) / (count + 1),
+    y: topLeft.y + block.size.height,
+  }
+}
+
+export function routeSystemConnection(
+  sourceBlock: SystemBlock,
+  sourcePort: SystemPort,
+  targetBlock: SystemBlock,
+  targetPort: SystemPort,
+  ports: SystemPort[],
+) {
+  const source = getSystemPortPosition(sourceBlock, sourcePort, ports)
+  const target = getSystemPortPosition(targetBlock, targetPort, ports)
+  return routePath(
+    source,
+    SYSTEM_DIR[sourcePort.side_of_block],
+    target,
+    SYSTEM_DIR[targetPort.side_of_block],
+  )
+}
+
+function getSystemPortId(
+  blockId: string,
+  side: SystemPort["side_of_block"],
+  index: number,
+) {
+  return `${blockId}_${side}_${index}`
+}
+
+function createSystemPortsForBlock(
+  system_diagram_id: string,
+  blockId: string,
+  type: string,
+) {
+  const defaultBlockPorts = defaultPorts(type)
+
+  return (Object.keys(defaultBlockPorts) as Side[]).flatMap((side) => {
+    const systemSide = SIDE_TO_SYSTEM_SIDE[side]
+    return defaultBlockPorts[side].map(
+      (label, index): SystemPort => ({
+        type: "system_port",
+        system_diagram_id,
+        system_port_id: getSystemPortId(blockId, systemSide, index),
+        system_block_id: blockId,
+        label,
+        side_of_block: systemSide,
+      }),
+    )
+  })
+}
+
+function updateConnectionPaths(systemJson: SystemJson[]) {
+  const normalized = normalizeSystemJson(systemJson)
+  const blockMap = new Map(
+    normalized.blocks.map((block) => [block.system_block_id, block]),
+  )
+  const portMap = new Map(
+    normalized.ports.map((port) => [port.system_port_id, port]),
+  )
+
+  return systemJson.map((item) => {
+    if (item.type !== "system_connection") return item
+    const sourcePort = item.source_system_port_id
+      ? portMap.get(item.source_system_port_id)
+      : undefined
+    const targetPort = item.target_system_port_id
+      ? portMap.get(item.target_system_port_id)
+      : undefined
+    const sourceBlock = sourcePort
+      ? blockMap.get(sourcePort.system_block_id)
+      : undefined
+    const targetBlock = targetPort
+      ? blockMap.get(targetPort.system_block_id)
+      : undefined
+
+    if (!sourcePort || !targetPort || !sourceBlock || !targetBlock) {
+      return item
+    }
+
+    return {
+      ...item,
+      path: routeSystemConnection(
+        sourceBlock,
+        sourcePort,
+        targetBlock,
+        targetPort,
+        normalized.ports,
+      ).d
+        ? routeSystemPathPoints(
+            sourceBlock,
+            sourcePort,
+            targetBlock,
+            targetPort,
+            normalized.ports,
+          )
+        : item.path,
+    }
+  })
+}
+
+function routeSystemPathPoints(
+  sourceBlock: SystemBlock,
+  sourcePort: SystemPort,
+  targetBlock: SystemBlock,
+  targetPort: SystemPort,
+  ports: SystemPort[],
+) {
+  const source = getSystemPortPosition(sourceBlock, sourcePort, ports)
+  const target = getSystemPortPosition(targetBlock, targetPort, ports)
+  const sourceDir = SYSTEM_DIR[sourcePort.side_of_block]
+  const targetDir = SYSTEM_DIR[targetPort.side_of_block]
+  const step = 24
+  const sourceLead = {
+    x: source.x + sourceDir.x * step,
+    y: source.y + sourceDir.y * step,
+  }
+  const targetLead = {
+    x: target.x + targetDir.x * step,
+    y: target.y + targetDir.y * step,
+  }
+  const sourceHorizontal = sourceDir.x !== 0
+  const targetHorizontal = targetDir.x !== 0
+  const path = [source, sourceLead]
+
+  if (sourceHorizontal && targetHorizontal) {
+    const midX = (sourceLead.x + targetLead.x) / 2
+    path.push({ x: midX, y: sourceLead.y }, { x: midX, y: targetLead.y })
+  } else if (!sourceHorizontal && !targetHorizontal) {
+    const midY = (sourceLead.y + targetLead.y) / 2
+    path.push({ x: sourceLead.x, y: midY }, { x: targetLead.x, y: midY })
+  } else if (sourceHorizontal && !targetHorizontal) {
+    path.push({ x: targetLead.x, y: sourceLead.y })
+  } else {
+    path.push({ x: sourceLead.x, y: targetLead.y })
+  }
+
+  path.push(targetLead, target)
+  return path.filter((point, index) => {
+    const previous = path[index - 1]
+    return !previous || previous.x !== point.x || previous.y !== point.y
+  })
+}
+
+export function systemConnectionToSvgPath(
+  connection: SystemConnection,
+  blockMap: Map<string, SystemBlock>,
+  portMap: Map<string, SystemPort>,
+  ports: SystemPort[],
+) {
+  const sourcePort = connection.source_system_port_id
+    ? portMap.get(connection.source_system_port_id)
+    : undefined
+  const targetPort = connection.target_system_port_id
+    ? portMap.get(connection.target_system_port_id)
+    : undefined
+  const sourceBlock = sourcePort
+    ? blockMap.get(sourcePort.system_block_id)
+    : undefined
+  const targetBlock = targetPort
+    ? blockMap.get(targetPort.system_block_id)
+    : undefined
+
+  if (!sourcePort || !targetPort || !sourceBlock || !targetBlock) {
+    if (connection.path.length < 2) {
+      return { d: "", mid: { x: 0, y: 0 } }
+    }
+    return { d: pathPointsToSvgPath(connection.path), mid: connection.path[0] }
+  }
+
+  return routeSystemConnection(
+    sourceBlock,
+    sourcePort,
+    targetBlock,
+    targetPort,
+    ports,
+  )
+}
+
+export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
+  const seed = useRef(
+    SystemJsonArray.parse(initialSystemJson ?? createSmartLockSystemJson()),
+  )
+  const [systemJson, setSystemJsonState] = useState<SystemJson[]>(seed.current)
   const [view, setViewState] = useState<CanvasView>({
     pan: { x: 120, y: 70 },
     zoom: 0.72,
   })
   const [selection, setSelectionState] = useState<Selection>(null)
 
-  const docRef = useRef(doc)
+  const systemJsonRef = useRef(systemJson)
   const viewRef = useRef(view)
   const selectionRef = useRef(selection)
   const editingRef = useRef<Editing>(null)
-  const pastRef = useRef<DesignDocument[]>([])
-  const futureRef = useRef<DesignDocument[]>([])
+  const pastRef = useRef<SystemJson[][]>([])
+  const futureRef = useRef<SystemJson[][]>([])
   const interactionRef = useRef<
     | { type: "pan"; sx: number; sy: number; px: number; py: number }
     | { type: "block"; id: string; ox: number; oy: number; moved: boolean }
-    | { type: "wire"; from: PortRef }
+    | WireInteraction
     | null
   >(null)
-  const dragStartDocRef = useRef<DesignDocument | null>(null)
-  const uidRef = useRef(seed.current.uid)
+  const dragStartSystemJsonRef = useRef<SystemJson[] | null>(null)
+  const uidRef = useRef(getNextUid(seed.current))
   const dragTypeRef = useRef<string | null>(null)
   const svgRef = useRef<SVGSVGElement | null>(null)
   const stageRef = useRef<HTMLElement | null>(null)
@@ -51,8 +343,8 @@ export function useDesignCanvasController(initialDoc?: DesignDocument) {
   const [resolving, setResolving] = useState(false)
   const [editing, setEditing] = useState<Editing>(null)
   const [tempWire, setTempWire] = useState<{
-    from: PortRef
-    to: { x: number; y: number }
+    fromSystemPortId: string
+    to: Point
   } | null>(null)
   const [dropActive, setDropActive] = useState(false)
 
@@ -62,9 +354,10 @@ export function useDesignCanvasController(initialDoc?: DesignDocument) {
     [],
   )
 
-  const applyDoc = useCallback((next: DesignDocument) => {
-    docRef.current = next
-    setDocState(next)
+  const applySystemJson = useCallback((next: SystemJson[]) => {
+    const parsed = SystemJsonArray.parse(next)
+    systemJsonRef.current = parsed
+    setSystemJsonState(parsed)
   }, [])
 
   const applyView = useCallback((next: CanvasView) => {
@@ -78,34 +371,37 @@ export function useDesignCanvasController(initialDoc?: DesignDocument) {
   }, [])
 
   const mutate = useCallback(
-    (next: DesignDocument) => {
-      pastRef.current = [docRef.current, ...pastRef.current].slice(0, 100)
+    (next: SystemJson[]) => {
+      pastRef.current = [systemJsonRef.current, ...pastRef.current].slice(
+        0,
+        100,
+      )
       futureRef.current = []
-      applyDoc(next)
+      applySystemJson(updateConnectionPaths(next))
       bumpHistory()
     },
-    [applyDoc, bumpHistory],
+    [applySystemJson, bumpHistory],
   )
 
   const undo = useCallback(() => {
     if (!pastRef.current.length) return
     const [prev, ...rest] = pastRef.current
-    futureRef.current = [docRef.current, ...futureRef.current]
+    futureRef.current = [systemJsonRef.current, ...futureRef.current]
     pastRef.current = rest
-    applyDoc(prev)
+    applySystemJson(prev)
     applySelection(null)
     bumpHistory()
-  }, [applyDoc, applySelection, bumpHistory])
+  }, [applySystemJson, applySelection, bumpHistory])
 
   const redo = useCallback(() => {
     if (!futureRef.current.length) return
     const [next, ...rest] = futureRef.current
-    pastRef.current = [docRef.current, ...pastRef.current]
+    pastRef.current = [systemJsonRef.current, ...pastRef.current]
     futureRef.current = rest
-    applyDoc(next)
+    applySystemJson(next)
     applySelection(null)
     bumpHistory()
-  }, [applyDoc, applySelection, bumpHistory])
+  }, [applySystemJson, applySelection, bumpHistory])
 
   useEffect(() => {
     editingRef.current = editing
@@ -128,50 +424,85 @@ export function useDesignCanvasController(initialDoc?: DesignDocument) {
     }
   }, [])
 
+  const normalized = useMemo(
+    () => normalizeSystemJson(systemJson),
+    [systemJson],
+  )
   const blockMap = useMemo(
-    () => new Map(doc.blocks.map((block) => [block.id, block])),
-    [doc.blocks],
+    () =>
+      new Map(normalized.blocks.map((block) => [block.system_block_id, block])),
+    [normalized.blocks],
+  )
+  const portMap = useMemo(
+    () => new Map(normalized.ports.map((port) => [port.system_port_id, port])),
+    [normalized.ports],
   )
   const connected = useMemo(() => {
     const set = new Set<string>()
-    for (const wire of doc.wires) {
-      set.add(wire.from.blockId)
-      set.add(wire.to.blockId)
+    for (const connection of normalized.connections) {
+      const sourcePort = connection.source_system_port_id
+        ? portMap.get(connection.source_system_port_id)
+        : undefined
+      const targetPort = connection.target_system_port_id
+        ? portMap.get(connection.target_system_port_id)
+        : undefined
+      if (sourcePort) set.add(sourcePort.system_block_id)
+      if (targetPort) set.add(targetPort.system_block_id)
     }
     return set
-  }, [doc.wires])
+  }, [normalized.connections, portMap])
 
   const warnings = useMemo(
-    () => doc.blocks.filter((block) => !connected.has(block.id)).length,
-    [doc.blocks, connected],
+    () =>
+      normalized.blocks.filter((block) => !connected.has(block.system_block_id))
+        .length,
+    [normalized.blocks, connected],
   )
   const errors = useMemo(() => {
     let count = 0
-    for (const block of doc.blocks) {
-      if (block.ports.B.includes("SUPPLY")) {
-        const hasSupply = doc.wires.some(
-          (wire) =>
-            (wire.from.blockId === block.id && wire.from.side === "B") ||
-            (wire.to.blockId === block.id && wire.to.side === "B"),
+    for (const block of normalized.blocks) {
+      const supplyPorts = normalized.ports.filter(
+        (port) =>
+          port.system_block_id === block.system_block_id &&
+          port.side_of_block === "bottom" &&
+          port.label === "SUPPLY",
+      )
+      for (const port of supplyPorts) {
+        const hasSupply = normalized.connections.some(
+          (connection) =>
+            connection.source_system_port_id === port.system_port_id ||
+            connection.target_system_port_id === port.system_port_id,
         )
         if (!hasSupply) count += 1
       }
     }
     return count
-  }, [doc])
+  }, [normalized])
 
   const addBlockAt = useCallback(
     (type: string, cx: number, cy: number) => {
-      const currentDoc = docRef.current
-      const id = nextId("b")
-      const block = makeBlock(
-        type,
-        cx - 64,
-        cy - 52,
-        id,
-        nextBlockNum(currentDoc.blocks),
+      const currentSystemJson = systemJsonRef.current
+      const diagram = currentSystemJson.find(
+        (item) => item.type === "system_diagram",
       )
-      mutate({ ...currentDoc, blocks: [...currentDoc.blocks, block] })
+      const system_diagram_id = diagram?.system_diagram_id ?? "system_diagram_0"
+      const id = nextId("b")
+      const item = findLibraryItem(type)
+      const width = item?.w ?? 128
+      const height = item?.h ?? 104
+      const block: SystemBlock = {
+        type: "system_block",
+        system_diagram_id,
+        system_block_id: id,
+        center: { x: cx, y: cy },
+        size: { width, height },
+        label: type,
+        category: [type],
+        icon: item?.icon ?? "chip",
+      }
+      const ports = createSystemPortsForBlock(system_diagram_id, id, type)
+
+      mutate([...currentSystemJson, block, ...ports])
       applySelection({ kind: "block", id })
     },
     [mutate, applySelection],
@@ -211,23 +542,28 @@ export function useDesignCanvasController(initialDoc?: DesignDocument) {
           nextY = Math.round(nextY / 22) * 22
         }
         interaction.moved = true
-        const currentDoc = docRef.current
-        applyDoc({
-          ...currentDoc,
-          blocks: currentDoc.blocks.map((block) =>
-            block.id === interaction.id
-              ? { ...block, x: nextX, y: nextY }
-              : block,
+        applySystemJson(
+          systemJsonRef.current.map((item) =>
+            item.type === "system_block" &&
+            item.system_block_id === interaction.id
+              ? {
+                  ...item,
+                  center: {
+                    x: nextX + item.size.width / 2,
+                    y: nextY + item.size.height / 2,
+                  },
+                }
+              : item,
           ),
-        })
+        )
       } else if (interaction.type === "wire") {
         setTempWire({
-          from: interaction.from,
+          fromSystemPortId: interaction.fromSystemPortId,
           to: clientToCanvas(event.clientX, event.clientY),
         })
       }
     },
-    [applyView, applyDoc, clientToCanvas],
+    [applyView, applySystemJson, clientToCanvas],
   )
 
   const onUp = useCallback(
@@ -244,53 +580,75 @@ export function useDesignCanvasController(initialDoc?: DesignDocument) {
         const element = document.elementFromPoint(event.clientX, event.clientY)
         const portElement =
           element instanceof Element ? element.closest("[data-port]") : null
-        if (portElement) {
-          const to = JSON.parse(
-            portElement.getAttribute("data-port")!,
-          ) as PortRef
-          if (to.blockId !== interaction.from.blockId) {
-            const currentDoc = docRef.current
-            const fromBlock = currentDoc.blocks.find(
-              (block) => block.id === interaction.from.blockId,
+        const targetPortId = portElement?.getAttribute("data-port")
+        if (targetPortId && targetPortId !== interaction.fromSystemPortId) {
+          const currentSystemJson = systemJsonRef.current
+          const current = normalizeSystemJson(currentSystemJson)
+          const sourcePort = current.ports.find(
+            (port) => port.system_port_id === interaction.fromSystemPortId,
+          )
+          const targetPort = current.ports.find(
+            (port) => port.system_port_id === targetPortId,
+          )
+
+          if (
+            sourcePort &&
+            targetPort &&
+            sourcePort.system_block_id !== targetPort.system_block_id
+          ) {
+            const duplicate = current.connections.some(
+              (connection) =>
+                connection.source_system_port_id ===
+                  interaction.fromSystemPortId &&
+                connection.target_system_port_id === targetPortId,
             )
-            const label =
-              fromBlock?.ports[interaction.from.side][interaction.from.idx] ??
-              "NET"
-            const duplicate = currentDoc.wires.some(
-              (wire) =>
-                wire.from.blockId === interaction.from.blockId &&
-                wire.from.side === interaction.from.side &&
-                wire.from.idx === interaction.from.idx &&
-                wire.to.blockId === to.blockId &&
-                wire.to.side === to.side &&
-                wire.to.idx === to.idx,
-            )
+
             if (!duplicate) {
-              mutate({
-                ...currentDoc,
-                wires: [
-                  ...currentDoc.wires,
-                  { id: nextId("w"), from: interaction.from, to, label },
-                ],
-              })
+              const sourceBlock = current.blocks.find(
+                (block) => block.system_block_id === sourcePort.system_block_id,
+              )
+              const targetBlock = current.blocks.find(
+                (block) => block.system_block_id === targetPort.system_block_id,
+              )
+
+              if (sourceBlock && targetBlock) {
+                const connection: SystemConnection = {
+                  type: "system_connection",
+                  system_diagram_id: sourcePort.system_diagram_id,
+                  system_connection_id: nextId("w"),
+                  source_system_port_id: interaction.fromSystemPortId,
+                  target_system_port_id: targetPortId,
+                  system_port_ids: [interaction.fromSystemPortId, targetPortId],
+                  path: routeSystemPathPoints(
+                    sourceBlock,
+                    sourcePort,
+                    targetBlock,
+                    targetPort,
+                    current.ports,
+                  ),
+                  label: sourcePort.label ?? "NET",
+                }
+                mutate([...currentSystemJson, connection])
+              }
             }
           }
         }
       } else if (
         interaction.type === "block" &&
         interaction.moved &&
-        dragStartDocRef.current
+        dragStartSystemJsonRef.current
       ) {
-        pastRef.current = [dragStartDocRef.current, ...pastRef.current].slice(
-          0,
-          100,
-        )
+        pastRef.current = [
+          dragStartSystemJsonRef.current,
+          ...pastRef.current,
+        ].slice(0, 100)
         futureRef.current = []
+        applySystemJson(updateConnectionPaths(systemJsonRef.current))
         bumpHistory()
       }
-      dragStartDocRef.current = null
+      dragStartSystemJsonRef.current = null
     },
-    [onMove, mutate, bumpHistory],
+    [onMove, mutate, applySystemJson, bumpHistory],
   )
 
   const beginInteraction = useCallback(() => {
@@ -304,15 +662,15 @@ export function useDesignCanvasController(initialDoc?: DesignDocument) {
       const target = event.target as Element
       const portElement = target.closest("[data-port]")
       if (portElement) {
-        const from = JSON.parse(
-          portElement.getAttribute("data-port")!,
-        ) as PortRef
-        const block = docRef.current.blocks.find(
-          (candidate) => candidate.id === from.blockId,
-        )
-        if (!block) return
-        interactionRef.current = { type: "wire", from }
-        setTempWire({ from, to: portPos(block, from.side, from.idx) })
+        const fromSystemPortId = portElement.getAttribute("data-port")
+        const port = fromSystemPortId ? portMap.get(fromSystemPortId) : null
+        const block = port ? blockMap.get(port.system_block_id) : null
+        if (!fromSystemPortId || !port || !block) return
+        interactionRef.current = { type: "wire", fromSystemPortId }
+        setTempWire({
+          fromSystemPortId,
+          to: getSystemPortPosition(block, port, normalized.ports),
+        })
         beginInteraction()
         return
       }
@@ -320,18 +678,17 @@ export function useDesignCanvasController(initialDoc?: DesignDocument) {
       const blockElement = target.closest(".block")
       if (blockElement) {
         const id = blockElement.getAttribute("data-id")!
-        const block = docRef.current.blocks.find(
-          (candidate) => candidate.id === id,
-        )
+        const block = blockMap.get(id)
         if (!block) return
+        const topLeft = getBlockTopLeft(block)
         applySelection({ kind: "block", id })
         const start = clientToCanvas(event.clientX, event.clientY)
-        dragStartDocRef.current = docRef.current
+        dragStartSystemJsonRef.current = systemJsonRef.current
         interactionRef.current = {
           type: "block",
           id,
-          ox: start.x - block.x,
-          oy: start.y - block.y,
+          ox: start.x - topLeft.x,
+          oy: start.y - topLeft.y,
           moved: false,
         }
         beginInteraction()
@@ -356,7 +713,14 @@ export function useDesignCanvasController(initialDoc?: DesignDocument) {
       if (stageRef.current) stageRef.current.style.cursor = "grabbing"
       beginInteraction()
     },
-    [applySelection, beginInteraction, clientToCanvas],
+    [
+      applySelection,
+      beginInteraction,
+      blockMap,
+      clientToCanvas,
+      normalized.ports,
+      portMap,
+    ],
   )
 
   const onSvgDoubleClick = useCallback(
@@ -365,22 +729,22 @@ export function useDesignCanvasController(initialDoc?: DesignDocument) {
       const labelHit = target.closest("[data-label-wid]")
       if (labelHit) {
         const id = labelHit.getAttribute("data-label-wid")!
-        const wire = docRef.current.wires.find(
-          (candidate) => candidate.id === id,
+        const connection = normalizeSystemJson(
+          systemJsonRef.current,
+        ).connections.find((candidate) => candidate.system_connection_id === id)
+        if (!connection) return
+        const current = normalizeSystemJson(systemJsonRef.current)
+        const currentBlockMap = new Map(
+          current.blocks.map((block) => [block.system_block_id, block]),
         )
-        if (!wire) return
-        const source = docRef.current.blocks.find(
-          (block) => block.id === wire.from.blockId,
+        const currentPortMap = new Map(
+          current.ports.map((port) => [port.system_port_id, port]),
         )
-        const targetBlock = docRef.current.blocks.find(
-          (block) => block.id === wire.to.blockId,
-        )
-        if (!source || !targetBlock) return
-        const { mid } = routePath(
-          portPos(source, wire.from.side, wire.from.idx),
-          DIR[wire.from.side],
-          portPos(targetBlock, wire.to.side, wire.to.idx),
-          DIR[wire.to.side],
+        const { mid } = systemConnectionToSvgPath(
+          connection,
+          currentBlockMap,
+          currentPortMap,
+          current.ports,
         )
         setEditing({
           kind: "wire",
@@ -388,7 +752,7 @@ export function useDesignCanvasController(initialDoc?: DesignDocument) {
           cx: mid.x,
           cy: mid.y,
           w: 70,
-          value: wire.label,
+          value: connection.label ?? "",
         })
         return
       }
@@ -396,44 +760,45 @@ export function useDesignCanvasController(initialDoc?: DesignDocument) {
       const blockElement = target.closest(".block")
       if (blockElement) {
         const id = blockElement.getAttribute("data-id")!
-        const block = docRef.current.blocks.find(
-          (candidate) => candidate.id === id,
-        )
+        const block = blockMap.get(id)
         if (!block) return
         setEditing({
           kind: "block",
           id,
-          cx: block.x + block.w / 2,
-          cy: block.y + block.h - 13,
-          w: block.w - 16,
-          value: block.type,
+          cx: block.center.x,
+          cy: block.center.y + block.size.height / 2 - 13,
+          w: block.size.width - 16,
+          value: block.label ?? "",
         })
       }
     },
-    [],
+    [blockMap],
   )
 
   const commitEdit = useCallback(() => {
     const edit = editingRef.current
     if (!edit) return
     const value = edit.value.trim()
-    const currentDoc = docRef.current
+    const currentSystemJson = systemJsonRef.current
     if (edit.kind === "block") {
       if (value) {
-        mutate({
-          ...currentDoc,
-          blocks: currentDoc.blocks.map((block) =>
-            block.id === edit.id ? { ...block, type: value } : block,
+        mutate(
+          currentSystemJson.map((item) =>
+            item.type === "system_block" && item.system_block_id === edit.id
+              ? { ...item, label: value }
+              : item,
           ),
-        })
+        )
       }
     } else {
-      mutate({
-        ...currentDoc,
-        wires: currentDoc.wires.map((wire) =>
-          wire.id === edit.id ? { ...wire, label: value } : wire,
+      mutate(
+        currentSystemJson.map((item) =>
+          item.type === "system_connection" &&
+          item.system_connection_id === edit.id
+            ? { ...item, label: value }
+            : item,
         ),
-      })
+      )
     }
     setEditing(null)
   }, [mutate])
@@ -461,8 +826,8 @@ export function useDesignCanvasController(initialDoc?: DesignDocument) {
   )
 
   const fitView = useCallback(() => {
-    const currentDoc = docRef.current
-    if (!currentDoc.blocks.length) {
+    const currentBlocks = normalizeSystemJson(systemJsonRef.current).blocks
+    if (!currentBlocks.length) {
       applyView({ pan: { x: 120, y: 70 }, zoom: 0.72 })
       return
     }
@@ -471,11 +836,12 @@ export function useDesignCanvasController(initialDoc?: DesignDocument) {
     let minY = Infinity
     let maxX = -Infinity
     let maxY = -Infinity
-    for (const block of currentDoc.blocks) {
-      minX = Math.min(minX, block.x)
-      minY = Math.min(minY, block.y)
-      maxX = Math.max(maxX, block.x + block.w)
-      maxY = Math.max(maxY, block.y + block.h)
+    for (const block of currentBlocks) {
+      const topLeft = getBlockTopLeft(block)
+      minX = Math.min(minX, topLeft.x)
+      minY = Math.min(minY, topLeft.y)
+      maxX = Math.max(maxX, topLeft.x + block.size.width)
+      maxY = Math.max(maxY, topLeft.y + block.size.height)
     }
 
     const padding = 80
@@ -540,23 +906,44 @@ export function useDesignCanvasController(initialDoc?: DesignDocument) {
       }
       if ((event.key === "Delete" || event.key === "Backspace") && selected) {
         event.preventDefault()
-        const currentDoc = docRef.current
+        const currentSystemJson = systemJsonRef.current
         if (selected.kind === "block") {
-          mutate({
-            blocks: currentDoc.blocks.filter(
-              (block) => block.id !== selected.id,
-            ),
-            wires: currentDoc.wires.filter(
-              (wire) =>
-                wire.from.blockId !== selected.id &&
-                wire.to.blockId !== selected.id,
-            ),
-          })
+          const current = normalizeSystemJson(currentSystemJson)
+          const selectedPortIds = new Set(
+            current.ports
+              .filter((port) => port.system_block_id === selected.id)
+              .map((port) => port.system_port_id),
+          )
+          mutate(
+            currentSystemJson.filter((item) => {
+              if (
+                item.type === "system_block" &&
+                item.system_block_id === selected.id
+              ) {
+                return false
+              }
+              if (
+                item.type === "system_port" &&
+                item.system_block_id === selected.id
+              ) {
+                return false
+              }
+              if (item.type === "system_connection") {
+                return !item.system_port_ids?.some((portId) =>
+                  selectedPortIds.has(portId),
+                )
+              }
+              return true
+            }),
+          )
         } else {
-          mutate({
-            ...currentDoc,
-            wires: currentDoc.wires.filter((wire) => wire.id !== selected.id),
-          })
+          mutate(
+            currentSystemJson.filter(
+              (item) =>
+                item.type !== "system_connection" ||
+                item.system_connection_id !== selected.id,
+            ),
+          )
         }
         applySelection(null)
       }
@@ -589,15 +976,16 @@ export function useDesignCanvasController(initialDoc?: DesignDocument) {
 
   const tempPath = useMemo(() => {
     if (!tempWire) return null
-    const block = blockMap.get(tempWire.from.blockId)
-    if (!block) return null
-    const point = portPos(block, tempWire.from.side, tempWire.from.idx)
-    const direction = DIR[tempWire.from.side]
+    const port = portMap.get(tempWire.fromSystemPortId)
+    const block = port ? blockMap.get(port.system_block_id) : null
+    if (!port || !block) return null
+    const point = getSystemPortPosition(block, port, normalized.ports)
+    const direction = SYSTEM_DIR[port.side_of_block]
     return routePath(point, direction, tempWire.to, {
       x: -direction.x || 1,
       y: 0,
     }).d
-  }, [tempWire, blockMap])
+  }, [tempWire, blockMap, normalized.ports, portMap])
 
   const editWrapper = editing ? canvasToWrapper(editing.cx, editing.cy) : null
   void histVersion
@@ -607,11 +995,12 @@ export function useDesignCanvasController(initialDoc?: DesignDocument) {
     addBlockAt,
     addBlockCentered,
     blockMap,
+    blocks: normalized.blocks,
     categories,
     collapsed,
     commitEdit,
     connected,
-    doc,
+    connections: normalized.connections,
     dropActive,
     editWrapper,
     editing,
@@ -624,6 +1013,8 @@ export function useDesignCanvasController(initialDoc?: DesignDocument) {
     onSvgPointerDown,
     onToggleCategory,
     pastRef,
+    portMap,
+    ports: normalized.ports,
     redo,
     search,
     selection,
@@ -634,6 +1025,7 @@ export function useDesignCanvasController(initialDoc?: DesignDocument) {
     setSearch,
     stageRef,
     svgRef,
+    systemJson,
     tempPath,
     undo,
     view,

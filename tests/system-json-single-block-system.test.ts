@@ -1,5 +1,4 @@
 import { expect, test } from "bun:test"
-import "bun-match-svg"
 import type { SystemJson } from "../lib/system-json/system-json"
 import { systemJsonToSvgSnapshot } from "./fixtures/system-json-to-svg-snapshot"
 

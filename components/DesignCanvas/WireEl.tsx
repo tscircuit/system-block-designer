@@ -1,27 +1,43 @@
-import { DIR, portPos, routePath } from "../../lib/design-system/geometry"
-import type { DesignBlock, DesignWire } from "../../lib/design-system/types"
+import type {
+  SystemBlock,
+  SystemConnection,
+  SystemPort,
+} from "../../lib/system-json/system-json"
+import { systemConnectionToSvgPath } from "./useDesignCanvasController"
 
 interface WireElProps {
-  wire: DesignWire
-  blocks: Map<string, DesignBlock>
+  connection: SystemConnection
+  blocks: Map<string, SystemBlock>
+  ports: SystemPort[]
+  portMap: Map<string, SystemPort>
   selected: boolean
 }
 
-export function WireEl({ wire, blocks, selected }: WireElProps) {
-  const source = blocks.get(wire.from.blockId)
-  const target = blocks.get(wire.to.blockId)
-  if (!source || !target) return null
-
-  const p1 = portPos(source, wire.from.side, wire.from.idx)
-  const p2 = portPos(target, wire.to.side, wire.to.idx)
-  const { d, mid } = routePath(p1, DIR[wire.from.side], p2, DIR[wire.to.side])
-  const labelWidth = wire.label.length * 6.6 + 14
+export function WireEl({
+  connection,
+  blocks,
+  ports,
+  portMap,
+  selected,
+}: WireElProps) {
+  const { d, mid } = systemConnectionToSvgPath(
+    connection,
+    blocks,
+    portMap,
+    ports,
+  )
+  const label = connection.label ?? ""
+  const labelWidth = label.length * 6.6 + 14
 
   return (
     <g>
-      <path className="wire-hit" d={d} data-wid={wire.id} />
+      <path
+        className="wire-hit"
+        d={d}
+        data-wid={connection.system_connection_id}
+      />
       <path className={`wire${selected ? " sel" : ""}`} d={d} />
-      {wire.label && (
+      {label && (
         <>
           <rect
             className="wlabel-bg"
@@ -32,7 +48,7 @@ export function WireEl({ wire, blocks, selected }: WireElProps) {
             rx={5}
           />
           <text className="wlabel-t" x={mid.x} y={mid.y + 0.5}>
-            {wire.label}
+            {label}
           </text>
           <rect
             className="wlabel-hit"
@@ -40,7 +56,7 @@ export function WireEl({ wire, blocks, selected }: WireElProps) {
             y={mid.y - 9}
             width={labelWidth}
             height={18}
-            data-label-wid={wire.id}
+            data-label-wid={connection.system_connection_id}
           />
         </>
       )}

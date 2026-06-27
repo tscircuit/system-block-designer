@@ -1,37 +1,55 @@
-import { SIDES, portPos } from "../../lib/design-system/geometry"
 import { BlockIcon } from "../../lib/design-system/icons"
-import type { DesignBlock } from "../../lib/design-system/types"
+import type { SystemBlock, SystemPort } from "../../lib/system-json/system-json"
+import { getSystemPortPosition } from "./useDesignCanvasController"
 
 interface BlockNodeProps {
-  block: DesignBlock
+  block: SystemBlock
+  blockNumber: number
+  ports: SystemPort[]
   selected: boolean
   connected: boolean
 }
 
-export function BlockNode({ block, selected, connected }: BlockNodeProps) {
-  const iconSize = Math.min(46, block.h * 0.4)
+export function BlockNode({
+  block,
+  blockNumber,
+  ports,
+  selected,
+  connected,
+}: BlockNodeProps) {
+  const x = block.center.x - block.size.width / 2
+  const y = block.center.y - block.size.height / 2
+  const iconSize = Math.min(46, block.size.height * 0.4)
+  const blockPorts = ports.filter(
+    (port) => port.system_block_id === block.system_block_id,
+  )
 
   return (
     <g
       className={`block${selected ? " sel" : ""}`}
-      data-id={block.id}
-      transform={`translate(${block.x},${block.y})`}
+      data-id={block.system_block_id}
+      transform={`translate(${x},${y})`}
     >
-      <rect className="block-rect" width={block.w} height={block.h} rx={14} />
+      <rect
+        className="block-rect"
+        width={block.size.width}
+        height={block.size.height}
+        rx={14}
+      />
       <rect className="numbadge" x={9} y={9} width={22} height={18} rx={5} />
       <text className="numbadge-t" x={20} y={22}>
-        {block.num}
+        {blockNumber}
       </text>
       <circle
         className="status-dot"
-        cx={block.w - 15}
+        cx={block.size.width - 15}
         cy={18}
         r={7}
         fill={connected ? "var(--ok)" : "#cbd2db"}
       />
       {connected && (
         <path
-          d={`M ${block.w - 18} 18 l 2 2 l 3.5 -4`}
+          d={`M ${block.size.width - 18} 18 l 2 2 l 3.5 -4`}
           stroke="#fff"
           strokeWidth={1.6}
           fill="none"
@@ -40,41 +58,42 @@ export function BlockNode({ block, selected, connected }: BlockNodeProps) {
         />
       )}
       <BlockIcon
-        name={block.icon}
-        x={(block.w - iconSize) / 2}
-        y={(block.h - iconSize) / 2 - 7}
+        name={block.icon ?? "chip"}
+        x={(block.size.width - iconSize) / 2}
+        y={(block.size.height - iconSize) / 2 - 7}
         size={iconSize}
         style={{ color: "var(--ink)" }}
       />
-      <text className="block-label" x={block.w / 2} y={block.h - 13}>
-        {block.type}
+      <text
+        className="block-label"
+        x={block.size.width / 2}
+        y={block.size.height - 13}
+      >
+        {block.label ?? block.system_block_id}
       </text>
-      {SIDES.flatMap((side) =>
-        block.ports[side].map((_, index) => {
-          const position = portPos(block, side, index)
-          const localX = position.x - block.x
-          const localY = position.y - block.y
-          const ref = JSON.stringify({ blockId: block.id, side, idx: index })
-          return (
-            <g key={`${side}-${index}`}>
-              <circle
-                className="port-hit"
-                cx={localX}
-                cy={localY}
-                r={11}
-                data-port={ref}
-              />
-              <circle
-                className="port"
-                cx={localX}
-                cy={localY}
-                r={4.5}
-                data-port={ref}
-              />
-            </g>
-          )
-        }),
-      )}
+      {blockPorts.map((port) => {
+        const position = getSystemPortPosition(block, port, ports)
+        const localX = position.x - x
+        const localY = position.y - y
+        return (
+          <g key={port.system_port_id}>
+            <circle
+              className="port-hit"
+              cx={localX}
+              cy={localY}
+              r={11}
+              data-port={port.system_port_id}
+            />
+            <circle
+              className="port"
+              cx={localX}
+              cy={localY}
+              r={4.5}
+              data-port={port.system_port_id}
+            />
+          </g>
+        )
+      })}
     </g>
   )
 }

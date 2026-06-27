@@ -1,4 +1,4 @@
-import type { DesignDocument } from "../../lib/design-system/types"
+import type { SystemJson } from "../../lib/system-json/system-json"
 
 export type Selection =
   | { kind: "block"; id: string }
@@ -26,7 +26,7 @@ export type Editing =
 
 export interface DesignCanvasProps {
   projectTitle?: string
-  initialDoc?: DesignDocument
+  initialSystemJson?: SystemJson[]
 }
 
 export interface CanvasView {

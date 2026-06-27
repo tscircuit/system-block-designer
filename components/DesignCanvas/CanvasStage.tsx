@@ -1,14 +1,21 @@
 import type { RefObject } from "react"
-import type { DesignBlock, DesignDocument } from "../../lib/design-system/types"
+import type {
+  SystemBlock,
+  SystemConnection,
+  SystemPort,
+} from "../../lib/system-json/system-json"
 import { BlockNode } from "./BlockNode"
 import type { CanvasView, Editing, Selection } from "./DesignCanvas.types"
 import { WireEl } from "./WireEl"
 
 interface CanvasStageProps {
-  doc: DesignDocument
+  blocks: SystemBlock[]
+  ports: SystemPort[]
+  connections: SystemConnection[]
   view: CanvasView
   selection: Selection
-  blockMap: Map<string, DesignBlock>
+  blockMap: Map<string, SystemBlock>
+  portMap: Map<string, SystemPort>
   connected: Set<string>
   collapsed: boolean
   dropActive: boolean
@@ -29,10 +36,13 @@ interface CanvasStageProps {
 }
 
 export function CanvasStage({
-  doc,
+  blocks,
+  ports,
+  connections,
   view,
   selection,
   blockMap,
+  portMap,
   connected,
   collapsed,
   dropActive,
@@ -115,33 +125,39 @@ export function CanvasStage({
             transform={`translate(${view.pan.x},${view.pan.y}) scale(${view.zoom})`}
           >
             <g>
-              {doc.wires.map((wire) => (
+              {connections.map((connection) => (
                 <WireEl
-                  key={wire.id}
-                  wire={wire}
+                  key={connection.system_connection_id}
+                  connection={connection}
                   blocks={blockMap}
+                  ports={ports}
+                  portMap={portMap}
                   selected={
-                    selection?.kind === "wire" && selection.id === wire.id
+                    selection?.kind === "wire" &&
+                    selection.id === connection.system_connection_id
                   }
                 />
               ))}
             </g>
             {tempPath && <path className="wire wire-temp" d={tempPath} />}
             <g>
-              {doc.blocks.map((block) => (
+              {blocks.map((block, index) => (
                 <BlockNode
-                  key={block.id}
+                  key={block.system_block_id}
                   block={block}
+                  blockNumber={index + 1}
+                  ports={ports}
                   selected={
-                    selection?.kind === "block" && selection.id === block.id
+                    selection?.kind === "block" &&
+                    selection.id === block.system_block_id
                   }
-                  connected={connected.has(block.id)}
+                  connected={connected.has(block.system_block_id)}
                 />
               ))}
             </g>
           </g>
         </svg>
-        {doc.blocks.length === 0 && (
+        {blocks.length === 0 && (
           <div className="hint">
             <div className="big">Drag a component from the library</div>
             <div className="sm">
