@@ -3,9 +3,9 @@ import type {
   SystemConnection,
   SystemPort,
 } from "../../lib/system-json/system-json"
-import { systemConnectionToSvgPath } from "./useDesignCanvasController"
+import { systemConnectionToSvgPath } from "./systemJsonCanvas"
 
-interface WireElProps {
+interface ConnectionElProps {
   connection: SystemConnection
   blocks: Map<string, SystemBlock>
   ports: SystemPort[]
@@ -13,13 +13,13 @@ interface WireElProps {
   selected: boolean
 }
 
-export function WireEl({
+export function ConnectionEl({
   connection,
   blocks,
   ports,
   portMap,
   selected,
-}: WireElProps) {
+}: ConnectionElProps) {
   const { d, mid } = systemConnectionToSvgPath(
     connection,
     blocks,
@@ -32,31 +32,31 @@ export function WireEl({
   return (
     <g>
       <path
-        className="wire-hit"
+        className="connection-hit"
         d={d}
-        data-wid={connection.system_connection_id}
+        data-connection-id={connection.system_connection_id}
       />
-      <path className={`wire${selected ? " sel" : ""}`} d={d} />
+      <path className={`connection${selected ? " sel" : ""}`} d={d} />
       {label && (
         <>
           <rect
-            className="wlabel-bg"
+            className="connection-label-bg"
             x={mid.x - labelWidth / 2}
             y={mid.y - 9}
             width={labelWidth}
             height={18}
             rx={5}
           />
-          <text className="wlabel-t" x={mid.x} y={mid.y + 0.5}>
+          <text className="connection-label-text" x={mid.x} y={mid.y + 0.5}>
             {label}
           </text>
           <rect
-            className="wlabel-hit"
+            className="connection-label-hit"
             x={mid.x - labelWidth / 2}
             y={mid.y - 9}
             width={labelWidth}
             height={18}
-            data-label-wid={connection.system_connection_id}
+            data-label-connection-id={connection.system_connection_id}
           />
         </>
       )}
