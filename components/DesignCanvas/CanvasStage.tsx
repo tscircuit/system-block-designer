@@ -5,7 +5,12 @@ import type {
   SystemPort,
 } from "../../lib/system-json/system-json"
 import { BlockNode } from "./BlockNode"
-import type { CanvasView, Editing, Selection } from "./DesignCanvas.types"
+import type {
+  BlockContextMenu,
+  CanvasView,
+  Editing,
+  Selection,
+} from "./DesignCanvas.types"
 import { ConnectionEl } from "./ConnectionEl"
 
 interface CanvasStageProps {
@@ -21,6 +26,7 @@ interface CanvasStageProps {
   dropActive: boolean
   tempPath: string | null
   editing: Editing
+  contextMenu: BlockContextMenu
   editWrapper: { x: number; y: number } | null
   svgRef: RefObject<SVGSVGElement | null>
   stageRef: RefObject<HTMLElement | null>
@@ -29,7 +35,10 @@ interface CanvasStageProps {
   onDragLeave: (event: React.DragEvent<HTMLElement>) => void
   onDrop: (event: React.DragEvent<HTMLElement>) => void
   onSvgPointerDown: (event: React.PointerEvent<SVGSVGElement>) => void
+  onSvgContextMenu: (event: React.MouseEvent<SVGSVGElement>) => void
   onSvgDoubleClick: (event: React.MouseEvent<SVGSVGElement>) => void
+  onDuplicateBlock: (blockId: string) => void
+  onDeleteBlock: (blockId: string) => void
   onEditChange: (editing: Editing) => void
   onCommitEdit: () => void
   onCancelEdit: () => void
@@ -48,6 +57,7 @@ export function CanvasStage({
   dropActive,
   tempPath,
   editing,
+  contextMenu,
   editWrapper,
   svgRef,
   stageRef,
@@ -56,7 +66,10 @@ export function CanvasStage({
   onDragLeave,
   onDrop,
   onSvgPointerDown,
+  onSvgContextMenu,
   onSvgDoubleClick,
+  onDuplicateBlock,
+  onDeleteBlock,
   onEditChange,
   onCommitEdit,
   onCancelEdit,
@@ -93,6 +106,7 @@ export function CanvasStage({
           ref={svgRef}
           xmlns="http://www.w3.org/2000/svg"
           onPointerDown={onSvgPointerDown}
+          onContextMenu={onSvgContextMenu}
           onDoubleClick={onSvgDoubleClick}
         >
           <defs>
@@ -187,6 +201,44 @@ export function CanvasStage({
               if (event.key === "Escape") onCancelEdit()
             }}
           />
+        )}
+        {contextMenu && (
+          <ul
+            data-testid="context-menu-container"
+            className="block-context-menu"
+            style={{ left: contextMenu.x, top: contextMenu.y }}
+            onMouseDown={(event) => event.stopPropagation()}
+            onContextMenu={(event) => event.preventDefault()}
+          >
+            <li
+              aria-disabled="false"
+              className="block-context-menu-item"
+              data-test-id="context-menu-item-clone-element"
+              id="context-menu-item-clone-element"
+              onClick={() => onDuplicateBlock(contextMenu.blockId)}
+            >
+              <span data-testid="ellipsis-text-Duplicate">Duplicate</span>
+            </li>
+            <li
+              aria-disabled="false"
+              className="block-context-menu-item"
+              data-test-id="context-menu-item-delete-element"
+              id="context-menu-item-delete-element"
+              onClick={() => onDeleteBlock(contextMenu.blockId)}
+            >
+              <span data-testid="ellipsis-text-Delete">Delete</span>
+            </li>
+            <li
+              aria-disabled="true"
+              className="block-context-menu-item disabled"
+              data-test-id="context-menu-item-show-specs"
+              id="context-menu-item-show-specs"
+            >
+              <span data-testid="ellipsis-text-Manage settings">
+                Manage settings
+              </span>
+            </li>
+          </ul>
         )}
       </section>
     </>

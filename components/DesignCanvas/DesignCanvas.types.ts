@@ -1,4 +1,5 @@
 import type { SystemJson } from "../../lib/system-json/system-json"
+import type { ReactNode } from "react"
 
 export type Selection =
   | { kind: "block"; id: string }
@@ -24,9 +25,20 @@ export type Editing =
     }
   | null
 
+export type BlockContextMenu = {
+  blockId: string
+  x: number
+  y: number
+} | null
+
 export interface DesignCanvasProps {
   projectTitle?: string
   initialSystemJson?: SystemJson[]
+  debugOptions?: {
+    showSystemJsonDownload?: boolean
+    systemJsonDownloadFilename?: string
+  }
+  topBarActions?: ReactNode
 }
 
 export interface CanvasView {

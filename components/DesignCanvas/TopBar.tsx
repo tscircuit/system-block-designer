@@ -1,3 +1,5 @@
+import type { ReactNode } from "react"
+
 interface TopBarProps {
   projectTitle: string
   activeTab: string
@@ -8,6 +10,7 @@ interface TopBarProps {
   canRedo: boolean
   onUndo: () => void
   onRedo: () => void
+  actions?: ReactNode
 }
 
 export function TopBar({
@@ -20,6 +23,7 @@ export function TopBar({
   canRedo,
   onUndo,
   onRedo,
+  actions,
 }: TopBarProps) {
   return (
     <header className="topbar">
@@ -127,6 +131,7 @@ export function TopBar({
         ))}
       </nav>
       <div className="right">
+        {actions}
         <button className="pill">Share</button>
         <button className="pill">Settings</button>
         <div className="avatar">SE</div>

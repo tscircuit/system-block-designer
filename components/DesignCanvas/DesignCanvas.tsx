@@ -11,8 +11,26 @@ import { useDesignCanvasController } from "./useDesignCanvasController"
 export function DesignCanvas({
   projectTitle = "System Block Designer",
   initialSystemJson,
+  debugOptions,
+  topBarActions,
 }: DesignCanvasProps) {
   const canvas = useDesignCanvasController(initialSystemJson)
+
+  const showSystemJsonDownload = debugOptions?.showSystemJsonDownload ?? false
+  const downloadSystemJson = () => {
+    const blob = new Blob([JSON.stringify(canvas.systemJson, null, 2)], {
+      type: "application/json",
+    })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download =
+      debugOptions?.systemJsonDownloadFilename ?? "system-diagram.json"
+    document.body.append(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  }
 
   return (
     <div className="app">
@@ -26,6 +44,20 @@ export function DesignCanvas({
         canRedo={canvas.futureRef.current.length > 0}
         onUndo={canvas.undo}
         onRedo={canvas.redo}
+        actions={
+          <>
+            {showSystemJsonDownload && (
+              <button
+                className="pill"
+                type="button"
+                onClick={downloadSystemJson}
+              >
+                Download System JSON
+              </button>
+            )}
+            {topBarActions}
+          </>
+        }
       />
       {canvas.activeTab === "bom" ? (
         <BomView />
@@ -56,6 +88,7 @@ export function DesignCanvas({
               dropActive={canvas.dropActive}
               tempPath={canvas.tempPath}
               editing={canvas.editing}
+              contextMenu={canvas.contextMenu}
               editWrapper={canvas.editWrapper}
               svgRef={canvas.svgRef}
               stageRef={canvas.stageRef}
@@ -83,7 +116,10 @@ export function DesignCanvas({
                 canvas.addBlockAt(type, point.x, point.y)
               }}
               onSvgPointerDown={canvas.onSvgPointerDown}
+              onSvgContextMenu={canvas.onSvgContextMenu}
               onSvgDoubleClick={canvas.onSvgDoubleClick}
+              onDuplicateBlock={canvas.duplicateBlock}
+              onDeleteBlock={canvas.deleteBlock}
               onEditChange={canvas.setEditing}
               onCommitEdit={canvas.commitEdit}
               onCancelEdit={() => canvas.setEditing(null)}

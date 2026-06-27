@@ -7,9 +7,15 @@ import type {
   SystemBlock,
   SystemConnection,
   SystemJson,
+  SystemPort,
 } from "../../lib/system-json/system-json"
 import { SystemJsonArray } from "../../lib/system-json/system-json"
-import type { CanvasView, Editing, Selection } from "./DesignCanvas.types"
+import type {
+  BlockContextMenu,
+  CanvasView,
+  Editing,
+  Selection,
+} from "./DesignCanvas.types"
 import {
   createEmptySystemJson,
   createSystemPortsForBlock,
@@ -67,6 +73,7 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
   const [activeTab, setActiveTab] = useState("canvas")
   const [resolving, setResolving] = useState(false)
   const [editing, setEditing] = useState<Editing>(null)
+  const [contextMenu, setContextMenu] = useState<BlockContextMenu>(null)
   const [tempConnection, setTempConnection] = useState<{
     fromSystemPortId: string
     to: Point
@@ -383,6 +390,8 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
 
   const onSvgPointerDown = useCallback(
     (event: React.PointerEvent<SVGSVGElement>) => {
+      if (event.button !== 0) return
+      setContextMenu(null)
       if (editingRef.current) return
       const target = event.target as Element
       const portElement = target.closest("[data-port]")
@@ -449,6 +458,30 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
       normalized.ports,
       portMap,
     ],
+  )
+
+  const onSvgContextMenu = useCallback(
+    (event: React.MouseEvent<SVGSVGElement>) => {
+      const target = event.target as Element
+      const blockElement = target.closest(".block")
+      if (!blockElement) {
+        setContextMenu(null)
+        return
+      }
+
+      event.preventDefault()
+      const blockId = blockElement.getAttribute("data-id")
+      const stageRect = stageRef.current?.getBoundingClientRect()
+      if (!blockId || !stageRect) return
+
+      applySelection({ kind: "block", id: blockId })
+      setContextMenu({
+        blockId,
+        x: event.clientX - stageRect.left,
+        y: event.clientY - stageRect.top,
+      })
+    },
+    [applySelection],
   )
 
   const onSvgDoubleClick = useCallback(
@@ -589,6 +622,103 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
     })
   }, [applyView])
 
+  const deleteBlock = useCallback(
+    (blockId: string) => {
+      const currentSystemJson = systemJsonRef.current
+      const current = normalizeSystemJson(currentSystemJson)
+      const selectedPortIds = new Set(
+        current.ports
+          .filter((port) => port.system_block_id === blockId)
+          .map((port) => port.system_port_id),
+      )
+
+      mutate(
+        currentSystemJson.filter((item) => {
+          if (
+            item.type === "system_block" &&
+            item.system_block_id === blockId
+          ) {
+            return false
+          }
+          if (item.type === "system_port" && item.system_block_id === blockId) {
+            return false
+          }
+          if (item.type === "system_connection") {
+            const connectedPortIds = [
+              item.source_system_port_id,
+              item.target_system_port_id,
+              ...(item.system_port_ids ?? []),
+            ].filter((portId): portId is string => Boolean(portId))
+            return !connectedPortIds.some((portId) =>
+              selectedPortIds.has(portId),
+            )
+          }
+          return true
+        }),
+      )
+      applySelection(null)
+      setContextMenu(null)
+    },
+    [applySelection, mutate],
+  )
+
+  const deleteConnection = useCallback(
+    (connectionId: string) => {
+      mutate(
+        systemJsonRef.current.filter(
+          (item) =>
+            item.type !== "system_connection" ||
+            item.system_connection_id !== connectionId,
+        ),
+      )
+      applySelection(null)
+      setContextMenu(null)
+    },
+    [applySelection, mutate],
+  )
+
+  const duplicateBlock = useCallback(
+    (blockId: string) => {
+      const currentSystemJson = systemJsonRef.current
+      const current = normalizeSystemJson(currentSystemJson)
+      const block = current.blocks.find(
+        (candidate) => candidate.system_block_id === blockId,
+      )
+      if (!block) return
+
+      const newBlockId = nextId("b")
+      const duplicate: SystemBlock = {
+        ...block,
+        system_block_id: newBlockId,
+        center: {
+          x: block.center.x + 36,
+          y: block.center.y + 36,
+        },
+      }
+      const sideCounts: Record<SystemPort["side_of_block"], number> = {
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+      }
+      const duplicatePorts: SystemPort[] = current.ports
+        .filter((port) => port.system_block_id === blockId)
+        .map((port) => {
+          const index = sideCounts[port.side_of_block]++
+          return {
+            ...port,
+            system_block_id: newBlockId,
+            system_port_id: `${newBlockId}_${port.side_of_block}_${index}`,
+          }
+        })
+
+      mutate([...currentSystemJson, duplicate, ...duplicatePorts])
+      applySelection({ kind: "block", id: newBlockId })
+      setContextMenu(null)
+    },
+    [applySelection, mutate],
+  )
+
   useEffect(() => {
     const stage = stageRef.current
     if (!stage) return
@@ -634,52 +764,17 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
       }
       if ((event.key === "Delete" || event.key === "Backspace") && selected) {
         event.preventDefault()
-        const currentSystemJson = systemJsonRef.current
-        if (selected.kind === "block") {
-          const current = normalizeSystemJson(currentSystemJson)
-          const selectedPortIds = new Set(
-            current.ports
-              .filter((port) => port.system_block_id === selected.id)
-              .map((port) => port.system_port_id),
-          )
-          mutate(
-            currentSystemJson.filter((item) => {
-              if (
-                item.type === "system_block" &&
-                item.system_block_id === selected.id
-              ) {
-                return false
-              }
-              if (
-                item.type === "system_port" &&
-                item.system_block_id === selected.id
-              ) {
-                return false
-              }
-              if (item.type === "system_connection") {
-                return !item.system_port_ids?.some((portId) =>
-                  selectedPortIds.has(portId),
-                )
-              }
-              return true
-            }),
-          )
-        } else {
-          mutate(
-            currentSystemJson.filter(
-              (item) =>
-                item.type !== "system_connection" ||
-                item.system_connection_id !== selected.id,
-            ),
-          )
-        }
-        applySelection(null)
+        if (selected.kind === "block") deleteBlock(selected.id)
+        else deleteConnection(selected.id)
       }
-      if (event.key === "Escape") applySelection(null)
+      if (event.key === "Escape") {
+        applySelection(null)
+        setContextMenu(null)
+      }
     }
     window.addEventListener("keydown", handler)
     return () => window.removeEventListener("keydown", handler)
-  }, [mutate, applySelection, undo, redo])
+  }, [applySelection, deleteBlock, deleteConnection, undo, redo])
 
   const onToggleCategory = useCallback((name: string) => {
     setCategories((current) =>
@@ -729,7 +824,10 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
     commitEdit,
     connected,
     connections: normalized.connections,
+    contextMenu,
+    deleteBlock,
     dropActive,
+    duplicateBlock,
     editWrapper,
     editing,
     errors,
@@ -737,6 +835,7 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
     futureRef,
     onDragItem,
     onResolve,
+    onSvgContextMenu,
     onSvgDoubleClick,
     onSvgPointerDown,
     onToggleCategory,
@@ -750,6 +849,7 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
     setCollapsed,
     setDropActive,
     setEditing,
+    setContextMenu,
     setSearch,
     stageRef,
     svgRef,
