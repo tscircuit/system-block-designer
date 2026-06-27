@@ -54,10 +54,10 @@ export function routePath(p1: Point, d1: Point, p2: Point, d2: Point) {
   }
 
   points.push(b, p2)
-  return { d: roundPath(points, 9), mid: midOf(points) }
+  return { d: pathPointsToSvgPath(points, 9), mid: midpointOfPath(points) }
 }
 
-function midOf(points: Point[]) {
+export function midpointOfPath(points: Point[]) {
   const segments: number[] = []
   let total = 0
 
@@ -85,7 +85,7 @@ function midOf(points: Point[]) {
   return points[Math.floor(points.length / 2)]
 }
 
-function roundPath(points: Point[], radius: number) {
+export function pathPointsToSvgPath(points: Point[], radius = 9) {
   const filtered = [points[0]]
 
   for (let i = 1; i < points.length; i += 1) {
