@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { routePath } from "../../lib/design-system/geometry"
+import { routeOrthogonalPath } from "../../lib/design-system/routeOrthogonalPath"
 import { LIBRARY, findLibraryItem } from "../../lib/design-system/library"
 import type { LibraryCategory } from "../../lib/design-system/types"
 import type {
@@ -804,7 +804,7 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
     if (!port || !block) return null
     const point = getSystemPortPosition(block, port, normalized.ports)
     const direction = SYSTEM_DIR[port.side_of_block]
-    return routePath(point, direction, tempConnection.to, {
+    return routeOrthogonalPath(point, direction, tempConnection.to, {
       x: -direction.x || 1,
       y: 0,
     }).d

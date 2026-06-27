@@ -1,7 +1,5 @@
-import {
-  midpointOfPath,
-  pathPointsToSvgPath,
-} from "../../lib/design-system/geometry"
+import { midpointOfPath } from "../../lib/design-system/midpointOfPath"
+import { pathPointsToSvgPath } from "../../lib/design-system/pathPointsToSvgPath"
 import type {
   SystemBlock,
   SystemConnection,
