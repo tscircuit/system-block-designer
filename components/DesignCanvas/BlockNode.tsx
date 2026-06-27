@@ -1,6 +1,6 @@
 import { BlockIcon } from "../../lib/design-system/icons"
 import type { SystemBlock, SystemPort } from "../../lib/system-json/system-json"
-import { getSystemPortPosition } from "./useDesignCanvasController"
+import { getSystemPortPosition } from "./systemJsonCanvas"
 
 interface BlockNodeProps {
   block: SystemBlock

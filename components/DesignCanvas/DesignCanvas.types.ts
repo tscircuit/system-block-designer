@@ -2,7 +2,7 @@ import type { SystemJson } from "../../lib/system-json/system-json"
 
 export type Selection =
   | { kind: "block"; id: string }
-  | { kind: "wire"; id: string }
+  | { kind: "connection"; id: string }
   | null
 
 export type Editing =
@@ -15,7 +15,7 @@ export type Editing =
       value: string
     }
   | {
-      kind: "wire"
+      kind: "connection"
       id: string
       cx: number
       cy: number

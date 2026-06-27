@@ -11,8 +11,8 @@
   --line-strong: #cfd6df;
   --block-stroke: #2b3543;
   --block-fill: #ffffff;
-  --wire: #9aa4b0;
-  --wire-sel: #3b82f6;
+  --connection: #9aa4b0;
+  --connection-sel: #3b82f6;
   --accent: #f97316;
   --accent-hover: #ea6a0a;
   --brand: #0d9488;
@@ -508,39 +508,39 @@ body {
   cursor: crosshair;
 }
 
-.wire {
+.connection {
   fill: none;
-  stroke: var(--wire);
+  stroke: var(--connection);
   stroke-width: 2.6;
   stroke-linejoin: round;
   stroke-linecap: round;
 }
 
-.wire-hit {
+.connection-hit {
   fill: none;
   stroke: transparent;
   stroke-width: 16;
   cursor: pointer;
 }
 
-.wire.sel {
-  stroke: var(--wire-sel);
+.connection.sel {
+  stroke: var(--connection-sel);
   stroke-width: 3;
 }
 
-.wire-temp {
+.connection-temp {
   stroke: var(--brand);
   stroke-dasharray: 6 5;
   stroke-width: 2.4;
 }
 
-.wlabel-bg {
+.connection-label-bg {
   fill: #fff;
   stroke: var(--line);
   stroke-width: 1;
 }
 
-.wlabel-t {
+.connection-label-text {
   font: 600 10.5px "JetBrains Mono";
   fill: var(--ink-soft);
   text-anchor: middle;
@@ -549,7 +549,7 @@ body {
   pointer-events: none;
 }
 
-.wlabel-hit {
+.connection-label-hit {
   fill: transparent;
   cursor: pointer;
 }

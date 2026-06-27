@@ -1,11 +1,11 @@
-import { LIBRARY } from "./library"
+import { LIBRARY } from "../../lib/design-system/library"
 import type {
   Point,
   SystemBlock,
   SystemConnection,
   SystemJson,
   SystemPort,
-} from "../system-json/system-json"
+} from "../../lib/system-json/system-json"
 
 type SystemSide = SystemPort["side_of_block"]
 

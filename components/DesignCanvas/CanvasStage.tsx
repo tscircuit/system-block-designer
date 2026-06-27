@@ -6,7 +6,7 @@ import type {
 } from "../../lib/system-json/system-json"
 import { BlockNode } from "./BlockNode"
 import type { CanvasView, Editing, Selection } from "./DesignCanvas.types"
-import { WireEl } from "./WireEl"
+import { ConnectionEl } from "./ConnectionEl"
 
 interface CanvasStageProps {
   blocks: SystemBlock[]
@@ -126,20 +126,22 @@ export function CanvasStage({
           >
             <g>
               {connections.map((connection) => (
-                <WireEl
+                <ConnectionEl
                   key={connection.system_connection_id}
                   connection={connection}
                   blocks={blockMap}
                   ports={ports}
                   portMap={portMap}
                   selected={
-                    selection?.kind === "wire" &&
+                    selection?.kind === "connection" &&
                     selection.id === connection.system_connection_id
                   }
                 />
               ))}
             </g>
-            {tempPath && <path className="wire wire-temp" d={tempPath} />}
+            {tempPath && (
+              <path className="connection connection-temp" d={tempPath} />
+            )}
             <g>
               {blocks.map((block, index) => (
                 <BlockNode
@@ -161,7 +163,7 @@ export function CanvasStage({
           <div className="hint">
             <div className="big">Drag a component from the library</div>
             <div className="sm">
-              or click one to drop it here · drag between ports to wire
+              or click one to drop it here · drag between ports to connect
             </div>
           </div>
         )}

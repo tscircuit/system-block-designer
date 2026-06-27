@@ -9,7 +9,7 @@ import "./design-canvas.css"
 import { useDesignCanvasController } from "./useDesignCanvasController"
 
 export function DesignCanvas({
-  projectTitle = "Smart Lock (UWB Smart Lock)",
+  projectTitle = "System Block Designer",
   initialSystemJson,
 }: DesignCanvasProps) {
   const canvas = useDesignCanvasController(initialSystemJson)
