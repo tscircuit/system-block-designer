@@ -25,10 +25,12 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.1",
+		"@types/pngjs": "^6.0.5",
 		"@types/react": "^19.1.0",
 		"@types/react-dom": "^19.1.0",
 		"bun-match-svg": "^0.0.15",
 		"pdf-to-png-converter": "^4.1.1",
+		"pngjs": "^7.0.0",
 		"react-cosmos": "^6.2.1",
 		"react-cosmos-plugin-vite": "^6.2.0"
 	}
