@@ -1,7 +1,11 @@
 import { pathPointsToSvgPath } from "../../lib/design-system/pathPointsToSvgPath"
 import { routeOrthogonalPath } from "../../lib/design-system/routeOrthogonalPath"
-import { defaultPorts } from "../../lib/design-system/library"
+import { defaultPorts, findLibraryItem } from "../../lib/design-system/library"
 import type { Side } from "../../lib/design-system/types"
+import {
+  TiSystemBlockClasses,
+  type TiSystemBlockName,
+} from "../../lib/system-blocks/TiSubcircuits"
 import type {
   Point,
   SystemBlock,
@@ -149,6 +153,45 @@ export function getSystemPortId(
   index: number,
 ) {
   return `${blockId}_${side}_${index}`
+}
+
+export function createSystemJsonForLibraryBlock(
+  system_diagram_id: string,
+  blockId: string,
+  type: string,
+  center: Point,
+): SystemJson[] | null {
+  const item = findLibraryItem(type)
+  if (!item || item.count === 0) return null
+
+  if (item.subcircuitId && item.subcircuitId in TiSystemBlockClasses) {
+    const BlockClass =
+      TiSystemBlockClasses[item.subcircuitId as TiSystemBlockName]
+    const block = new BlockClass({
+      systemDiagramId: system_diagram_id,
+      systemBlockId: blockId,
+      center,
+      size: item.w && item.h ? { width: item.w, height: item.h } : undefined,
+      tsxInstanceName: blockId,
+      subcircuitId: item.subcircuitId,
+    })
+    return block.getSystemBlockJson()
+  }
+
+  const width = item.w ?? 128
+  const height = item.h ?? 104
+  const block: SystemBlock = {
+    type: "system_block",
+    system_diagram_id,
+    system_block_id: blockId,
+    center,
+    size: { width, height },
+    label: type,
+    category: item.category ?? [type],
+    icon: item.icon ?? "chip",
+  }
+
+  return [block, ...createSystemPortsForBlock(system_diagram_id, blockId, type)]
 }
 
 export function createSystemPortsForBlock(

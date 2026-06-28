@@ -1,7 +1,22 @@
-import type { BlockPorts, LibraryCategory } from "./types"
+import type { BlockPorts, LibraryCategory, LibraryItem } from "./types"
 import { TiSubcircuitDefinitions } from "../system-blocks/TiSubcircuits"
 
 const TI_DEFINITIONS = Object.values(TiSubcircuitDefinitions)
+
+function withTiDefinitionMetadata(
+  item: LibraryItem,
+  definitions: typeof TI_DEFINITIONS,
+): LibraryItem {
+  const definition = definitions[0]
+  if (!definition) return item
+
+  return {
+    ...item,
+    subcircuitId: definition.componentName,
+    w: item.w ?? definition.size?.width,
+    h: item.h ?? definition.size?.height,
+  }
+}
 
 const BASE_LIBRARY: LibraryCategory[] = [
   {
@@ -81,29 +96,39 @@ export const LIBRARY: LibraryCategory[] = [
     const totalCount = Array.from(tiItems.values()).flat().length
     const missingTiItems = Array.from(tiItems.entries())
       .filter(([itemType]) => !baseItemTypes.has(itemType))
-      .map(([itemType, definitions]) => ({
-        type: itemType,
-        icon: definitions[0]?.icon ?? "chip",
-        count: definitions.length,
-        category: [category.name, itemType],
-        w: definitions[0]?.size?.width,
-        h: definitions[0]?.size?.height,
-      }))
+      .map(([itemType, definitions]) =>
+        withTiDefinitionMetadata(
+          {
+            type: itemType,
+            icon: definitions[0]?.icon ?? "chip",
+            count: definitions.length,
+            category: [category.name, itemType],
+          },
+          definitions,
+        ),
+      )
 
     return {
       ...category,
       items: [
-        ...category.items.map((item) => ({
-          ...item,
-          count:
+        ...category.items.map((item) => {
+          const definitions =
             item.type === category.name
-              ? totalCount
-              : (tiItems.get(item.type)?.length ?? 0),
-          category:
-            item.type === category.name
-              ? [category.name]
-              : [category.name, item.type],
-        })),
+              ? Array.from(tiItems.values()).flat()
+              : (tiItems.get(item.type) ?? [])
+
+          return withTiDefinitionMetadata(
+            {
+              ...item,
+              count: definitions.length,
+              category:
+                item.type === category.name
+                  ? [category.name]
+                  : [category.name, item.type],
+            },
+            definitions,
+          )
+        }),
         ...missingTiItems,
       ],
     }
@@ -115,14 +140,16 @@ export const LIBRARY: LibraryCategory[] = [
         name: categoryName,
         open: false,
         items: Array.from(tiByCategory.get(categoryName)!.entries()).map(
-          ([itemType, definitions]) => ({
-            type: itemType,
-            icon: definitions[0]?.icon ?? "chip",
-            count: definitions.length,
-            category: [categoryName, itemType],
-            w: definitions[0]?.size?.width,
-            h: definitions[0]?.size?.height,
-          }),
+          ([itemType, definitions]) =>
+            withTiDefinitionMetadata(
+              {
+                type: itemType,
+                icon: definitions[0]?.icon ?? "chip",
+                count: definitions.length,
+                category: [categoryName, itemType],
+              },
+              definitions,
+            ),
         ),
       }),
     ),
