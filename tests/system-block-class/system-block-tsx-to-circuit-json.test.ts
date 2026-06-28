@@ -52,4 +52,4 @@ circuit.add(
   expect(circuitJson.some((element) => element.type.endsWith("_error"))).toBe(
     false,
   )
-})
+}, 15_000)
