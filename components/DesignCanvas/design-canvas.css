@@ -347,9 +347,10 @@ body {
 .libcard {
   position: relative;
   border: 1px solid var(--line-strong);
-  border-radius: 11px;
+  border-radius: 8px;
   background: #fff;
   padding: 13px 10px 11px;
+  min-height: 118px;
   cursor: grab;
   transition: 0.12s;
   display: flex;
@@ -365,8 +366,23 @@ body {
   transform: translateY(-1px);
 }
 
+.libcard.disabled {
+  cursor: default;
+  opacity: 0.42;
+}
+
+.libcard.disabled:hover {
+  border-color: var(--line-strong);
+  box-shadow: none;
+  transform: none;
+}
+
 .libcard:active {
   cursor: grabbing;
+}
+
+.libcard.disabled:active {
+  cursor: default;
 }
 
 .libcard .ic {

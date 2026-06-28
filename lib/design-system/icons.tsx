@@ -19,6 +19,8 @@ const ICON_PATHS: Record<string, string> = {
     '<rect x="4" y="9" width="16" height="6" rx="1"/><path d="M7 9V6M11 9V6M15 9V6"/>',
   monitor:
     '<rect x="4" y="6" width="16" height="10" rx="1.5"/><path d="M6 13l2-3 2 2 2-4 2 5M9 19h6M12 16v3"/>',
+  sensor:
+    '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3"/><circle cx="12" cy="12" r="2.5"/>',
   balance:
     '<rect x="5" y="9" width="12" height="7" rx="1.5"/><path d="M17 11h2v3h-2"/><path d="M9 12h4M11 10v4"/>',
   uwb: '<circle cx="12" cy="12" r="2"/><path d="M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7M6 6a9 9 0 0 0 0 12M18 6a9 9 0 0 1 0 12"/>',

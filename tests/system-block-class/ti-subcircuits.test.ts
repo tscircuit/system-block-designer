@@ -1,0 +1,76 @@
+import { expect, test } from "bun:test"
+import {
+  BatteryManagement_BQ24074,
+  BuckBoostConverter_TPS63802,
+  EnvironmentalSensor_HDC3020,
+  Microcontroller_MSPM0G3507,
+  MotorDriver_DRV8833,
+  TiSystemBlockClasses,
+} from "../../lib/system-blocks/TiSubcircuits"
+
+test("exports a system block class for every TI subcircuit", () => {
+  expect(Object.keys(TiSystemBlockClasses).sort()).toEqual([
+    "BatteryManagement_BQ24074",
+    "BatteryManagement_BQ25895",
+    "BatteryManagement_BQ27441G1",
+    "BuckBoostConverter_TPS63802",
+    "BuckConverter_TPS62933",
+    "EnvironmentalSensor_HDC2080",
+    "EnvironmentalSensor_HDC3020",
+    "EnvironmentalSensor_HDC3022",
+    "LoadSwitch_TPS22919",
+    "Microcontroller_MSPM0G3507",
+    "MotorDriver_DRV8833",
+    "MotorDriver_DRV8876",
+    "PowerManagement_TPS7A02",
+    "PowerModule_TPSM82823",
+    "PowerMonitor_INA237",
+    "TemperatureSensor_TMP1075",
+    "WirelessMCU_CC2340R5",
+    "WirelessMCU_CC3235SF",
+  ])
+})
+
+test("TI subcircuit blocks render their matching TSX component names", () => {
+  expect(new BatteryManagement_BQ24074().getTsxFile()).toBe(
+    "<BatteryManagement_BQ24074 />",
+  )
+  expect(new BuckBoostConverter_TPS63802().getTsxFile()).toBe(
+    "<BuckBoostConverter_TPS63802 />",
+  )
+})
+
+test("TI I2C interface ports expand for block-to-block connections", () => {
+  const mcu = new Microcontroller_MSPM0G3507({
+    systemBlockId: "controller",
+    tsxInstanceName: "controller",
+  })
+  const sensor = new EnvironmentalSensor_HDC3020({
+    systemBlockId: "sensor",
+  })
+
+  sensor
+    .setConnection("VDD", [{ netName: "VCC" }])
+    .setConnection("GND", [{ netName: "GND" }])
+    .setConnection("I2C", [{ systemBlock: mcu, portName: "GPIO" }])
+
+  expect(sensor.getTsxFile()).toMatchInlineSnapshot(
+    `"<EnvironmentalSensor_HDC3020 connections={{ VDD: \"net.VCC\", GND: \"net.GND\", SCL: \"controller.PA0\", SDA: \"controller.PA1\" }} />"`,
+  )
+})
+
+test("TI motor interface ports expand to concrete output pins", () => {
+  const motorA = new MotorDriver_DRV8833({
+    systemBlockId: "motor_a",
+    tsxInstanceName: "motorA",
+  })
+  const motorB = new MotorDriver_DRV8833({
+    systemBlockId: "motor_b",
+  })
+
+  motorB.setConnection("MOTOR", [{ systemBlock: motorA, portName: "MOTOR" }])
+
+  expect(motorB.getTsxFile()).toMatchInlineSnapshot(
+    `"<MotorDriver_DRV8833 connections={{ MOTOR_A: \"motorA.MOTOR_A\", MOTOR_B: \"motorA.MOTOR_B\" }} />"`,
+  )
+})

@@ -92,21 +92,33 @@ export function DesignLibrary({
                 </svg>
               </div>
               <div className="cat-grid">
-                {items.map((item) => (
-                  <div
-                    key={item.type}
-                    className="libcard"
-                    draggable
-                    onDragStart={(event) => onDragItem(item.type, event)}
-                    onClick={() => onClickItem(item.type)}
-                  >
-                    <span className="cnt">{item.count}</span>
-                    <div className="ic">
-                      <Icon name={item.icon} size={30} />
+                {items.map((item) => {
+                  const disabled = item.count === 0
+                  return (
+                    <div
+                      key={item.type}
+                      className={`libcard${disabled ? " disabled" : ""}`}
+                      draggable={!disabled}
+                      aria-disabled={disabled}
+                      onDragStart={(event) => {
+                        if (disabled) {
+                          event.preventDefault()
+                          return
+                        }
+                        onDragItem(item.type, event)
+                      }}
+                      onClick={() => {
+                        if (!disabled) onClickItem(item.type)
+                      }}
+                    >
+                      <span className="cnt">{item.count}</span>
+                      <div className="ic">
+                        <Icon name={item.icon} size={30} />
+                      </div>
+                      <div className="lbl">{item.type}</div>
                     </div>
-                    <div className="lbl">{item.type}</div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           )
