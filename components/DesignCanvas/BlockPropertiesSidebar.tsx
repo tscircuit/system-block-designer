@@ -1,15 +1,44 @@
+import { useEffect, useMemo, useState } from "react"
 import { BlockIcon } from "../../lib/design-system/icons"
 import type { SystemBlock } from "../../lib/system-json/system-json"
+import { TiSubcircuitDefinitions } from "../../lib/system-blocks/TiSubcircuits"
+
+const TI_DEFINITIONS = Object.values(TiSubcircuitDefinitions)
 
 interface BlockPropertiesSidebarProps {
   block: SystemBlock | null
   onClose: () => void
+  onApplySubcircuit: (blockId: string, subcircuitId: string) => void
 }
 
 export function BlockPropertiesSidebar({
   block,
   onClose,
+  onApplySubcircuit,
 }: BlockPropertiesSidebarProps) {
+  const [selectedSubcircuitId, setSelectedSubcircuitId] = useState("")
+
+  const subcircuitOptions = useMemo(() => {
+    if (!block) return []
+    return TI_DEFINITIONS.filter((definition) =>
+      block.category.every(
+        (categoryPart, index) => definition.category[index] === categoryPart,
+      ),
+    )
+  }, [block])
+
+  useEffect(() => {
+    if (!block) return
+    const currentSubcircuit =
+      block.subcircuit_id ??
+      subcircuitOptions.find(
+        (definition) => definition.partNumber === block.part_number,
+      )?.componentName ??
+      subcircuitOptions[0]?.componentName ??
+      ""
+    setSelectedSubcircuitId(currentSubcircuit)
+  }, [block, subcircuitOptions])
+
   if (!block) return null
 
   const blockName = block.label ?? block.system_block_id
@@ -19,6 +48,13 @@ export function BlockPropertiesSidebar({
       : ["System Block", block.category[0] ?? blockName]
   const parentPath = categoryPath.slice(0, -1).join(" / ")
   const currentCategory = categoryPath[categoryPath.length - 1] ?? blockName
+  const selectedDefinition = subcircuitOptions.find(
+    (definition) => definition.componentName === selectedSubcircuitId,
+  )
+  const hasPendingSubcircuit =
+    Boolean(selectedSubcircuitId) &&
+    (selectedSubcircuitId !== block.subcircuit_id ||
+      selectedDefinition?.partNumber !== block.part_number)
 
   return (
     <aside
@@ -88,7 +124,40 @@ export function BlockPropertiesSidebar({
             {parentPath && <span>{parentPath} / </span>}
             <strong>{currentCategory}</strong>
           </div>
-          <button className="apply-updates" type="button" disabled>
+          <label className="settings-field part-select-field">
+            <span>Part number / subcircuit</span>
+            <select
+              data-testid="block-subcircuit-select"
+              value={selectedSubcircuitId}
+              disabled={subcircuitOptions.length === 0}
+              onChange={(event) => setSelectedSubcircuitId(event.target.value)}
+            >
+              {subcircuitOptions.length === 0 ? (
+                <option value="">No subcircuits available</option>
+              ) : (
+                subcircuitOptions.map((definition) => (
+                  <option
+                    key={definition.componentName}
+                    value={definition.componentName}
+                  >
+                    {definition.partNumber} - {definition.label}
+                  </option>
+                ))
+              )}
+            </select>
+          </label>
+          {selectedDefinition && (
+            <p className="part-description">{selectedDefinition.description}</p>
+          )}
+          <button
+            className="apply-updates"
+            type="button"
+            disabled={!hasPendingSubcircuit}
+            onClick={() => {
+              if (!selectedSubcircuitId) return
+              onApplySubcircuit(block.system_block_id, selectedSubcircuitId)
+            }}
+          >
             Apply updates
           </button>
           <div className="settings-divider" role="separator" />
