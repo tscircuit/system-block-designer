@@ -1,4 +1,4 @@
-import { DesignCanvas } from "../../components/DesignCanvas/DesignCanvas"
+import { SystemBlockDesigner } from "../../components/SystemBlockDesigner/SystemBlockDesigner"
 import { createSmartLockSystemJson } from "./createSmartLockSystemJson"
 
 interface SmartLocksPageProps {
@@ -7,7 +7,7 @@ interface SmartLocksPageProps {
 
 export function SmartLocksPage({ debug = false }: SmartLocksPageProps) {
   return (
-    <DesignCanvas
+    <SystemBlockDesigner
       projectTitle="Smart Lock (UWB Smart Lock)"
       initialSystemJson={createSmartLockSystemJson()}
       debugOptions={

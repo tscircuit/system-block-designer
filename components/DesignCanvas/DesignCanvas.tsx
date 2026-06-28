@@ -1,5 +1,3 @@
-import { BomView } from "../BOMView/BomView"
-import { OutputFiles } from "../OutputFiles/OutputFiles"
 import { BlockPropertiesSidebar } from "./BlockPropertiesSidebar"
 import { CanvasStage } from "./CanvasStage"
 import { DesignCanvasFooter } from "./DesignCanvasFooter"
@@ -8,6 +6,94 @@ import { DesignLibrary } from "./DesignLibrary"
 import { TopBar } from "./TopBar"
 import "./design-canvas.css"
 import { useDesignCanvasController } from "./useDesignCanvasController"
+
+type DesignCanvasController = ReturnType<typeof useDesignCanvasController>
+
+export function DesignCanvasContent({
+  canvas,
+}: {
+  canvas: DesignCanvasController
+}) {
+  const selectedBlock =
+    canvas.selection?.kind === "block"
+      ? (canvas.blockMap.get(canvas.selection.id) ?? null)
+      : null
+
+  return (
+    <>
+      <div className="body">
+        <DesignLibrary
+          categories={canvas.categories}
+          search={canvas.search}
+          onSearch={canvas.setSearch}
+          collapsed={canvas.collapsed}
+          onToggleCategory={canvas.onToggleCategory}
+          onDragItem={canvas.onDragItem}
+          onClickItem={canvas.addBlockCentered}
+        />
+        <CanvasStage
+          blocks={canvas.blocks}
+          ports={canvas.ports}
+          connections={canvas.connections}
+          view={canvas.view}
+          selection={canvas.selection}
+          blockMap={canvas.blockMap}
+          portMap={canvas.portMap}
+          connected={canvas.connected}
+          collapsed={canvas.collapsed}
+          dropActive={canvas.dropActive}
+          tempPath={canvas.tempPath}
+          editing={canvas.editing}
+          contextMenu={canvas.contextMenu}
+          editWrapper={canvas.editWrapper}
+          svgRef={canvas.svgRef}
+          stageRef={canvas.stageRef}
+          onToggleLibrary={() => canvas.setCollapsed((current) => !current)}
+          onDragOver={(event) => {
+            event.preventDefault()
+            event.dataTransfer.dropEffect = "copy"
+            canvas.setDropActive(true)
+          }}
+          onDragLeave={(event) => {
+            if (event.target === canvas.stageRef.current)
+              canvas.setDropActive(false)
+          }}
+          onDrop={(event) => {
+            event.preventDefault()
+            canvas.setDropActive(false)
+            const type =
+              event.dataTransfer.getData("text/plain") ||
+              canvas.dragTypeRef.current
+            if (!type) return
+            const point = canvas.clientToCanvas(event.clientX, event.clientY)
+            canvas.addBlockAt(type, point.x, point.y)
+          }}
+          onSvgPointerDown={canvas.onSvgPointerDown}
+          onSvgContextMenu={canvas.onSvgContextMenu}
+          onSvgDoubleClick={canvas.onSvgDoubleClick}
+          onDuplicateBlock={canvas.duplicateBlock}
+          onDeleteBlock={canvas.deleteBlock}
+          onEditChange={canvas.setEditing}
+          onCommitEdit={canvas.commitEdit}
+          onCancelEdit={() => canvas.setEditing(null)}
+        />
+        <BlockPropertiesSidebar
+          block={selectedBlock}
+          onApplySubcircuit={canvas.applyBlockSubcircuit}
+          onClose={canvas.clearSelection}
+        />
+      </div>
+      <DesignCanvasFooter
+        errors={canvas.errors}
+        warnings={canvas.warnings}
+        zoom={canvas.view.zoom}
+        onZoomIn={() => canvas.zoomBy(1.15)}
+        onZoomOut={() => canvas.zoomBy(1 / 1.15)}
+        onFit={canvas.fitView}
+      />
+    </>
+  )
+}
 
 export function DesignCanvas({
   projectTitle = "System Block Designer",
@@ -19,10 +105,6 @@ export function DesignCanvas({
 
   const showSystemJsonDownload = debugOptions?.showSystemJsonDownload ?? false
   const showCircuitJsonDownload = debugOptions?.showCircuitJsonDownload ?? false
-  const selectedBlock =
-    canvas.selection?.kind === "block"
-      ? (canvas.blockMap.get(canvas.selection.id) ?? null)
-      : null
 
   const downloadJson = (value: unknown, filename: string) => {
     const blob = new Blob([JSON.stringify(value, null, 2)], {
@@ -59,6 +141,7 @@ export function DesignCanvas({
         projectTitle={projectTitle}
         activeTab={canvas.activeTab}
         onTab={canvas.setActiveTab}
+        tabs={[["canvas", "Design Canvas"]]}
         canViewResolvedOutputs={Boolean(canvas.resolvedCircuitJson)}
         resolving={canvas.resolving}
         onResolve={canvas.onResolve}
@@ -98,87 +181,7 @@ export function DesignCanvas({
           </>
         }
       />
-      {canvas.activeTab === "bom" ? (
-        <BomView />
-      ) : canvas.activeTab === "out" ? (
-        <OutputFiles />
-      ) : (
-        <>
-          <div className="body">
-            <DesignLibrary
-              categories={canvas.categories}
-              search={canvas.search}
-              onSearch={canvas.setSearch}
-              collapsed={canvas.collapsed}
-              onToggleCategory={canvas.onToggleCategory}
-              onDragItem={canvas.onDragItem}
-              onClickItem={canvas.addBlockCentered}
-            />
-            <CanvasStage
-              blocks={canvas.blocks}
-              ports={canvas.ports}
-              connections={canvas.connections}
-              view={canvas.view}
-              selection={canvas.selection}
-              blockMap={canvas.blockMap}
-              portMap={canvas.portMap}
-              connected={canvas.connected}
-              collapsed={canvas.collapsed}
-              dropActive={canvas.dropActive}
-              tempPath={canvas.tempPath}
-              editing={canvas.editing}
-              contextMenu={canvas.contextMenu}
-              editWrapper={canvas.editWrapper}
-              svgRef={canvas.svgRef}
-              stageRef={canvas.stageRef}
-              onToggleLibrary={() => canvas.setCollapsed((current) => !current)}
-              onDragOver={(event) => {
-                event.preventDefault()
-                event.dataTransfer.dropEffect = "copy"
-                canvas.setDropActive(true)
-              }}
-              onDragLeave={(event) => {
-                if (event.target === canvas.stageRef.current)
-                  canvas.setDropActive(false)
-              }}
-              onDrop={(event) => {
-                event.preventDefault()
-                canvas.setDropActive(false)
-                const type =
-                  event.dataTransfer.getData("text/plain") ||
-                  canvas.dragTypeRef.current
-                if (!type) return
-                const point = canvas.clientToCanvas(
-                  event.clientX,
-                  event.clientY,
-                )
-                canvas.addBlockAt(type, point.x, point.y)
-              }}
-              onSvgPointerDown={canvas.onSvgPointerDown}
-              onSvgContextMenu={canvas.onSvgContextMenu}
-              onSvgDoubleClick={canvas.onSvgDoubleClick}
-              onDuplicateBlock={canvas.duplicateBlock}
-              onDeleteBlock={canvas.deleteBlock}
-              onEditChange={canvas.setEditing}
-              onCommitEdit={canvas.commitEdit}
-              onCancelEdit={() => canvas.setEditing(null)}
-            />
-            <BlockPropertiesSidebar
-              block={selectedBlock}
-              onApplySubcircuit={canvas.applyBlockSubcircuit}
-              onClose={canvas.clearSelection}
-            />
-          </div>
-          <DesignCanvasFooter
-            errors={canvas.errors}
-            warnings={canvas.warnings}
-            zoom={canvas.view.zoom}
-            onZoomIn={() => canvas.zoomBy(1.15)}
-            onZoomOut={() => canvas.zoomBy(1 / 1.15)}
-            onFit={canvas.fitView}
-          />
-        </>
-      )}
+      <DesignCanvasContent canvas={canvas} />
     </div>
   )
 }

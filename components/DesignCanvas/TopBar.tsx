@@ -4,6 +4,7 @@ interface TopBarProps {
   projectTitle: string
   activeTab: string
   onTab: (tab: string) => void
+  tabs?: Array<[id: string, label: string]>
   canViewResolvedOutputs: boolean
   resolving: boolean
   onResolve: () => void
@@ -18,6 +19,11 @@ export function TopBar({
   projectTitle,
   activeTab,
   onTab,
+  tabs = [
+    ["canvas", "Design Canvas"],
+    ["bom", "BOM View"],
+    ["out", "Output Files"],
+  ],
   canViewResolvedOutputs,
   resolving,
   onResolve,
@@ -118,11 +124,7 @@ export function TopBar({
         </button>
       </div>
       <nav className="tabs">
-        {[
-          ["canvas", "Design Canvas"],
-          ["bom", "BOM View"],
-          ["out", "Output Files"],
-        ].map(([id, label]) => {
+        {tabs.map(([id, label]) => {
           const disabled = id !== "canvas" && !canViewResolvedOutputs
 
           return (
