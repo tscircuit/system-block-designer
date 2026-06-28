@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { routeOrthogonalPath } from "../../lib/design-system/routeOrthogonalPath"
-import { LIBRARY, findLibraryItem } from "../../lib/design-system/library"
+import { LIBRARY } from "../../lib/design-system/library"
 import type { LibraryCategory } from "../../lib/design-system/types"
 import {
   type CircuitJson,
@@ -22,7 +22,7 @@ import type {
 } from "./DesignCanvas.types"
 import {
   createEmptySystemJson,
-  createSystemPortsForBlock,
+  createSystemJsonForLibraryBlock,
   getBlockTopLeft,
   getNextUid,
   getSystemPortPosition,
@@ -227,23 +227,15 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
       )
       const system_diagram_id = diagram?.system_diagram_id ?? "system_diagram_0"
       const id = nextId("b")
-      const item = findLibraryItem(type)
-      if (!item || item.count === 0) return
-      const width = item?.w ?? 128
-      const height = item?.h ?? 104
-      const block: SystemBlock = {
-        type: "system_block",
+      const blockSystemJson = createSystemJsonForLibraryBlock(
         system_diagram_id,
-        system_block_id: id,
-        center: { x: cx, y: cy },
-        size: { width, height },
-        label: type,
-        category: item?.category ?? [type],
-        icon: item?.icon ?? "chip",
-      }
-      const ports = createSystemPortsForBlock(system_diagram_id, id, type)
+        id,
+        type,
+        { x: cx, y: cy },
+      )
+      if (!blockSystemJson) return
 
-      mutate([...currentSystemJson, block, ...ports])
+      mutate([...currentSystemJson, ...blockSystemJson])
       applySelection({ kind: "block", id })
     },
     [mutate, applySelection],

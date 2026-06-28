@@ -19,6 +19,7 @@ export interface LibraryItem {
   category?: string[]
   w?: number
   h?: number
+  subcircuitId?: string
 }
 
 export interface LibraryCategory {
