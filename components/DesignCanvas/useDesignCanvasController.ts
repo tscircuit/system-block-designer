@@ -108,6 +108,15 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
     editingRef.current = editing
   }, [editing])
 
+  useEffect(() => {
+    setResolvedCircuitJson(null)
+    setResolvedTsx(null)
+    setResolveError(null)
+    setActiveTab((current) =>
+      current === "bom" || current === "out" ? "canvas" : current,
+    )
+  }, [systemJson])
+
   const normalized = useMemo(
     () => normalizeSystemJson(systemJson),
     [systemJson],
@@ -586,6 +595,8 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
     if (resolving) return
     setResolving(true)
     setResolveError(null)
+    setResolvedCircuitJson(null)
+    setResolvedTsx(null)
     try {
       const result = await resolveSystemJsonToCircuitJson(systemJsonRef.current)
       setResolvedTsx(result.tsx)

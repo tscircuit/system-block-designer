@@ -4,6 +4,7 @@ interface TopBarProps {
   projectTitle: string
   activeTab: string
   onTab: (tab: string) => void
+  canViewResolvedOutputs: boolean
   resolving: boolean
   onResolve: () => void
   canUndo: boolean
@@ -17,6 +18,7 @@ export function TopBar({
   projectTitle,
   activeTab,
   onTab,
+  canViewResolvedOutputs,
   resolving,
   onResolve,
   canUndo,
@@ -120,15 +122,21 @@ export function TopBar({
           ["canvas", "Design Canvas"],
           ["bom", "BOM View"],
           ["out", "Output Files"],
-        ].map(([id, label]) => (
-          <button
-            key={id}
-            className={`tab${activeTab === id ? " active" : ""}`}
-            onClick={() => onTab(id)}
-          >
-            {label}
-          </button>
-        ))}
+        ].map(([id, label]) => {
+          const disabled = id !== "canvas" && !canViewResolvedOutputs
+
+          return (
+            <button
+              key={id}
+              className={`tab${activeTab === id ? " active" : ""}`}
+              disabled={disabled}
+              title={disabled ? "Resolve before viewing generated outputs" : ""}
+              onClick={() => onTab(id)}
+            >
+              {label}
+            </button>
+          )
+        })}
       </nav>
       <div className="right">
         {actions}
