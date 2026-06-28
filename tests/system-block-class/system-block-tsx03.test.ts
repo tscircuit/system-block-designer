@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { EnvironmentalSensor_HDC2080 } from "../../lib/system-blocks/EnviromentalSensor/EnvironmentalSensor_HDC2080"
+import { EnvironmentalSensor_HDC2080 } from "../../lib/system-blocks/TiSubcircuits"
 
 test("EnvironmentalSensor_HDC2080 renders tsx with multi-target and block-to-block connections", () => {
   const mcuSideSensor = new EnvironmentalSensor_HDC2080({
