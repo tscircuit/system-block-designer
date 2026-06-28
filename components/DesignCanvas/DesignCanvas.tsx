@@ -59,6 +59,7 @@ export function DesignCanvas({
         projectTitle={projectTitle}
         activeTab={canvas.activeTab}
         onTab={canvas.setActiveTab}
+        canViewResolvedOutputs={Boolean(canvas.resolvedCircuitJson)}
         resolving={canvas.resolving}
         onResolve={canvas.onResolve}
         canUndo={canvas.pastRef.current.length > 0}
