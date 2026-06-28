@@ -1,0 +1,104 @@
+import { BomView } from "../BOMView/BomView"
+import { DesignCanvasContent } from "../DesignCanvas/DesignCanvas"
+import type { DesignCanvasProps } from "../DesignCanvas/DesignCanvas.types"
+import { TopBar } from "../DesignCanvas/TopBar"
+import { useDesignCanvasController } from "../DesignCanvas/useDesignCanvasController"
+import { OutputFiles } from "../OutputFiles/OutputFiles"
+
+export function SystemBlockDesigner({
+  projectTitle = "System Block Designer",
+  initialSystemJson,
+  debugOptions,
+  topBarActions,
+}: DesignCanvasProps) {
+  const canvas = useDesignCanvasController(initialSystemJson)
+
+  const showSystemJsonDownload = debugOptions?.showSystemJsonDownload ?? false
+  const showCircuitJsonDownload = debugOptions?.showCircuitJsonDownload ?? false
+
+  const downloadJson = (value: unknown, filename: string) => {
+    const blob = new Blob([JSON.stringify(value, null, 2)], {
+      type: "application/json",
+    })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = filename
+    document.body.append(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  }
+
+  const downloadSystemJson = () => {
+    downloadJson(
+      canvas.systemJson,
+      debugOptions?.systemJsonDownloadFilename ?? "system-diagram.json",
+    )
+  }
+
+  const downloadCircuitJson = () => {
+    if (!canvas.resolvedCircuitJson) return
+    downloadJson(
+      canvas.resolvedCircuitJson,
+      debugOptions?.circuitJsonDownloadFilename ?? "circuit.json",
+    )
+  }
+
+  return (
+    <div className="app">
+      <TopBar
+        projectTitle={projectTitle}
+        activeTab={canvas.activeTab}
+        onTab={canvas.setActiveTab}
+        canViewResolvedOutputs={Boolean(canvas.resolvedCircuitJson)}
+        resolving={canvas.resolving}
+        onResolve={canvas.onResolve}
+        canUndo={canvas.pastRef.current.length > 0}
+        canRedo={canvas.futureRef.current.length > 0}
+        onUndo={canvas.undo}
+        onRedo={canvas.redo}
+        actions={
+          <>
+            {(showSystemJsonDownload || showCircuitJsonDownload) && (
+              <details className="debug-menu">
+                <summary className="pill">Debug</summary>
+                <div className="debug-menu-panel">
+                  {showSystemJsonDownload && (
+                    <button type="button" onClick={downloadSystemJson}>
+                      Download System JSON
+                    </button>
+                  )}
+                  {showCircuitJsonDownload && (
+                    <button
+                      type="button"
+                      onClick={downloadCircuitJson}
+                      disabled={!canvas.resolvedCircuitJson}
+                      title={
+                        canvas.resolvedCircuitJson
+                          ? "Download Circuit JSON"
+                          : "Resolve before downloading Circuit JSON"
+                      }
+                    >
+                      Download Circuit JSON
+                    </button>
+                  )}
+                </div>
+              </details>
+            )}
+            {topBarActions}
+          </>
+        }
+      />
+      {canvas.activeTab === "bom" ? (
+        <BomView />
+      ) : canvas.activeTab === "out" ? (
+        <OutputFiles />
+      ) : (
+        <DesignCanvasContent canvas={canvas} />
+      )}
+    </div>
+  )
+}
+
+export default SystemBlockDesigner
