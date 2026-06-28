@@ -55,6 +55,7 @@ export abstract class SystemBlock {
   protected readonly category: string[]
   protected readonly componentName: string
   protected readonly tsxInstanceName: string
+  protected readonly hasExplicitTsxInstanceName: boolean
   protected readonly icon?: string
   protected readonly partNumber?: string
   protected readonly description?: string
@@ -73,6 +74,7 @@ export abstract class SystemBlock {
     this.category = config.category
     this.componentName = config.componentName
     this.tsxInstanceName = config.tsxInstanceName ?? this.systemBlockId
+    this.hasExplicitTsxInstanceName = config.tsxInstanceName !== undefined
     this.icon = config.icon
     this.partNumber = config.partNumber
     this.description = config.description
@@ -151,6 +153,10 @@ export abstract class SystemBlock {
 
   protected getTsxProps(): string {
     const props: string[] = []
+
+    if (this.hasExplicitTsxInstanceName) {
+      props.push(`name=${JSON.stringify(this.tsxInstanceName)}`)
+    }
 
     if (Object.keys(this.connections).length > 0) {
       props.push(`connections={${this.stringifyJsObject(this.connections)}}`)

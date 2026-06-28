@@ -37,6 +37,8 @@ export interface DesignCanvasProps {
   debugOptions?: {
     showSystemJsonDownload?: boolean
     systemJsonDownloadFilename?: string
+    showCircuitJsonDownload?: boolean
+    circuitJsonDownloadFilename?: string
   }
   topBarActions?: ReactNode
 }

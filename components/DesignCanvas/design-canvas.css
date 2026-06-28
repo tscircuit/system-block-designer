@@ -221,6 +221,55 @@ body {
   color: var(--ink);
 }
 
+.debug-menu {
+  position: relative;
+}
+
+.debug-menu summary {
+  list-style: none;
+}
+
+.debug-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.debug-menu-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 210px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: var(--shadow);
+  padding: 6px;
+  z-index: 80;
+}
+
+.debug-menu-panel button {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  padding: 9px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.debug-menu-panel button:hover:not(:disabled) {
+  background: #f5f7fa;
+  color: var(--ink);
+}
+
+.debug-menu-panel button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 .avatar {
   width: 32px;
   height: 32px;

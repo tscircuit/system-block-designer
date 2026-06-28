@@ -16,6 +16,6 @@ test("ExampleSpiComponent expands SPI-to-SPI connections into concrete tsx pin c
   ])
 
   expect(spiPeripheral.getTsxFile()).toMatchInlineSnapshot(
-    `"<ExampleSpiComponent connections={{ SCK: \"spiController.SCK\", MOSI: \"spiController.MOSI\", MISO: \"spiController.MISO\", CS: \"spiController.CS\" }} />"`,
+    `"<ExampleSpiComponent name="spiPeripheral" connections={{ SCK: "spiController.SCK", MOSI: "spiController.MOSI", MISO: "spiController.MISO", CS: "spiController.CS" }} />"`,
   )
 })
