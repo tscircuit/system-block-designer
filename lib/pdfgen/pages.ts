@@ -1,5 +1,5 @@
 import type { PDFDocument, PDFPage } from "pdf-lib"
-import { COLORS, PAGE } from "./constants"
+import { COLORS, PAGE_MARGIN } from "./constants"
 import {
   drawKeyValueGrid,
   drawPageChrome,
@@ -12,6 +12,7 @@ import { drawSchematicSheetPage } from "./schematicSheet"
 import { drawSystemDiagram } from "./systemDiagram"
 import type {
   PdfFonts,
+  PdfRenderContext,
   ProjectDetailsPageInput,
   SystemArchitecturePageInput,
   TechnicalSpecificationsPageInput,
@@ -24,39 +25,40 @@ export function drawTitlePage(
   fonts: PdfFonts,
   input: TitlePageInput,
 ) {
+  const { width, height } = page.getSize()
   drawPageChrome(page, fonts, "Project Report")
 
   page.drawRectangle({
-    x: PAGE.margin,
+    x: PAGE_MARGIN,
     y: 96,
-    width: PAGE.width - PAGE.margin * 2,
-    height: PAGE.height - 180,
+    width: width - PAGE_MARGIN * 2,
+    height: height - 180,
     color: COLORS.panel,
     borderColor: COLORS.line,
     borderWidth: 1,
   })
   page.drawRectangle({
-    x: PAGE.margin,
-    y: PAGE.height - 154,
+    x: PAGE_MARGIN,
+    y: height - 154,
     width: 160,
     height: 6,
     color: COLORS.accent,
   })
 
   drawText(page, input.projectName, {
-    x: PAGE.margin + 36,
-    y: PAGE.height - 218,
+    x: PAGE_MARGIN + 36,
+    y: height - 218,
     size: 34,
     font: fonts.bold,
     color: COLORS.ink,
-    maxWidth: PAGE.width - PAGE.margin * 2 - 72,
+    maxWidth: width - PAGE_MARGIN * 2 - 72,
     lineHeight: 40,
   })
 
   if (input.subtitle) {
     drawText(page, input.subtitle, {
-      x: PAGE.margin + 36,
-      y: PAGE.height - 306,
+      x: PAGE_MARGIN + 36,
+      y: height - 306,
       size: 15,
       font: fonts.regular,
       color: COLORS.muted,
@@ -67,8 +69,8 @@ export function drawTitlePage(
 
   if (input.description) {
     drawText(page, input.description, {
-      x: PAGE.margin + 36,
-      y: PAGE.height - 372,
+      x: PAGE_MARGIN + 36,
+      y: height - 372,
       size: 11.5,
       font: fonts.regular,
       color: COLORS.muted,
@@ -87,14 +89,14 @@ export function drawTitlePage(
   let y = 148
   for (const [label, value] of meta) {
     page.drawText(label.toUpperCase(), {
-      x: PAGE.margin + 36,
+      x: PAGE_MARGIN + 36,
       y: y + 16,
       size: 7.5,
       font: fonts.bold,
       color: COLORS.soft,
     })
     page.drawText(value, {
-      x: PAGE.margin + 36,
+      x: PAGE_MARGIN + 36,
       y,
       size: 11,
       font: fonts.regular,
@@ -118,7 +120,7 @@ export function drawProjectDetailsPage(
   )
 
   if (input.details) {
-    y = drawKeyValueGrid(page, fonts, input.details, PAGE.margin, y, 2)
+    y = drawKeyValueGrid(page, fonts, input.details, PAGE_MARGIN, y, 2)
   }
 
   drawSections(page, fonts, input.sections ?? [], y)
@@ -138,9 +140,9 @@ export function drawTechnicalSpecificationsPage(
   )
 
   if (input.rows?.length) {
-    y = drawSpecTable(page, fonts, input.rows, PAGE.margin, y)
+    y = drawSpecTable(page, fonts, input.rows, PAGE_MARGIN, y)
   } else if (input.specifications) {
-    y = drawKeyValueGrid(page, fonts, input.specifications, PAGE.margin, y, 2)
+    y = drawKeyValueGrid(page, fonts, input.specifications, PAGE_MARGIN, y, 2)
   }
 
   drawSections(page, fonts, input.sections ?? [], y)
@@ -152,6 +154,7 @@ export async function drawSystemArchitecturePage(
   fonts: PdfFonts,
   input: SystemArchitecturePageInput,
 ) {
+  const { width } = page.getSize()
   drawPageChrome(page, fonts, input.title ?? "System Architecture")
   const y = drawPageTitle(
     page,
@@ -160,9 +163,9 @@ export async function drawSystemArchitecturePage(
     input.subtitle,
   )
   await drawSystemDiagram(pdfDoc, page, input.systemJson, {
-    x: PAGE.margin,
+    x: PAGE_MARGIN,
     y: 64,
-    width: PAGE.width - PAGE.margin * 2,
+    width: width - PAGE_MARGIN * 2,
     height: y - 92,
   })
 }
@@ -177,6 +180,7 @@ export async function drawPdfPage(
     | TechnicalSpecificationsPageInput
     | SystemArchitecturePageInput
     | SchematicSheetPageInput,
+  context: PdfRenderContext,
 ) {
   if (pageInput.type === "title") {
     drawTitlePage(page, fonts, pageInput)
@@ -187,6 +191,6 @@ export async function drawPdfPage(
   } else if (pageInput.type === "system_architecture") {
     await drawSystemArchitecturePage(pdfDoc, page, fonts, pageInput)
   } else {
-    await drawSchematicSheetPage(pdfDoc, page, fonts, pageInput)
+    await drawSchematicSheetPage(pdfDoc, page, fonts, pageInput, context)
   }
 }

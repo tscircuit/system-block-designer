@@ -1,18 +1,19 @@
 import type { PDFPage, PDFFont } from "pdf-lib"
-import { COLORS, PAGE } from "./constants"
+import { COLORS, PAGE_MARGIN } from "./constants"
 import type { PdfFonts, PdfTextOptions, PdfTextSection } from "./types"
 
 export function drawPageChrome(page: PDFPage, fonts: PdfFonts, label: string) {
+  const { width, height } = page.getSize()
   page.drawText(label.toUpperCase(), {
-    x: PAGE.margin,
-    y: PAGE.height - 32,
+    x: PAGE_MARGIN,
+    y: height - 32,
     size: 7.5,
     font: fonts.bold,
     color: COLORS.soft,
   })
   page.drawLine({
-    start: { x: PAGE.margin, y: PAGE.height - 42 },
-    end: { x: PAGE.width - PAGE.margin, y: PAGE.height - 42 },
+    start: { x: PAGE_MARGIN, y: height - 42 },
+    end: { x: width - PAGE_MARGIN, y: height - 42 },
     thickness: 0.8,
     color: COLORS.line,
   })
@@ -24,26 +25,27 @@ export function drawPageTitle(
   title: string,
   subtitle?: string,
 ) {
+  const { width, height } = page.getSize()
   page.drawText(title, {
-    x: PAGE.margin,
-    y: PAGE.height - 84,
+    x: PAGE_MARGIN,
+    y: height - 84,
     size: 24,
     font: fonts.bold,
     color: COLORS.ink,
   })
 
-  if (!subtitle) return PAGE.height - 120
+  if (!subtitle) return height - 120
 
   drawText(page, subtitle, {
-    x: PAGE.margin,
-    y: PAGE.height - 108,
+    x: PAGE_MARGIN,
+    y: height - 108,
     size: 10.5,
     font: fonts.regular,
     color: COLORS.muted,
-    maxWidth: PAGE.width - PAGE.margin * 2,
+    maxWidth: width - PAGE_MARGIN * 2,
     lineHeight: 15,
   })
-  return PAGE.height - 146
+  return height - 146
 }
 
 export function drawKeyValueGrid(
@@ -54,10 +56,10 @@ export function drawKeyValueGrid(
   y: number,
   columns: number,
 ) {
+  const { width } = page.getSize()
   const entries = Object.entries(values).filter((entry) => entry[1] != null)
   const gap = 14
-  const cellWidth =
-    (PAGE.width - PAGE.margin * 2 - gap * (columns - 1)) / columns
+  const cellWidth = (width - PAGE_MARGIN * 2 - gap * (columns - 1)) / columns
   const cellHeight = 58
 
   for (const [index, [label, value]] of entries.entries()) {
@@ -103,7 +105,8 @@ export function drawSpecTable(
   x: number,
   y: number,
 ) {
-  const width = PAGE.width - PAGE.margin * 2
+  const { width: pageWidth } = page.getSize()
+  const width = pageWidth - PAGE_MARGIN * 2
   const rowHeight = 34
   const headerHeight = 26
 
@@ -184,11 +187,12 @@ export function drawSections(
   sections: PdfTextSection[],
   startY: number,
 ) {
+  const { width } = page.getSize()
   let y = startY
   for (const section of sections) {
     if (y < 90) return
     page.drawText(section.title, {
-      x: PAGE.margin,
+      x: PAGE_MARGIN,
       y,
       size: 13,
       font: fonts.bold,
@@ -198,12 +202,12 @@ export function drawSections(
     if (section.body) {
       y =
         drawText(page, section.body, {
-          x: PAGE.margin,
+          x: PAGE_MARGIN,
           y,
           size: 9.5,
           font: fonts.regular,
           color: COLORS.muted,
-          maxWidth: PAGE.width - PAGE.margin * 2,
+          maxWidth: width - PAGE_MARGIN * 2,
           lineHeight: 13,
         }) - 8
     }
@@ -211,7 +215,7 @@ export function drawSections(
       const line =
         typeof item === "string" ? item : `${item.label}: ${String(item.value)}`
       page.drawText("-", {
-        x: PAGE.margin,
+        x: PAGE_MARGIN,
         y,
         size: 9,
         font: fonts.regular,
@@ -219,12 +223,12 @@ export function drawSections(
       })
       y =
         drawText(page, line, {
-          x: PAGE.margin + 15,
+          x: PAGE_MARGIN + 15,
           y,
           size: 9.5,
           font: fonts.regular,
           color: COLORS.muted,
-          maxWidth: PAGE.width - PAGE.margin * 2 - 15,
+          maxWidth: width - PAGE_MARGIN * 2 - 15,
           lineHeight: 13,
         }) - 5
     }

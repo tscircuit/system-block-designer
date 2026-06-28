@@ -1,10 +1,11 @@
 import { PDFDocument, StandardFonts } from "pdf-lib"
-import { PAGE } from "./constants"
+import { PAGE_SIZES } from "./constants"
 import { drawPdfPage } from "./pages"
 import type {
   CreatePdfParams,
   PdfFonts,
   PdfPageInput,
+  PdfRenderContext,
   SchematicSheetPageInput,
 } from "./types"
 
@@ -27,13 +28,28 @@ export async function createPdf(params: CreatePdfParams): Promise<Uint8Array> {
     mono: await pdfDoc.embedFont(StandardFonts.Courier),
   }
   const pages = normalizePages(params)
+  const schematicSheetCount = pages.filter(
+    (page) => page.type === "schematic_sheet",
+  ).length
+  let schematicSheetNumber = 0
 
-  for (const pageInput of pages) {
+  for (const [index, pageInput] of pages.entries()) {
+    const size = getPageSize(pageInput)
+    const context: PdfRenderContext = {
+      pageNumber: index + 1,
+      pageCount: pages.length,
+    }
+    if (pageInput.type === "schematic_sheet") {
+      schematicSheetNumber += 1
+      context.schematicSheetNumber = schematicSheetNumber
+      context.schematicSheetCount = schematicSheetCount
+    }
     await drawPdfPage(
       pdfDoc,
-      pdfDoc.addPage([PAGE.width, PAGE.height]),
+      pdfDoc.addPage([size.width, size.height]),
       fonts,
       pageInput,
+      context,
     )
   }
 
@@ -58,4 +74,11 @@ function normalizePages(params: CreatePdfParams): PdfPageInput[] {
         : sheet,
     ),
   ].filter((page): page is PdfPageInput => Boolean(page))
+}
+
+function getPageSize(pageInput: PdfPageInput) {
+  return pageInput.type === "system_architecture" ||
+    pageInput.type === "schematic_sheet"
+    ? PAGE_SIZES.landscape
+    : PAGE_SIZES.portrait
 }

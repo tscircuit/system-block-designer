@@ -1,9 +1,16 @@
 import { rgb } from "pdf-lib"
 
-export const PAGE = {
-  width: 792,
-  height: 612,
-  margin: 44,
+export const PAGE_MARGIN = 44
+
+export const PAGE_SIZES = {
+  portrait: {
+    width: 595.28,
+    height: 841.89,
+  },
+  landscape: {
+    width: 841.89,
+    height: 595.28,
+  },
 }
 
 export const COLORS = {

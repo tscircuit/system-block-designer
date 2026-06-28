@@ -5,12 +5,15 @@ import { pdfToPng, VerbosityLevel } from "pdf-to-png-converter"
 import { createSmartLockSystemJson } from "../../app/SmartLock/createSmartLockSystemJson"
 import { createPdf, type CreatePdfParams } from "../../lib/pdfgen/createPdf"
 
-const schematicSheetSvg = await Bun.file(
+const drv8876SchematicSheetSvg = await Bun.file(
   join(
     import.meta.dir,
     "fixtures",
     "DRV8876-driver-pwm-operation-ph-en.circuit-schematic-simulation.snap.svg",
   ),
+).text()
+const circuitToSvgSchematicSheetSvg = await Bun.file(
+  join(import.meta.dir, "fixtures", "schematic-sheet.snap.svg"),
 ).text()
 
 const examplePdf: CreatePdfParams = {
@@ -81,7 +84,18 @@ const examplePdf: CreatePdfParams = {
     subtitle: "Generated from the smart-lock system JSON fixture.",
     systemJson: createSmartLockSystemJson(),
   },
-  schematicSheetSvgs: [schematicSheetSvg],
+  schematicSheetSvgs: [
+    {
+      type: "schematic_sheet",
+      title: "Schematics - DRV8876 Driver PWM Operation",
+      svg: drv8876SchematicSheetSvg,
+    },
+    {
+      type: "schematic_sheet",
+      title: "Schematics - Circuit Sheet",
+      svg: circuitToSvgSchematicSheetSvg,
+    },
+  ],
 }
 
 test("snapshots each page of example01 as png", async () => {
@@ -92,7 +106,7 @@ test("snapshots each page of example01 as png", async () => {
     verbosityLevel: VerbosityLevel.ERRORS,
   })
 
-  expect(pages).toHaveLength(5)
+  expect(pages).toHaveLength(6)
 
   for (const page of pages) {
     expect(page.kind).toBe("content")

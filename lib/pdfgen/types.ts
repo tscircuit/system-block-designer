@@ -100,3 +100,10 @@ export interface PdfTextOptions {
   maxWidth: number
   lineHeight: number
 }
+
+export interface PdfRenderContext {
+  pageNumber: number
+  pageCount: number
+  schematicSheetNumber?: number
+  schematicSheetCount?: number
+}
