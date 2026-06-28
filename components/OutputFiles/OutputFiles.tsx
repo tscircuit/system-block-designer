@@ -1,9 +1,9 @@
-import "./output-files.css"
 import { useState } from "react"
-import { createZip } from "../../lib/utils/createZip"
 import { systemJsonToTsxProject } from "../../lib/system-blocks/systemJsonToTsx"
 import type { SystemJson } from "../../lib/system-json/system-json"
+import { createZip } from "../../lib/utils/createZip"
 import { downloadBlob } from "./downloadBlob"
+import "./output-files.css"
 
 type OutputFile = {
   id: string
@@ -42,8 +42,8 @@ const outputFiles: OutputFile[] = [
     description:
       "EDA files containing the schematics and component footprints.",
     icon: "kicad",
-    options: ["TSX ZIP", "KiCad"],
-    selected: "KiCad",
+    options: ["TSX Zip", "KiCad"],
+    selected: "TSX Zip",
     generatedAt: "Last generated 26 Jun 2026 8:50 PM",
   },
 ]
@@ -130,11 +130,15 @@ function FolderIcon() {
 function OutputFileCard({
   file,
   onDownload,
+  disabled,
 }: {
   file: OutputFile
   onDownload: (file: OutputFile, selectedOption?: string) => void
+  disabled?: boolean
 }) {
-  const [selectedOption, setSelectedOption] = useState(file.selected)
+  const [selectedOption, setSelectedOption] = useState(
+    file.selected ?? file.options?.[0],
+  )
 
   return (
     <article
@@ -170,8 +174,13 @@ function OutputFileCard({
             <button
               className="output-download-button"
               type="button"
+              disabled={disabled}
               aria-label={`Download ${file.title}`}
-              title={`Download ${file.title}`}
+              title={
+                disabled
+                  ? "Resolve before downloading TSX Zip"
+                  : `Download ${file.title}`
+              }
               onClick={() => onDownload(file, selectedOption)}
             >
               <DownloadIcon />
@@ -188,7 +197,7 @@ function OutputFileCard({
 
 export function OutputFiles({ systemJson }: OutputFilesProps) {
   const downloadFile = (file: OutputFile, selectedOption?: string) => {
-    if (file.id === "project-package" && selectedOption === "TSX ZIP") {
+    if (file.id === "project-package" && selectedOption === "TSX Zip") {
       if (!systemJson) return
 
       const project = systemJsonToTsxProject(systemJson)
@@ -197,7 +206,15 @@ export function OutputFiles({ systemJson }: OutputFilesProps) {
         new Blob([zipBytes], { type: "application/zip" }),
         "tscircuit-project-tsx.zip",
       )
+      return
     }
+
+    downloadBlob(
+      new Blob([`${file.title} export is not available in this demo.\n`], {
+        type: "text/plain",
+      }),
+      `${file.id}.txt`,
+    )
   }
 
   return (
@@ -217,6 +234,7 @@ export function OutputFiles({ systemJson }: OutputFilesProps) {
               key={file.id}
               file={file}
               onDownload={downloadFile}
+              disabled={file.id === "project-package" && !systemJson}
             />
           ))}
         </div>

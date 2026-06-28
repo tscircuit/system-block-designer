@@ -93,7 +93,7 @@ export function SystemBlockDesigner({
       {canvas.activeTab === "bom" ? (
         <BomView />
       ) : canvas.activeTab === "out" ? (
-        <OutputFiles />
+        <OutputFiles systemJson={canvas.systemJson} />
       ) : (
         <DesignCanvasContent canvas={canvas} />
       )}
