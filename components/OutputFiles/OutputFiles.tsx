@@ -1,4 +1,9 @@
 import "./output-files.css"
+import { useState } from "react"
+import { createZip } from "../../lib/utils/createZip"
+import { systemJsonToTsxProject } from "../../lib/system-blocks/systemJsonToTsx"
+import type { SystemJson } from "../../lib/system-json/system-json"
+import { downloadBlob } from "./downloadBlob"
 
 type OutputFile = {
   id: string
@@ -8,6 +13,10 @@ type OutputFile = {
   generatedAt?: string
   options?: string[]
   selected?: string
+}
+
+interface OutputFilesProps {
+  systemJson?: SystemJson[]
 }
 
 const outputFiles: OutputFile[] = [
@@ -118,7 +127,15 @@ function FolderIcon() {
   )
 }
 
-function OutputFileCard({ file }: { file: OutputFile }) {
+function OutputFileCard({
+  file,
+  onDownload,
+}: {
+  file: OutputFile
+  onDownload: (file: OutputFile, selectedOption?: string) => void
+}) {
+  const [selectedOption, setSelectedOption] = useState(file.selected)
+
   return (
     <article
       className="output-file-card"
@@ -138,8 +155,9 @@ function OutputFileCard({ file }: { file: OutputFile }) {
               <label className="output-file-select-wrap">
                 <span className="sr-only">{file.title} format</span>
                 <select
-                  defaultValue={file.selected}
+                  value={selectedOption}
                   aria-label={`${file.title} format`}
+                  onChange={(event) => setSelectedOption(event.target.value)}
                 >
                   {file.options.map((option) => (
                     <option key={option}>{option}</option>
@@ -154,6 +172,7 @@ function OutputFileCard({ file }: { file: OutputFile }) {
               type="button"
               aria-label={`Download ${file.title}`}
               title={`Download ${file.title}`}
+              onClick={() => onDownload(file, selectedOption)}
             >
               <DownloadIcon />
             </button>
@@ -167,7 +186,20 @@ function OutputFileCard({ file }: { file: OutputFile }) {
   )
 }
 
-export function OutputFiles() {
+export function OutputFiles({ systemJson }: OutputFilesProps) {
+  const downloadFile = (file: OutputFile, selectedOption?: string) => {
+    if (file.id === "project-package" && selectedOption === "TSX ZIP") {
+      if (!systemJson) return
+
+      const project = systemJsonToTsxProject(systemJson)
+      const zipBytes = createZip(project.files)
+      downloadBlob(
+        new Blob([zipBytes], { type: "application/zip" }),
+        "tscircuit-project-tsx.zip",
+      )
+    }
+  }
+
   return (
     <main className="output-files-page" data-testid="output-files-wrapper">
       <section className="output-files-panel" aria-label="Output files">
@@ -181,7 +213,11 @@ export function OutputFiles() {
 
         <div className="output-files-list">
           {outputFiles.map((file) => (
-            <OutputFileCard key={file.id} file={file} />
+            <OutputFileCard
+              key={file.id}
+              file={file}
+              onDownload={downloadFile}
+            />
           ))}
         </div>
 
