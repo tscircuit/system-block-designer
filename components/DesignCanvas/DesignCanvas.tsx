@@ -164,6 +164,7 @@ export function DesignCanvas({
             />
             <BlockPropertiesSidebar
               block={selectedBlock}
+              onApplySubcircuit={canvas.applyBlockSubcircuit}
               onClose={canvas.clearSelection}
             />
           </div>

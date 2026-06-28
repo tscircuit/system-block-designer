@@ -8,23 +8,23 @@ import {
 } from "../../lib/system-blocks/resolveSystemJsonToCircuitJson"
 import type {
   Point,
-  SystemBlock,
   SystemConnection,
   SystemJson,
-  SystemPort,
 } from "../../lib/system-json/system-json"
-import { SystemJsonArray } from "../../lib/system-json/system-json"
-import type {
-  BlockContextMenu,
-  CanvasView,
-  Editing,
-  Selection,
-} from "./DesignCanvas.types"
+import type { BlockContextMenu, Editing } from "./DesignCanvas.types"
 import {
-  createEmptySystemJson,
+  duplicateBlockInSystemJson,
+  removeBlockFromSystemJson,
+  replaceBlockSubcircuitInSystemJson,
+} from "./utils/designCanvasBlockMutations"
+import {
+  countDisconnectedBlocks,
+  countMissingSupplyConnections,
+  getConnectedBlockIds,
+} from "./utils/designCanvasMetrics"
+import {
   createSystemJsonForLibraryBlock,
   getBlockTopLeft,
-  getNextUid,
   getSystemPortPosition,
   normalizeSystemJson,
   routeSystemPathPoints,
@@ -32,9 +32,8 @@ import {
   SYSTEM_DIR,
   updateConnectionPaths,
 } from "./systemJsonCanvas"
-
-const MIN_ZOOM = 0.25
-const MAX_ZOOM = 2.5
+import { useCanvasViewport } from "./hooks/useCanvasViewport"
+import { useSystemJsonHistory } from "./hooks/useSystemJsonHistory"
 
 type ConnectionInteraction = {
   type: "connection"
@@ -42,22 +41,23 @@ type ConnectionInteraction = {
 }
 
 export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
-  const seed = useRef(
-    SystemJsonArray.parse(initialSystemJson ?? createEmptySystemJson()),
-  )
-  const [systemJson, setSystemJsonState] = useState<SystemJson[]>(seed.current)
-  const [view, setViewState] = useState<CanvasView>({
-    pan: { x: 120, y: 70 },
-    zoom: 0.72,
-  })
-  const [selection, setSelectionState] = useState<Selection>(null)
+  const {
+    applySelection,
+    applySystemJson,
+    bumpHistory,
+    futureRef,
+    mutate,
+    pastRef,
+    redo,
+    selection,
+    selectionRef,
+    systemJson,
+    systemJsonRef,
+    uidRef,
+    undo,
+  } = useSystemJsonHistory(initialSystemJson)
 
-  const systemJsonRef = useRef(systemJson)
-  const viewRef = useRef(view)
-  const selectionRef = useRef(selection)
   const editingRef = useRef<Editing>(null)
-  const pastRef = useRef<SystemJson[][]>([])
-  const futureRef = useRef<SystemJson[][]>([])
   const interactionRef = useRef<
     | { type: "pan"; sx: number; sy: number; px: number; py: number }
     | { type: "block"; id: string; ox: number; oy: number; moved: boolean }
@@ -65,12 +65,26 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
     | null
   >(null)
   const dragStartSystemJsonRef = useRef<SystemJson[] | null>(null)
-  const uidRef = useRef(getNextUid(seed.current))
   const dragTypeRef = useRef<string | null>(null)
   const svgRef = useRef<SVGSVGElement | null>(null)
   const stageRef = useRef<HTMLElement | null>(null)
+  const {
+    applyView,
+    canvasToWrapper,
+    clientToCanvas,
+    fitView,
+    view,
+    viewRef,
+    zoomBy,
+  } = useCanvasViewport({
+    svgRef,
+    stageRef,
+    getBlocks: useCallback(
+      () => normalizeSystemJson(systemJsonRef.current).blocks,
+      [systemJsonRef],
+    ),
+  })
 
-  const [histVersion, setHistVersion] = useState(0)
   const [categories, setCategories] = useState<LibraryCategory[]>(LIBRARY)
   const [search, setSearch] = useState("")
   const [collapsed, setCollapsed] = useState(false)
@@ -89,80 +103,10 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
   const [dropActive, setDropActive] = useState(false)
 
   const nextId = (prefix: string) => `${prefix}_${uidRef.current++}`
-  const bumpHistory = useCallback(
-    () => setHistVersion((version) => version + 1),
-    [],
-  )
-
-  const applySystemJson = useCallback((next: SystemJson[]) => {
-    const parsed = SystemJsonArray.parse(next)
-    systemJsonRef.current = parsed
-    setSystemJsonState(parsed)
-  }, [])
-
-  const applyView = useCallback((next: CanvasView) => {
-    viewRef.current = next
-    setViewState(next)
-  }, [])
-
-  const applySelection = useCallback((next: Selection) => {
-    selectionRef.current = next
-    setSelectionState(next)
-  }, [])
-
-  const mutate = useCallback(
-    (next: SystemJson[]) => {
-      pastRef.current = [systemJsonRef.current, ...pastRef.current].slice(
-        0,
-        100,
-      )
-      futureRef.current = []
-      applySystemJson(updateConnectionPaths(next))
-      bumpHistory()
-    },
-    [applySystemJson, bumpHistory],
-  )
-
-  const undo = useCallback(() => {
-    if (!pastRef.current.length) return
-    const [prev, ...rest] = pastRef.current
-    futureRef.current = [systemJsonRef.current, ...futureRef.current]
-    pastRef.current = rest
-    applySystemJson(prev)
-    applySelection(null)
-    bumpHistory()
-  }, [applySystemJson, applySelection, bumpHistory])
-
-  const redo = useCallback(() => {
-    if (!futureRef.current.length) return
-    const [next, ...rest] = futureRef.current
-    pastRef.current = [systemJsonRef.current, ...pastRef.current]
-    futureRef.current = rest
-    applySystemJson(next)
-    applySelection(null)
-    bumpHistory()
-  }, [applySystemJson, applySelection, bumpHistory])
 
   useEffect(() => {
     editingRef.current = editing
   }, [editing])
-
-  const clientToCanvas = useCallback((cx: number, cy: number) => {
-    const rect = svgRef.current!.getBoundingClientRect()
-    const currentView = viewRef.current
-    return {
-      x: (cx - rect.left - currentView.pan.x) / currentView.zoom,
-      y: (cy - rect.top - currentView.pan.y) / currentView.zoom,
-    }
-  }, [])
-
-  const canvasToWrapper = useCallback((cx: number, cy: number) => {
-    const currentView = viewRef.current
-    return {
-      x: currentView.pan.x + cx * currentView.zoom,
-      y: currentView.pan.y + cy * currentView.zoom,
-    }
-  }, [])
 
   const normalized = useMemo(
     () => normalizeSystemJson(systemJson),
@@ -177,47 +121,19 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
     () => new Map(normalized.ports.map((port) => [port.system_port_id, port])),
     [normalized.ports],
   )
-  const connected = useMemo(() => {
-    const set = new Set<string>()
-    for (const connection of normalized.connections) {
-      const sourcePort = connection.source_system_port_id
-        ? portMap.get(connection.source_system_port_id)
-        : undefined
-      const targetPort = connection.target_system_port_id
-        ? portMap.get(connection.target_system_port_id)
-        : undefined
-      if (sourcePort) set.add(sourcePort.system_block_id)
-      if (targetPort) set.add(targetPort.system_block_id)
-    }
-    return set
-  }, [normalized.connections, portMap])
+  const connected = useMemo(
+    () => getConnectedBlockIds(normalized, portMap),
+    [normalized, portMap],
+  )
 
   const warnings = useMemo(
-    () =>
-      normalized.blocks.filter((block) => !connected.has(block.system_block_id))
-        .length,
+    () => countDisconnectedBlocks(normalized.blocks, connected),
     [normalized.blocks, connected],
   )
-  const errors = useMemo(() => {
-    let count = 0
-    for (const block of normalized.blocks) {
-      const supplyPorts = normalized.ports.filter(
-        (port) =>
-          port.system_block_id === block.system_block_id &&
-          port.side_of_block === "bottom" &&
-          port.label === "SUPPLY",
-      )
-      for (const port of supplyPorts) {
-        const hasSupply = normalized.connections.some(
-          (connection) =>
-            connection.source_system_port_id === port.system_port_id ||
-            connection.target_system_port_id === port.system_port_id,
-        )
-        if (!hasSupply) count += 1
-      }
-    }
-    return count
-  }, [normalized])
+  const errors = useMemo(
+    () => countMissingSupplyConnections(normalized),
+    [normalized],
+  )
 
   const addBlockAt = useCallback(
     (type: string, cx: number, cy: number) => {
@@ -565,100 +481,25 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
     setEditing(null)
   }, [mutate])
 
-  const zoomBy = useCallback(
-    (factor: number) => {
-      const rect = svgRef.current!.getBoundingClientRect()
-      const currentView = viewRef.current
-      const middleX = rect.width / 2
-      const middleY = rect.height / 2
-      const before = {
-        x: (middleX - currentView.pan.x) / currentView.zoom,
-        y: (middleY - currentView.pan.y) / currentView.zoom,
-      }
-      const zoom = Math.min(
-        MAX_ZOOM,
-        Math.max(MIN_ZOOM, currentView.zoom * factor),
-      )
-      applyView({
-        zoom,
-        pan: { x: middleX - before.x * zoom, y: middleY - before.y * zoom },
-      })
-    },
-    [applyView],
-  )
-
-  const fitView = useCallback(() => {
-    const currentBlocks = normalizeSystemJson(systemJsonRef.current).blocks
-    if (!currentBlocks.length) {
-      applyView({ pan: { x: 120, y: 70 }, zoom: 0.72 })
-      return
-    }
-
-    let minX = Infinity
-    let minY = Infinity
-    let maxX = -Infinity
-    let maxY = -Infinity
-    for (const block of currentBlocks) {
-      const topLeft = getBlockTopLeft(block)
-      minX = Math.min(minX, topLeft.x)
-      minY = Math.min(minY, topLeft.y)
-      maxX = Math.max(maxX, topLeft.x + block.size.width)
-      maxY = Math.max(maxY, topLeft.y + block.size.height)
-    }
-
-    const padding = 80
-    const rect = svgRef.current!.getBoundingClientRect()
-    const width = maxX - minX + padding * 2
-    const height = maxY - minY + padding * 2
-    const zoom = Math.max(
-      MIN_ZOOM,
-      Math.min(2.2, rect.width / width, rect.height / height),
-    )
-    applyView({
-      zoom,
-      pan: {
-        x: (rect.width - (maxX + minX) * zoom) / 2,
-        y: (rect.height - (maxY + minY) * zoom) / 2,
-      },
-    })
-  }, [applyView])
-
   const deleteBlock = useCallback(
     (blockId: string) => {
-      const currentSystemJson = systemJsonRef.current
-      const current = normalizeSystemJson(currentSystemJson)
-      const selectedPortIds = new Set(
-        current.ports
-          .filter((port) => port.system_block_id === blockId)
-          .map((port) => port.system_port_id),
-      )
-
-      mutate(
-        currentSystemJson.filter((item) => {
-          if (
-            item.type === "system_block" &&
-            item.system_block_id === blockId
-          ) {
-            return false
-          }
-          if (item.type === "system_port" && item.system_block_id === blockId) {
-            return false
-          }
-          if (item.type === "system_connection") {
-            const connectedPortIds = [
-              item.source_system_port_id,
-              item.target_system_port_id,
-              ...(item.system_port_ids ?? []),
-            ].filter((portId): portId is string => Boolean(portId))
-            return !connectedPortIds.some((portId) =>
-              selectedPortIds.has(portId),
-            )
-          }
-          return true
-        }),
-      )
+      mutate(removeBlockFromSystemJson(systemJsonRef.current, blockId))
       applySelection(null)
       setContextMenu(null)
+    },
+    [applySelection, mutate],
+  )
+
+  const applyBlockSubcircuit = useCallback(
+    (blockId: string, subcircuitId: string) => {
+      const next = replaceBlockSubcircuitInSystemJson(
+        systemJsonRef.current,
+        blockId,
+        subcircuitId,
+      )
+      if (!next) return
+      mutate(next)
+      applySelection({ kind: "block", id: blockId })
     },
     [applySelection, mutate],
   )
@@ -688,64 +529,12 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
       if (!block) return
 
       const newBlockId = nextId("b")
-      const duplicate: SystemBlock = {
-        ...block,
-        system_block_id: newBlockId,
-        center: {
-          x: block.center.x + 36,
-          y: block.center.y + 36,
-        },
-      }
-      const sideCounts: Record<SystemPort["side_of_block"], number> = {
-        left: 0,
-        right: 0,
-        top: 0,
-        bottom: 0,
-      }
-      const duplicatePorts: SystemPort[] = current.ports
-        .filter((port) => port.system_block_id === blockId)
-        .map((port) => {
-          const index = sideCounts[port.side_of_block]++
-          return {
-            ...port,
-            system_block_id: newBlockId,
-            system_port_id: `${newBlockId}_${port.side_of_block}_${index}`,
-          }
-        })
-
-      mutate([...currentSystemJson, duplicate, ...duplicatePorts])
+      mutate(duplicateBlockInSystemJson(currentSystemJson, block, newBlockId))
       applySelection({ kind: "block", id: newBlockId })
       setContextMenu(null)
     },
     [applySelection, mutate],
   )
-
-  useEffect(() => {
-    const stage = stageRef.current
-    if (!stage) return
-    const handler = (event: WheelEvent) => {
-      event.preventDefault()
-      const rect = svgRef.current!.getBoundingClientRect()
-      const currentView = viewRef.current
-      const mouseX = event.clientX - rect.left
-      const mouseY = event.clientY - rect.top
-      const before = {
-        x: (mouseX - currentView.pan.x) / currentView.zoom,
-        y: (mouseY - currentView.pan.y) / currentView.zoom,
-      }
-      const factor = event.deltaY < 0 ? 1.12 : 1 / 1.12
-      const zoom = Math.min(
-        MAX_ZOOM,
-        Math.max(MIN_ZOOM, currentView.zoom * factor),
-      )
-      applyView({
-        zoom,
-        pan: { x: mouseX - before.x * zoom, y: mouseY - before.y * zoom },
-      })
-    }
-    stage.addEventListener("wheel", handler, { passive: false })
-    return () => stage.removeEventListener("wheel", handler)
-  }, [applyView])
 
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
@@ -824,12 +613,12 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
   }, [tempConnection, blockMap, normalized.ports, portMap])
 
   const editWrapper = editing ? canvasToWrapper(editing.cx, editing.cy) : null
-  void histVersion
 
   return {
     activeTab,
     addBlockAt,
     addBlockCentered,
+    applyBlockSubcircuit,
     blockMap,
     blocks: normalized.blocks,
     categories,
