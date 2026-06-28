@@ -1,5 +1,6 @@
 import { BomView } from "../BOMView/BomView"
 import { OutputFiles } from "../OutputFiles/OutputFiles"
+import { BlockPropertiesSidebar } from "./BlockPropertiesSidebar"
 import { CanvasStage } from "./CanvasStage"
 import { DesignCanvasFooter } from "./DesignCanvasFooter"
 import type { DesignCanvasProps } from "./DesignCanvas.types"
@@ -17,6 +18,11 @@ export function DesignCanvas({
   const canvas = useDesignCanvasController(initialSystemJson)
 
   const showSystemJsonDownload = debugOptions?.showSystemJsonDownload ?? false
+  const selectedBlock =
+    canvas.selection?.kind === "block"
+      ? (canvas.blockMap.get(canvas.selection.id) ?? null)
+      : null
+
   const downloadSystemJson = () => {
     const blob = new Blob([JSON.stringify(canvas.systemJson, null, 2)], {
       type: "application/json",
@@ -123,6 +129,10 @@ export function DesignCanvas({
               onEditChange={canvas.setEditing}
               onCommitEdit={canvas.commitEdit}
               onCancelEdit={() => canvas.setEditing(null)}
+            />
+            <BlockPropertiesSidebar
+              block={selectedBlock}
+              onClose={canvas.clearSelection}
             />
           </div>
           <DesignCanvasFooter

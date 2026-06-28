@@ -860,6 +860,7 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
     warnings,
     zoomBy,
     clientToCanvas,
+    clearSelection: () => applySelection(null),
     dragTypeRef,
     resolving,
   }
