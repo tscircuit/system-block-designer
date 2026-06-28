@@ -93,7 +93,6 @@ export const LIBRARY: LibraryCategory[] = [
     const tiItems =
       tiByCategory.get(category.name) ??
       new Map<string, typeof TI_DEFINITIONS>()
-    const totalCount = Array.from(tiItems.values()).flat().length
     const missingTiItems = Array.from(tiItems.entries())
       .filter(([itemType]) => !baseItemTypes.has(itemType))
       .map(([itemType, definitions]) =>
