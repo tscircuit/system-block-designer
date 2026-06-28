@@ -14,7 +14,7 @@ type TiSystemBlockConfig = Partial<
 
 type PortSide = "top" | "bottom" | "left" | "right"
 
-interface TiSubcircuitDefinition {
+export interface TiSubcircuitDefinition {
   componentName: string
   label: string
   category: string[]
@@ -63,7 +63,7 @@ function toSnakeCase(value: string): string {
     .toLowerCase()
 }
 
-const DEFINITIONS = {
+export const TiSubcircuitDefinitions = {
   BatteryManagement_BQ24074: {
     componentName: "BatteryManagement_BQ24074",
     label: "Battery Charger",
@@ -437,7 +437,10 @@ const DEFINITIONS = {
 export class BatteryManagement_BQ24074 extends SystemBlock {
   constructor(config: TiSystemBlockConfig = {}) {
     super(
-      createTiSubcircuitConfig(DEFINITIONS.BatteryManagement_BQ24074, config),
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.BatteryManagement_BQ24074,
+        config,
+      ),
     )
   }
 }
@@ -445,7 +448,10 @@ export class BatteryManagement_BQ24074 extends SystemBlock {
 export class BatteryManagement_BQ25895 extends SystemBlock {
   constructor(config: TiSystemBlockConfig = {}) {
     super(
-      createTiSubcircuitConfig(DEFINITIONS.BatteryManagement_BQ25895, config),
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.BatteryManagement_BQ25895,
+        config,
+      ),
     )
   }
 }
@@ -453,39 +459,65 @@ export class BatteryManagement_BQ25895 extends SystemBlock {
 export class BatteryManagement_BQ27441G1 extends SystemBlock {
   constructor(config: TiSystemBlockConfig = {}) {
     super(
-      createTiSubcircuitConfig(DEFINITIONS.BatteryManagement_BQ27441G1, config),
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.BatteryManagement_BQ27441G1,
+        config,
+      ),
     )
   }
 }
 
 export class WirelessMCU_CC2340R5 extends SystemBlock {
   constructor(config: TiSystemBlockConfig = {}) {
-    super(createTiSubcircuitConfig(DEFINITIONS.WirelessMCU_CC2340R5, config))
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.WirelessMCU_CC2340R5,
+        config,
+      ),
+    )
   }
 }
 
 export class WirelessMCU_CC3235SF extends SystemBlock {
   constructor(config: TiSystemBlockConfig = {}) {
-    super(createTiSubcircuitConfig(DEFINITIONS.WirelessMCU_CC3235SF, config))
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.WirelessMCU_CC3235SF,
+        config,
+      ),
+    )
   }
 }
 
 export class MotorDriver_DRV8833 extends SystemBlock {
   constructor(config: TiSystemBlockConfig = {}) {
-    super(createTiSubcircuitConfig(DEFINITIONS.MotorDriver_DRV8833, config))
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.MotorDriver_DRV8833,
+        config,
+      ),
+    )
   }
 }
 
 export class MotorDriver_DRV8876 extends SystemBlock {
   constructor(config: TiSystemBlockConfig = {}) {
-    super(createTiSubcircuitConfig(DEFINITIONS.MotorDriver_DRV8876, config))
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.MotorDriver_DRV8876,
+        config,
+      ),
+    )
   }
 }
 
 export class EnvironmentalSensor_HDC2080 extends SystemBlock {
   constructor(config: TiSystemBlockConfig = {}) {
     super(
-      createTiSubcircuitConfig(DEFINITIONS.EnvironmentalSensor_HDC2080, config),
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.EnvironmentalSensor_HDC2080,
+        config,
+      ),
     )
   }
 }
@@ -493,7 +525,10 @@ export class EnvironmentalSensor_HDC2080 extends SystemBlock {
 export class EnvironmentalSensor_HDC3020 extends SystemBlock {
   constructor(config: TiSystemBlockConfig = {}) {
     super(
-      createTiSubcircuitConfig(DEFINITIONS.EnvironmentalSensor_HDC3020, config),
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.EnvironmentalSensor_HDC3020,
+        config,
+      ),
     )
   }
 }
@@ -501,21 +536,32 @@ export class EnvironmentalSensor_HDC3020 extends SystemBlock {
 export class EnvironmentalSensor_HDC3022 extends SystemBlock {
   constructor(config: TiSystemBlockConfig = {}) {
     super(
-      createTiSubcircuitConfig(DEFINITIONS.EnvironmentalSensor_HDC3022, config),
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.EnvironmentalSensor_HDC3022,
+        config,
+      ),
     )
   }
 }
 
 export class PowerMonitor_INA237 extends SystemBlock {
   constructor(config: TiSystemBlockConfig = {}) {
-    super(createTiSubcircuitConfig(DEFINITIONS.PowerMonitor_INA237, config))
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.PowerMonitor_INA237,
+        config,
+      ),
+    )
   }
 }
 
 export class Microcontroller_MSPM0G3507 extends SystemBlock {
   constructor(config: TiSystemBlockConfig = {}) {
     super(
-      createTiSubcircuitConfig(DEFINITIONS.Microcontroller_MSPM0G3507, config),
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.Microcontroller_MSPM0G3507,
+        config,
+      ),
     )
   }
 }
@@ -523,40 +569,66 @@ export class Microcontroller_MSPM0G3507 extends SystemBlock {
 export class TemperatureSensor_TMP1075 extends SystemBlock {
   constructor(config: TiSystemBlockConfig = {}) {
     super(
-      createTiSubcircuitConfig(DEFINITIONS.TemperatureSensor_TMP1075, config),
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.TemperatureSensor_TMP1075,
+        config,
+      ),
     )
   }
 }
 
 export class LoadSwitch_TPS22919 extends SystemBlock {
   constructor(config: TiSystemBlockConfig = {}) {
-    super(createTiSubcircuitConfig(DEFINITIONS.LoadSwitch_TPS22919, config))
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.LoadSwitch_TPS22919,
+        config,
+      ),
+    )
   }
 }
 
 export class BuckConverter_TPS62933 extends SystemBlock {
   constructor(config: TiSystemBlockConfig = {}) {
-    super(createTiSubcircuitConfig(DEFINITIONS.BuckConverter_TPS62933, config))
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.BuckConverter_TPS62933,
+        config,
+      ),
+    )
   }
 }
 
 export class BuckBoostConverter_TPS63802 extends SystemBlock {
   constructor(config: TiSystemBlockConfig = {}) {
     super(
-      createTiSubcircuitConfig(DEFINITIONS.BuckBoostConverter_TPS63802, config),
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.BuckBoostConverter_TPS63802,
+        config,
+      ),
     )
   }
 }
 
 export class PowerManagement_TPS7A02 extends SystemBlock {
   constructor(config: TiSystemBlockConfig = {}) {
-    super(createTiSubcircuitConfig(DEFINITIONS.PowerManagement_TPS7A02, config))
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.PowerManagement_TPS7A02,
+        config,
+      ),
+    )
   }
 }
 
 export class PowerModule_TPSM82823 extends SystemBlock {
   constructor(config: TiSystemBlockConfig = {}) {
-    super(createTiSubcircuitConfig(DEFINITIONS.PowerModule_TPSM82823, config))
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.PowerModule_TPSM82823,
+        config,
+      ),
+    )
   }
 }
 

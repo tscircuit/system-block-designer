@@ -16,6 +16,7 @@ export interface LibraryItem {
   type: string
   icon: string
   count: number
+  category?: string[]
   w?: number
   h?: number
 }

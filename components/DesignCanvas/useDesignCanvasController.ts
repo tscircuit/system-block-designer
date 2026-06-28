@@ -220,6 +220,7 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
       const system_diagram_id = diagram?.system_diagram_id ?? "system_diagram_0"
       const id = nextId("b")
       const item = findLibraryItem(type)
+      if (!item || item.count === 0) return
       const width = item?.w ?? 128
       const height = item?.h ?? 104
       const block: SystemBlock = {
@@ -229,7 +230,7 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
         center: { x: cx, y: cy },
         size: { width, height },
         label: type,
-        category: [type],
+        category: item?.category ?? [type],
         icon: item?.icon ?? "chip",
       }
       const ports = createSystemPortsForBlock(system_diagram_id, id, type)

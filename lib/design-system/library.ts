@@ -1,6 +1,9 @@
 import type { BlockPorts, LibraryCategory } from "./types"
+import { TiSubcircuitDefinitions } from "../system-blocks/TiSubcircuits"
 
-export const LIBRARY: LibraryCategory[] = [
+const TI_DEFINITIONS = Object.values(TiSubcircuitDefinitions)
+
+const BASE_LIBRARY: LibraryCategory[] = [
   {
     name: "Battery Management",
     open: true,
@@ -55,6 +58,74 @@ export const LIBRARY: LibraryCategory[] = [
       { type: "Buck Converter", icon: "power", count: 7 },
     ],
   },
+]
+
+const tiByCategory = TI_DEFINITIONS.reduce((byCategory, definition) => {
+  const [categoryName, itemType = categoryName] = definition.category
+  const byItemType = byCategory.get(categoryName) ?? new Map()
+  byItemType.set(itemType, [...(byItemType.get(itemType) ?? []), definition])
+  byCategory.set(categoryName, byItemType)
+  return byCategory
+}, new Map<string, Map<string, typeof TI_DEFINITIONS>>())
+
+const BASE_CATEGORY_NAMES = new Set(
+  BASE_LIBRARY.map((category) => category.name),
+)
+
+export const LIBRARY: LibraryCategory[] = [
+  ...BASE_LIBRARY.map((category) => {
+    const baseItemTypes = new Set(category.items.map((item) => item.type))
+    const tiItems =
+      tiByCategory.get(category.name) ??
+      new Map<string, typeof TI_DEFINITIONS>()
+    const totalCount = Array.from(tiItems.values()).flat().length
+    const missingTiItems = Array.from(tiItems.entries())
+      .filter(([itemType]) => !baseItemTypes.has(itemType))
+      .map(([itemType, definitions]) => ({
+        type: itemType,
+        icon: definitions[0]?.icon ?? "chip",
+        count: definitions.length,
+        category: [category.name, itemType],
+        w: definitions[0]?.size?.width,
+        h: definitions[0]?.size?.height,
+      }))
+
+    return {
+      ...category,
+      items: [
+        ...category.items.map((item) => ({
+          ...item,
+          count:
+            item.type === category.name
+              ? totalCount
+              : (tiItems.get(item.type)?.length ?? 0),
+          category:
+            item.type === category.name
+              ? [category.name]
+              : [category.name, item.type],
+        })),
+        ...missingTiItems,
+      ],
+    }
+  }),
+  ...Array.from(tiByCategory.keys())
+    .filter((categoryName) => !BASE_CATEGORY_NAMES.has(categoryName))
+    .map(
+      (categoryName): LibraryCategory => ({
+        name: categoryName,
+        open: false,
+        items: Array.from(tiByCategory.get(categoryName)!.entries()).map(
+          ([itemType, definitions]) => ({
+            type: itemType,
+            icon: definitions[0]?.icon ?? "chip",
+            count: definitions.length,
+            category: [categoryName, itemType],
+            w: definitions[0]?.size?.width,
+            h: definitions[0]?.size?.height,
+          }),
+        ),
+      }),
+    ),
 ]
 
 const ALL_ITEMS = LIBRARY.flatMap((category) => category.items)
