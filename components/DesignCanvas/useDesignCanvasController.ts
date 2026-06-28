@@ -2,6 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { routeOrthogonalPath } from "../../lib/design-system/routeOrthogonalPath"
 import { LIBRARY, findLibraryItem } from "../../lib/design-system/library"
 import type { LibraryCategory } from "../../lib/design-system/types"
+import {
+  type CircuitJson,
+  resolveSystemJsonToCircuitJson,
+} from "../../lib/system-blocks/resolveSystemJsonToCircuitJson"
 import type {
   Point,
   SystemBlock,
@@ -72,6 +76,10 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
   const [collapsed, setCollapsed] = useState(false)
   const [activeTab, setActiveTab] = useState("canvas")
   const [resolving, setResolving] = useState(false)
+  const [resolvedCircuitJson, setResolvedCircuitJson] =
+    useState<CircuitJson | null>(null)
+  const [resolvedTsx, setResolvedTsx] = useState<string | null>(null)
+  const [resolveError, setResolveError] = useState<string | null>(null)
   const [editing, setEditing] = useState<Editing>(null)
   const [contextMenu, setContextMenu] = useState<BlockContextMenu>(null)
   const [tempConnection, setTempConnection] = useState<{
@@ -793,10 +801,22 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
     event.dataTransfer.effectAllowed = "copy"
   }, [])
 
-  const onResolve = useCallback(() => {
+  const onResolve = useCallback(async () => {
+    if (resolving) return
     setResolving(true)
-    window.setTimeout(() => setResolving(false), 1100)
-  }, [])
+    setResolveError(null)
+    try {
+      const result = await resolveSystemJsonToCircuitJson(systemJsonRef.current)
+      setResolvedTsx(result.tsx)
+      setResolvedCircuitJson(result.circuitJson)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      setResolveError(message)
+      console.error(error)
+    } finally {
+      setResolving(false)
+    }
+  }, [resolving])
 
   const tempPath = useMemo(() => {
     if (!tempConnection) return null
@@ -844,6 +864,9 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
     portMap,
     ports: normalized.ports,
     redo,
+    resolvedCircuitJson,
+    resolvedTsx,
+    resolveError,
     search,
     selection,
     setActiveTab,

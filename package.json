@@ -5,6 +5,7 @@
 	"type": "module",
 	"scripts": {
 		"start": "vite",
+		"start:cosmos": "cosmos",
 		"dev": "vite",
 		"build": "tsc --noEmit && vite build",
 		"preview": "vite preview",
@@ -15,13 +16,16 @@
 	"dependencies": {
 		"@resvg/resvg-js": "^2.6.2",
 		"@tsci/tscircuit.ti": "^1.0.49",
+		"@tscircuit/eval": "^0.0.955",
+		"@tscircuit/krt-wasm": "^0.1.6",
 		"@vitejs/plugin-react": "5",
+		"comlink": "^4.4.2",
 		"pdf-lib": "^1.17.1",
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0",
 		"typescript": "^5.0.0",
 		"vite": "^7.1.2",
-		"zod": "^4.4.3"
+		"zod": "^3.25.76"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.1",

@@ -1,4 +1,4 @@
-import { BomView } from "./BomView"
+import { BomView } from "../../BOMView/BomView"
 
 export function BomView01Page() {
   return <BomView />

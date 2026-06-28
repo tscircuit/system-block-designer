@@ -1,4 +1,4 @@
-import { OutputFiles } from "./OutputFiles"
+import { OutputFiles } from "../../OutputFiles/OutputFiles"
 
 export function OutputFiles01Page() {
   return <OutputFiles />
