@@ -22,7 +22,6 @@ type TiBlockConstructor = new (config: {
 interface TiRuntimeBlock {
   json: SystemBlockJson
   componentName: TiSystemBlockName
-  chipName: string
   instanceName: string
   instance: SystemBlockTsx
 }
@@ -61,42 +60,11 @@ export function systemJsonToTsxProject(
   systemJson: SystemJson[],
   options: SystemJsonToTsxOptions = {},
 ): SystemJsonToTsxProject {
-  const runtimeBlocks = createConnectedRuntimeBlocks(systemJson)
-  const uniqueBlocksByComponentName = new Map<
-    TiSystemBlockName,
-    TiRuntimeBlock
-  >()
-
-  for (const runtimeBlock of runtimeBlocks) {
-    uniqueBlocksByComponentName.set(runtimeBlock.componentName, runtimeBlock)
+  return {
+    files: {
+      "index.circuit.tsx": systemJsonToTsx(systemJson, options),
+    },
   }
-
-  const files: Record<string, string> = {}
-
-  for (const runtimeBlock of Array.from(
-    uniqueBlocksByComponentName.values(),
-  ).sort((a, b) => a.componentName.localeCompare(b.componentName))) {
-    files[`chips/${runtimeBlock.chipName}.tsx`] =
-      createChipFileTsx(runtimeBlock)
-    files[`subcircuits/${runtimeBlock.componentName}.tsx`] =
-      createSubcircuitFileTsx(runtimeBlock)
-  }
-
-  const subcircuitImports = Array.from(uniqueBlocksByComponentName.keys())
-    .sort()
-    .map(
-      (componentName) =>
-        `import { ${componentName} } from "./subcircuits/${componentName}"`,
-    )
-    .join("\n")
-
-  files["index.circuit.tsx"] = `${subcircuitImports}
-
-circuit.add(
-${indent(createBoardTsx(runtimeBlocks, options), 2)}
-)`
-
-  return { files }
 }
 
 function createConnectedRuntimeBlocks(systemJson: SystemJson[]) {
@@ -147,22 +115,6 @@ ${children}
   </board>`
 }
 
-function createChipFileTsx(runtimeBlock: TiRuntimeBlock) {
-  return `import { ${runtimeBlock.componentName} as ${runtimeBlock.chipName} } from "@tsci/tscircuit.ti"
-
-export { ${runtimeBlock.chipName} }
-`
-}
-
-function createSubcircuitFileTsx(runtimeBlock: TiRuntimeBlock) {
-  return `import { ${runtimeBlock.chipName} } from "../chips/${runtimeBlock.chipName}"
-
-export function ${runtimeBlock.componentName}(props: any) {
-  return <${runtimeBlock.chipName} {...props} />
-}
-`
-}
-
 function createRuntimeBlock(block: SystemBlockJson): TiRuntimeBlock | null {
   const componentName = getTiComponentName(block)
   if (!componentName) return null
@@ -180,7 +132,6 @@ function createRuntimeBlock(block: SystemBlockJson): TiRuntimeBlock | null {
   return {
     json: block,
     componentName,
-    chipName: getChipName(componentName),
     instanceName,
     instance,
   }
@@ -243,11 +194,6 @@ function getTiComponentName(block: SystemBlockJson): TiSystemBlockName | null {
 
 function normalizePartNumber(partNumber: string | undefined) {
   return partNumber?.replace(/[^A-Za-z0-9]/g, "").toUpperCase() ?? ""
-}
-
-function getChipName(componentName: TiSystemBlockName) {
-  const definition = TiSubcircuitDefinitions[componentName]
-  return toTsxIdentifier(definition.partNumber)
 }
 
 function toTsxIdentifier(value: string) {

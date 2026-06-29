@@ -11,16 +11,11 @@ test("renders system block desginer 01 system json snapshot", async () => {
   await expect(snapshot).toMatchSvgSnapshot(import.meta.path)
 })
 
-test("system block desginer 01 TSX zip project includes chips and subcircuits", () => {
+test("system block desginer 01 TSX export includes one index file", () => {
   const { files } = systemJsonToTsxProject(
     createSystemBlockDesginer01SystemJson(),
   )
 
-  expect(Object.keys(files).sort()).toEqual([
-    "chips/HDC3020.tsx",
-    "chips/MSPM0G3507.tsx",
-    "index.circuit.tsx",
-    "subcircuits/EnvironmentalSensor_HDC3020.tsx",
-    "subcircuits/Microcontroller_MSPM0G3507.tsx",
-  ])
+  expect(Object.keys(files)).toEqual(["index.circuit.tsx"])
+  expect(files["index.circuit.tsx"]).toContain("@tsci/tscircuit.ti")
 })

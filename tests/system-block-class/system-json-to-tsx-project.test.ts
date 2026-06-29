@@ -2,26 +2,14 @@ import { expect, test } from "bun:test"
 import { createTiBlocksCircuitJsonSystemJson } from "../../components/pages/DesignCanvas/DesignCanvas01/createTiBlocksCircuitJsonSystemJson"
 import { systemJsonToTsxProject } from "../../lib/system-blocks/systemJsonToTsx"
 
-test("systemJsonToTsxProject emits chip, subcircuit, and index files", () => {
+test("systemJsonToTsxProject emits one index file importing TI subcircuits", () => {
   const { files } = systemJsonToTsxProject(
     createTiBlocksCircuitJsonSystemJson(),
   )
 
-  expect(Object.keys(files).sort()).toEqual([
-    "chips/HDC3020.tsx",
-    "chips/MSPM0G3507.tsx",
-    "index.circuit.tsx",
-    "subcircuits/EnvironmentalSensor_HDC3020.tsx",
-    "subcircuits/Microcontroller_MSPM0G3507.tsx",
-  ])
-  expect(files["chips/HDC3020.tsx"]).toContain(
-    "EnvironmentalSensor_HDC3020 as HDC3020",
-  )
-  expect(files["subcircuits/EnvironmentalSensor_HDC3020.tsx"]).toContain(
-    'import { HDC3020 } from "../chips/HDC3020"',
-  )
+  expect(Object.keys(files)).toEqual(["index.circuit.tsx"])
   expect(files["index.circuit.tsx"]).toContain(
-    'import { Microcontroller_MSPM0G3507 } from "./subcircuits/Microcontroller_MSPM0G3507"',
+    'import { EnvironmentalSensor_HDC3020, Microcontroller_MSPM0G3507 } from "@tsci/tscircuit.ti"',
   )
   expect(files["index.circuit.tsx"]).toContain(
     '<board width="100mm" height="100mm">',

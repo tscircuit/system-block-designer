@@ -1,7 +1,6 @@
 import { useState } from "react"
-import { systemJsonToTsxProject } from "../../lib/system-blocks/systemJsonToTsx"
+import { systemJsonToTsx } from "../../lib/system-blocks/systemJsonToTsx"
 import type { SystemJson } from "../../lib/system-json/system-json"
-import { createZip } from "../../lib/utils/createZip"
 import { downloadBlob } from "./downloadBlob"
 import "./output-files.css"
 
@@ -42,8 +41,8 @@ const outputFiles: OutputFile[] = [
     description:
       "EDA files containing the schematics and component footprints.",
     icon: "kicad",
-    options: ["TSX Zip", "KiCad"],
-    selected: "TSX Zip",
+    options: ["TSX", "KiCad"],
+    selected: "TSX",
     generatedAt: "Last generated 26 Jun 2026 8:50 PM",
   },
 ]
@@ -178,7 +177,7 @@ function OutputFileCard({
               aria-label={`Download ${file.title}`}
               title={
                 disabled
-                  ? "Resolve before downloading TSX Zip"
+                  ? "Resolve before downloading TSX"
                   : `Download ${file.title}`
               }
               onClick={() => onDownload(file, selectedOption)}
@@ -197,14 +196,14 @@ function OutputFileCard({
 
 export function OutputFiles({ systemJson }: OutputFilesProps) {
   const downloadFile = (file: OutputFile, selectedOption?: string) => {
-    if (file.id === "project-package" && selectedOption === "TSX Zip") {
+    if (file.id === "project-package" && selectedOption === "TSX") {
       if (!systemJson) return
 
-      const project = systemJsonToTsxProject(systemJson)
-      const zipBytes = createZip(project.files)
       downloadBlob(
-        new Blob([zipBytes], { type: "application/zip" }),
-        "tscircuit-project-tsx.zip",
+        new Blob([systemJsonToTsx(systemJson)], {
+          type: "text/plain;charset=utf-8",
+        }),
+        "index.circuit.tsx",
       )
       return
     }
