@@ -23,6 +23,16 @@ export function BlockNode({
   const blockPorts = ports.filter(
     (port) => port.system_block_id === block.system_block_id,
   )
+  const portAddControls: Array<{
+    side: SystemPort["side_of_block"]
+    x: number
+    y: number
+  }> = [
+    { side: "top", x: block.size.width / 2, y: -26 },
+    { side: "right", x: block.size.width + 26, y: block.size.height / 2 },
+    { side: "bottom", x: block.size.width / 2, y: block.size.height + 26 },
+    { side: "left", x: -26, y: block.size.height / 2 },
+  ]
 
   return (
     <g
@@ -94,6 +104,19 @@ export function BlockNode({
           </g>
         )
       })}
+      {selected &&
+        portAddControls.map((control) => (
+          <g
+            key={control.side}
+            className="port-add"
+            data-add-port-side={control.side}
+            data-block-id={block.system_block_id}
+            transform={`translate(${control.x},${control.y})`}
+          >
+            <circle r={12} />
+            <path d="M -6 0 H 6 M 0 -6 V 6" />
+          </g>
+        ))}
     </g>
   )
 }

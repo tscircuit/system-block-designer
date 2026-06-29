@@ -10,6 +10,7 @@ import type {
   Point,
   SystemConnection,
   SystemJson,
+  SystemPort,
 } from "../../lib/system-json/system-json"
 import type { BlockContextMenu, Editing } from "./DesignCanvas.types"
 import {
@@ -26,9 +27,9 @@ import {
   createSystemJsonForLibraryBlock,
   getBlockTopLeft,
   getSystemPortPosition,
+  inferConnectionInterface,
   normalizeSystemJson,
   routeSystemPathPoints,
-  systemConnectionToSvgPath,
   SYSTEM_DIR,
   updateConnectionPaths,
 } from "./systemJsonCanvas"
@@ -178,6 +179,34 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
     [addBlockAt, clientToCanvas],
   )
 
+  const addPortToBlock = useCallback(
+    (blockId: string, side: SystemPort["side_of_block"]) => {
+      const currentSystemJson = systemJsonRef.current
+      const current = normalizeSystemJson(currentSystemJson)
+      const block = current.blocks.find(
+        (candidate) => candidate.system_block_id === blockId,
+      )
+      if (!block) return
+
+      const sameSidePortCount = current.ports.filter(
+        (port) =>
+          port.system_block_id === blockId && port.side_of_block === side,
+      ).length
+      const port: SystemPort = {
+        type: "system_port",
+        system_diagram_id: block.system_diagram_id,
+        system_port_id: nextId("p"),
+        system_block_id: blockId,
+        label: `Port ${sameSidePortCount + 1}`,
+        side_of_block: side,
+      }
+
+      mutate(updateConnectionPaths([...currentSystemJson, port]))
+      applySelection({ kind: "block", id: blockId })
+    },
+    [applySelection, mutate],
+  )
+
   const onMove = useCallback(
     (event: PointerEvent) => {
       const interaction = interactionRef.current
@@ -284,7 +313,7 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
                     targetPort,
                     current.ports,
                   ),
-                  label: sourcePort.label ?? "NET",
+                  label: "gpio",
                 }
                 mutate([...currentSystemJson, connection])
               }
@@ -320,6 +349,22 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
       setContextMenu(null)
       if (editingRef.current) return
       const target = event.target as Element
+
+      const addPortElement = target.closest("[data-add-port-side]")
+      if (addPortElement) {
+        const blockId = addPortElement.getAttribute("data-block-id")
+        const side = addPortElement.getAttribute("data-add-port-side")
+        if (
+          blockId &&
+          side &&
+          ["top", "right", "bottom", "left"].includes(side)
+        ) {
+          event.preventDefault()
+          addPortToBlock(blockId, side as SystemPort["side_of_block"])
+        }
+        return
+      }
+
       const portElement = target.closest("[data-port]")
       if (portElement) {
         const fromSystemPortId = portElement.getAttribute("data-port")
@@ -355,11 +400,17 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
         return
       }
 
-      const connectionHit = target.closest(".connection-hit")
+      const connectionHit = target.closest(
+        ".connection-hit, [data-label-connection-id]",
+      )
       if (connectionHit) {
+        const connectionId =
+          connectionHit.getAttribute("data-connection-id") ??
+          connectionHit.getAttribute("data-label-connection-id")
+        if (!connectionId) return
         applySelection({
           kind: "connection",
-          id: connectionHit.getAttribute("data-connection-id")!,
+          id: connectionId,
         })
         return
       }
@@ -378,6 +429,7 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
     },
     [
       applySelection,
+      addPortToBlock,
       beginInteraction,
       blockMap,
       clientToCanvas,
@@ -413,37 +465,6 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
   const onSvgDoubleClick = useCallback(
     (event: React.MouseEvent<SVGSVGElement>) => {
       const target = event.target as Element
-      const labelHit = target.closest("[data-label-connection-id]")
-      if (labelHit) {
-        const id = labelHit.getAttribute("data-label-connection-id")!
-        const connection = normalizeSystemJson(
-          systemJsonRef.current,
-        ).connections.find((candidate) => candidate.system_connection_id === id)
-        if (!connection) return
-        const current = normalizeSystemJson(systemJsonRef.current)
-        const currentBlockMap = new Map(
-          current.blocks.map((block) => [block.system_block_id, block]),
-        )
-        const currentPortMap = new Map(
-          current.ports.map((port) => [port.system_port_id, port]),
-        )
-        const { mid } = systemConnectionToSvgPath(
-          connection,
-          currentBlockMap,
-          currentPortMap,
-          current.ports,
-        )
-        setEditing({
-          kind: "connection",
-          id,
-          cx: mid.x,
-          cy: mid.y,
-          w: 70,
-          value: connection.label ?? "",
-        })
-        return
-      }
-
       const blockElement = target.closest(".block")
       if (blockElement) {
         const id = blockElement.getAttribute("data-id")!
@@ -467,21 +488,10 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
     if (!edit) return
     const value = edit.value.trim()
     const currentSystemJson = systemJsonRef.current
-    if (edit.kind === "block") {
-      if (value) {
-        mutate(
-          currentSystemJson.map((item) =>
-            item.type === "system_block" && item.system_block_id === edit.id
-              ? { ...item, label: value }
-              : item,
-          ),
-        )
-      }
-    } else {
+    if (edit.kind === "block" && value) {
       mutate(
         currentSystemJson.map((item) =>
-          item.type === "system_connection" &&
-          item.system_connection_id === edit.id
+          item.type === "system_block" && item.system_block_id === edit.id
             ? { ...item, label: value }
             : item,
         ),
@@ -509,6 +519,22 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
       if (!next) return
       mutate(next)
       applySelection({ kind: "block", id: blockId })
+    },
+    [applySelection, mutate],
+  )
+
+  const updateConnectionInterface = useCallback(
+    (connectionId: string, nextInterface: string) => {
+      const label = inferConnectionInterface(nextInterface)
+      mutate(
+        systemJsonRef.current.map((item) =>
+          item.type === "system_connection" &&
+          item.system_connection_id === connectionId
+            ? { ...item, label }
+            : item,
+        ),
+      )
+      applySelection({ kind: "connection", id: connectionId })
     },
     [applySelection, mutate],
   )
@@ -629,6 +655,7 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
     activeTab,
     addBlockAt,
     addBlockCentered,
+    addPortToBlock,
     applyBlockSubcircuit,
     blockMap,
     blocks: normalized.blocks,
@@ -672,6 +699,7 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
     systemJson,
     tempPath,
     undo,
+    updateConnectionInterface,
     view,
     warnings,
     zoomBy,

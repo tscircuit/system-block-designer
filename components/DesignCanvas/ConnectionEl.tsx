@@ -3,7 +3,10 @@ import type {
   SystemConnection,
   SystemPort,
 } from "../../lib/system-json/system-json"
-import { systemConnectionToSvgPath } from "./systemJsonCanvas"
+import {
+  inferConnectionInterface,
+  systemConnectionToSvgPath,
+} from "./systemJsonCanvas"
 
 interface ConnectionElProps {
   connection: SystemConnection
@@ -26,7 +29,7 @@ export function ConnectionEl({
     portMap,
     ports,
   )
-  const label = connection.label ?? ""
+  const label = inferConnectionInterface(connection.label)
   const labelWidth = label.length * 6.6 + 14
 
   return (
@@ -48,7 +51,7 @@ export function ConnectionEl({
             rx={5}
           />
           <text className="connection-label-text" x={mid.x} y={mid.y + 0.5}>
-            {label}
+            {label.toUpperCase()}
           </text>
           <rect
             className="connection-label-hit"

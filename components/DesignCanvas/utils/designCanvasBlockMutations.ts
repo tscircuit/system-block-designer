@@ -62,45 +62,30 @@ export function replaceBlockSubcircuitInSystemJson(
   if (!block) return null
 
   const BlockClass = TiSystemBlockClasses[subcircuitId as TiSystemBlockName]
-  const replacementItems = new BlockClass({
+  const replacementBlock = new BlockClass({
     systemDiagramId: block.system_diagram_id,
     systemBlockId: block.system_block_id,
     center: block.center,
+    size: block.size,
     tsxInstanceName: block.system_block_id,
     subcircuitId,
-  }).getSystemBlockJson()
-  const replacementPortIds = new Set(
-    replacementItems
-      .filter((item): item is SystemPort => item.type === "system_port")
-      .map((port) => port.system_port_id),
-  )
-  const existingPortIds = new Set(
-    current.ports
-      .filter((port) => port.system_block_id === blockId)
-      .map((port) => port.system_port_id),
-  )
-
-  return systemJson.flatMap((item) => {
-    if (item.type === "system_block" && item.system_block_id === blockId) {
-      return replacementItems
-    }
-    if (item.type === "system_port" && item.system_block_id === blockId) {
-      return []
-    }
-    if (item.type === "system_connection") {
-      const connectedPortIds = [
-        item.source_system_port_id,
-        item.target_system_port_id,
-        ...(item.system_port_ids ?? []),
-      ].filter((portId): portId is string => Boolean(portId))
-      const hasRemovedPort = connectedPortIds.some(
-        (portId) =>
-          existingPortIds.has(portId) && !replacementPortIds.has(portId),
-      )
-      return hasRemovedPort ? [] : [item]
-    }
-    return [item]
   })
+    .getSystemBlockJson()
+    .find((item): item is SystemBlock => item.type === "system_block")
+
+  if (!replacementBlock) return null
+
+  const nextBlock: SystemBlock = {
+    ...replacementBlock,
+    center: block.center,
+    size: block.size,
+  }
+
+  return systemJson.map((item) =>
+    item.type === "system_block" && item.system_block_id === blockId
+      ? nextBlock
+      : item,
+  )
 }
 
 export function duplicateBlockInSystemJson(

@@ -12,7 +12,7 @@ test("library TI blocks carry subcircuit metadata used by added editor blocks", 
   })
 })
 
-test("an editor-added TI block converts to its concrete subcircuit TSX", () => {
+test("an editor-added TI block starts without ports and converts to its concrete subcircuit TSX", () => {
   const blockSystemJson = createSystemJsonForLibraryBlock(
     "system_diagram_0",
     "b_1",
@@ -33,14 +33,6 @@ test("an editor-added TI block converts to its concrete subcircuit TSX", () => {
     .filter((item) => item.type === "system_port")
     .map((port) => port.label)
 
-  expect(portLabels).toEqual([
-    "VDD",
-    "GND",
-    "NRST",
-    "SWDIO",
-    "SWCLK",
-    "PA0",
-    "PA1",
-  ])
+  expect(portLabels).toEqual([])
   expect(systemJsonToTsx(systemJson)).toContain("<Microcontroller_MSPM0G3507")
 })

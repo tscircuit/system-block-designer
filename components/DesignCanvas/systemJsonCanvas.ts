@@ -1,7 +1,6 @@
 import { pathPointsToSvgPath } from "../../lib/design-system/pathPointsToSvgPath"
 import { routeOrthogonalPath } from "../../lib/design-system/routeOrthogonalPath"
-import { defaultPorts, findLibraryItem } from "../../lib/design-system/library"
-import type { Side } from "../../lib/design-system/types"
+import { findLibraryItem } from "../../lib/design-system/library"
 import {
   TiSystemBlockClasses,
   type TiSystemBlockName,
@@ -21,11 +20,26 @@ export const SYSTEM_DIR: Record<SystemPort["side_of_block"], Point> = {
   bottom: { x: 0, y: 1 },
 }
 
-const SIDE_TO_SYSTEM_SIDE: Record<Side, SystemPort["side_of_block"]> = {
-  L: "left",
-  R: "right",
-  T: "top",
-  B: "bottom",
+export const CONNECTION_INTERFACES = ["gpio", "supply", "spi", "i2c"] as const
+export type ConnectionInterface = (typeof CONNECTION_INTERFACES)[number]
+
+export function inferConnectionInterface(
+  label: string | undefined,
+): ConnectionInterface {
+  const normalized = label?.trim().toLowerCase() ?? ""
+  if (CONNECTION_INTERFACES.includes(normalized as ConnectionInterface)) {
+    return normalized as ConnectionInterface
+  }
+  if (
+    ["vcc", "vdd", "vin", "vout", "gnd", "ground", "power", "supply"].includes(
+      normalized,
+    )
+  ) {
+    return "supply"
+  }
+  if (["scl", "sda", "i2c"].includes(normalized)) return "i2c"
+  if (["sclk", "miso", "mosi", "cs", "spi"].includes(normalized)) return "spi"
+  return "gpio"
 }
 
 export interface NormalizedSystemJson {
@@ -147,14 +161,6 @@ export function routeSystemConnection(
   )
 }
 
-export function getSystemPortId(
-  blockId: string,
-  side: SystemPort["side_of_block"],
-  index: number,
-) {
-  return `${blockId}_${side}_${index}`
-}
-
 export function createSystemJsonForLibraryBlock(
   system_diagram_id: string,
   blockId: string,
@@ -175,7 +181,9 @@ export function createSystemJsonForLibraryBlock(
       tsxInstanceName: blockId,
       subcircuitId: item.subcircuitId,
     })
-    return block.getSystemBlockJson()
+    return block
+      .getSystemBlockJson()
+      .filter((item): item is SystemBlock => item.type === "system_block")
   }
 
   const width = item.w ?? 128
@@ -191,29 +199,7 @@ export function createSystemJsonForLibraryBlock(
     icon: item.icon ?? "chip",
   }
 
-  return [block, ...createSystemPortsForBlock(system_diagram_id, blockId, type)]
-}
-
-export function createSystemPortsForBlock(
-  system_diagram_id: string,
-  blockId: string,
-  type: string,
-) {
-  const defaultBlockPorts = defaultPorts(type)
-
-  return (Object.keys(defaultBlockPorts) as Side[]).flatMap((side) => {
-    const systemSide = SIDE_TO_SYSTEM_SIDE[side]
-    return defaultBlockPorts[side].map(
-      (label, index): SystemPort => ({
-        type: "system_port",
-        system_diagram_id,
-        system_port_id: getSystemPortId(blockId, systemSide, index),
-        system_block_id: blockId,
-        label,
-        side_of_block: systemSide,
-      }),
-    )
-  })
+  return [block]
 }
 
 export function updateConnectionPaths(systemJson: SystemJson[]) {
