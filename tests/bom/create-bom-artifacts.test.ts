@@ -126,15 +126,26 @@ test("createBomArtifacts consolidates BOM rows from resolved circuit json", asyn
   const artifacts = await createBomArtifacts({
     systemJson,
     circuitJson,
+    generatedAt: new Date("2026-06-26T12:00:00Z"),
     resolveSupplierPartDetails: async (supplierPartNumber) => {
       if (supplierPartNumber === "C25900") {
         return {
+          manufacturer: "YAGEO",
+          mpn: "RC0402FR-074K7L",
+          description: "4.7 kOhm resistor",
+          lifecycle: "Active",
+          leadTimeWeeks: 15,
           stock: 9379077,
           prices: [{ qFrom: 1, qTo: null, price: 0.000485714 }],
         }
       }
       if (supplierPartNumber === "C22389960") {
         return {
+          manufacturer: "Texas Instruments",
+          mpn: "MSPM0G3507SPMR",
+          description: "64-pin microcontroller",
+          lifecycle: "Active",
+          leadTimeWeeks: 18,
           stock: 15830,
           prices: [{ qFrom: 1, qTo: null, price: 1.607142857 }],
         }
@@ -144,31 +155,35 @@ test("createBomArtifacts consolidates BOM rows from resolved circuit json", asyn
   })
 
   expect(artifacts.summary).toEqual([
-    { label: "Unique Parts", value: "3" },
-    { label: "Placements", value: "4" },
-    { label: "Functional Blocks", value: "2" },
-    { label: "DNP Parts", value: "0" },
+    { label: "BOM Last updated", value: "26 Jun 2026" },
+    { label: "Unique Components", value: "3" },
+    { label: "Est. Price", value: "1.61 USD" },
+    { label: "Maximum lead time", value: "18 weeks" },
   ])
   expect(artifacts.rows).toContainEqual({
-    partNumber: "C25900",
-    supplierPartNumber: "C25900",
+    manufacturer: "YAGEO",
+    mpn: "RC0402FR-074K7L",
     packageName: "res0402",
     value: "4.7k",
     quantity: "2",
     functionalBlock: "Environmental Sensor",
-    description: "R1, R2",
+    partName: "4.7 kOhm resistor",
+    lifecycle: "Active",
     unitPrice: "0.000486 USD",
     stock: "9,379,077",
+    leadTime: "15 week(s)",
   })
   expect(artifacts.rows).toContainEqual({
-    partNumber: "MSPM0G3507SPMR",
-    supplierPartNumber: "C22389960",
+    manufacturer: "Texas Instruments",
+    mpn: "MSPM0G3507SPMR",
     packageName: "—",
     value: "—",
     quantity: "1",
     functionalBlock: "Microcontroller",
-    description: "U1",
+    partName: "64-pin microcontroller",
+    lifecycle: "Active",
     unitPrice: "1.6071 USD",
     stock: "15,830",
+    leadTime: "18 week(s)",
   })
 })

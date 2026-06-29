@@ -156,7 +156,7 @@
 
 .bom-table {
   width: 100%;
-  min-width: 1530px;
+  min-width: 1450px;
   border-collapse: separate;
   border-spacing: 0;
   table-layout: fixed;
@@ -204,10 +204,19 @@
 }
 
 .bom-th-content {
-  display: inline-flex;
-  align-items: center;
   justify-content: space-between;
   gap: 8px;
+}
+
+.bom-th-content > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bom-th-icons {
+  gap: 10px;
+  color: #172635;
 }
 
 .bom-sort-icon {
@@ -251,17 +260,23 @@
   margin-bottom: 3px;
 }
 
+.bom-cell-subtle {
+  color: #516275;
+}
+
 .bom-cell-strong {
   color: #172635;
   font-weight: 700;
 }
 
-.bom-cell-subtle {
-  color: #516275;
-}
-
 .bom-cell-wrap {
   word-break: break-word;
+}
+
+.bom-inline-link {
+  color: #1687ff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .bom-functional-cell {

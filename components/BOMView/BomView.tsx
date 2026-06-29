@@ -30,15 +30,17 @@ export function BomView({
 
     return resolvedRows.filter((row) =>
       [
-        row.partNumber,
-        row.supplierPartNumber,
+        row.manufacturer,
+        row.mpn,
         row.packageName,
         row.value,
         row.quantity,
         row.functionalBlock,
-        row.description,
+        row.partName,
+        row.lifecycle,
         row.unitPrice,
         row.stock,
+        row.leadTime,
       ].some((value) => value.toLowerCase().includes(normalizedQuery)),
     )
   }, [query, resolvedRows])

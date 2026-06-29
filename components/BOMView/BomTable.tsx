@@ -1,50 +1,63 @@
 import type { BomViewRow } from "../../lib/bom/types"
+import { FilterIcon, InfoIcon, SortIcon } from "./BomIcons"
 
 interface BomColumn {
   key: keyof BomViewRow
   label: string
   width: number
   align?: "right"
+  filter?: boolean
+  sort?: boolean
+  info?: boolean
 }
 
 const columns: BomColumn[] = [
   {
-    key: "partNumber",
-    label: "Part Number",
+    key: "manufacturer",
+    label: "Manufacturer",
     width: 240,
+    filter: true,
+    sort: true,
   },
-  { key: "supplierPartNumber", label: "Supplier Part #", width: 164 },
+  { key: "mpn", label: "MPN", width: 152, sort: true },
   {
     key: "packageName",
     label: "Package",
-    width: 118,
+    width: 104,
     align: "right",
+    sort: true,
   },
-  { key: "value", label: "Value", width: 110, align: "right" },
+  { key: "value", label: "Value", width: 94, align: "right" },
   {
     key: "quantity",
     label: "Quantity",
     width: 92,
     align: "right",
-  },
-  {
-    key: "unitPrice",
-    label: "Unit Price",
-    width: 124,
-    align: "right",
-  },
-  {
-    key: "stock",
-    label: "Stock",
-    width: 116,
-    align: "right",
+    sort: true,
   },
   {
     key: "functionalBlock",
     label: "Functional Block(s)",
-    width: 264,
+    width: 280,
   },
-  { key: "description", label: "Details", width: 196 },
+  { key: "lifecycle", label: "Lifecycle", width: 110, filter: true },
+  {
+    key: "unitPrice",
+    label: "Est. Unit Price",
+    width: 138,
+    align: "right",
+    sort: true,
+    info: true,
+  },
+  {
+    key: "stock",
+    label: "Est. Stock",
+    width: 118,
+    align: "right",
+    sort: true,
+    info: true,
+  },
+  { key: "leadTime", label: "Lead time", width: 118, sort: true, info: true },
 ]
 
 interface BomTableProps {
@@ -67,29 +80,98 @@ export function BomTable({ rows }: BomTableProps) {
                 key={column.key}
                 className={column.align === "right" ? "is-right" : undefined}
               >
-                <span className="bom-th-content">{column.label}</span>
+                <span className="bom-th-content">
+                  <span>
+                    {column.info && <InfoIcon />}
+                    {column.label}
+                  </span>
+                  <span className="bom-th-icons">
+                    {column.sort && <SortIcon />}
+                    {column.filter && <FilterIcon />}
+                  </span>
+                </span>
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {rows.map((row) => (
-            <tr key={`${row.partNumber}-${row.description}`}>
-              <td className="bom-cell-strong">{row.partNumber}</td>
-              <td className="bom-cell-subtle">{row.supplierPartNumber}</td>
-              <td className="is-right">{row.packageName}</td>
-              <td className="is-right">{row.value}</td>
-              <td className="is-right">{row.quantity}</td>
-              <td className="is-right">{row.unitPrice}</td>
-              <td className="is-right">{row.stock}</td>
-              <td className="bom-cell-wrap">{row.functionalBlock}</td>
-              <td className="bom-cell-wrap bom-cell-subtle">
-                {row.description}
-              </td>
-            </tr>
-          ))}
+          {rows.map((row) => {
+            const alternativesQuery =
+              row.mpn !== "—"
+                ? row.mpn
+                : row.partName !== "—"
+                  ? row.partName
+                  : ""
+
+            return (
+              <tr key={`${row.mpn}-${row.partName}`}>
+                <td>
+                  <div className="bom-manufacturer">{row.manufacturer}</div>
+                  {alternativesQuery ? (
+                    <a
+                      href={createJlcSearchUrl(alternativesQuery)}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      View Alternatives
+                    </a>
+                  ) : null}
+                </td>
+                <td className="bom-cell-strong">
+                  {row.mpn !== "—" ? (
+                    <a
+                      href={createJlcSearchUrl(row.mpn)}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {row.mpn}
+                    </a>
+                  ) : (
+                    row.mpn
+                  )}
+                </td>
+                <td className="is-right">{row.packageName}</td>
+                <td className="is-right">{row.value}</td>
+                <td className="is-right">{row.quantity}</td>
+                <td>
+                  <div className="bom-functional-cell">
+                    <div>
+                      <span className="bom-inline-link">
+                        {row.functionalBlock}
+                      </span>
+                      <div className="bom-cell-subtle bom-cell-wrap">
+                        {row.partName}
+                      </div>
+                    </div>
+                    <span className="bom-locked">▣ Locked</span>
+                  </div>
+                </td>
+                <td>
+                  {row.lifecycle === "Active" ||
+                  row.lifecycle === "End Of Life" ? (
+                    <span
+                      className={`bom-lifecycle ${row.lifecycle === "End Of Life" ? "is-eol" : ""}`}
+                    >
+                      {row.lifecycle}
+                    </span>
+                  ) : (
+                    <span className="bom-cell-subtle">{row.lifecycle}</span>
+                  )}
+                </td>
+                <td className="is-right">{row.unitPrice}</td>
+                <td className="is-right">{row.stock}</td>
+                <td>{row.leadTime}</td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
     </div>
   )
+}
+
+function createJlcSearchUrl(query: string) {
+  return `https://jlcsearch.tscircuit.com/components/list?search=${encodeURIComponent(
+    query,
+  )}`
 }

@@ -55,6 +55,7 @@ interface BomRowGroup {
 export async function createBomArtifacts(params: {
   systemJson: SystemJson[]
   circuitJson: CircuitJson
+  generatedAt?: Date
   resolveSupplierPartDetails?: (
     supplierPartNumber: string,
   ) => Promise<SupplierPartDetails | null>
@@ -67,7 +68,6 @@ export async function createBomArtifacts(params: {
     circuitJson: params.circuitJson as never,
   })) as LibraryBomRow[]
   const groups = new Map<string, BomRowGroup>()
-  let doNotPlaceCount = 0
 
   for (const [index, row] of bomRows.entries()) {
     const meta = placementMetas[index]
@@ -80,17 +80,6 @@ export async function createBomArtifacts(params: {
     const packageName = firstNonEmpty(row.footprint, "—")
     const value = firstNonEmpty(row.value, row.comment, "—")
     const isDoNotPlace = value === "DNP"
-    const partNumber = resolveDisplayPartNumber(
-      meta.partNumber,
-      supplierPartNumber,
-      meta.componentType,
-      value,
-      packageName,
-    )
-
-    if (isDoNotPlace) {
-      doNotPlaceCount += 1
-    }
 
     const key = createGroupKey({
       componentType: meta.componentType,
@@ -105,7 +94,7 @@ export async function createBomArtifacts(params: {
     if (!group) {
       group = {
         componentType: meta.componentType,
-        partNumber,
+        partNumber: meta.partNumber,
         supplierPartNumber,
         packageName,
         value,
@@ -128,43 +117,83 @@ export async function createBomArtifacts(params: {
     resolveSupplierPartDetails,
   )
 
+  let totalEstimatedPrice = 0
+  let hasEstimatedPrice = false
+  let maxLeadTimeWeeks: number | null = null
+
   const rows = Array.from(groups.values())
     .map((group): BomViewRow => {
       const details = supplierPartDetails.get(group.supplierPartNumber) ?? null
+      const unitPrice = pickUnitPriceForQuantity(
+        details?.prices ?? [],
+        group.quantity,
+      )
+      const leadTimeWeeks = details?.leadTimeWeeks ?? null
+      const mpn = resolveDisplayPartNumber(
+        group.partNumber,
+        details?.mpn ?? null,
+        group.supplierPartNumber,
+        group.componentType,
+        group.value,
+        group.packageName,
+      )
+      const value = group.value
+
+      if (unitPrice != null && value !== "DNP") {
+        totalEstimatedPrice += unitPrice * group.quantity
+        hasEstimatedPrice = true
+      }
+
+      if (leadTimeWeeks != null) {
+        maxLeadTimeWeeks = Math.max(maxLeadTimeWeeks ?? 0, leadTimeWeeks)
+      }
 
       return {
-        partNumber: group.partNumber,
-        supplierPartNumber: group.supplierPartNumber,
+        manufacturer: firstNonEmpty(details?.manufacturer ?? undefined, "—"),
+        mpn,
         packageName: group.packageName,
-        value: group.value,
+        value,
         quantity: String(group.quantity),
         functionalBlock: Array.from(group.functionalBlocks).sort().join(", "),
-        description: group.designators.sort(naturalCompare).join(", "),
-        unitPrice: formatUnitPrice(
-          pickUnitPriceForQuantity(details?.prices ?? [], group.quantity),
+        partName: resolvePartName({
+          description: details?.description ?? null,
+          designators: group.designators,
+          mpn,
+          value,
+          packageName: group.packageName,
+        }),
+        lifecycle: formatLifecycle(
+          details?.lifecycle ?? null,
+          Boolean(details),
         ),
+        unitPrice: formatUnitPrice(unitPrice),
         stock: formatStock(details?.stock ?? null),
+        leadTime: formatLeadTimeCell(leadTimeWeeks),
       }
     })
     .sort((left, right) => {
       return (
         left.functionalBlock.localeCompare(right.functionalBlock) ||
-        left.partNumber.localeCompare(right.partNumber) ||
-        naturalCompare(left.description, right.description)
+        left.mpn.localeCompare(right.mpn) ||
+        naturalCompare(left.partName, right.partName)
       )
     })
 
   return {
     summary: [
-      { label: "Unique Parts", value: String(rows.length) },
-      { label: "Placements", value: String(bomRows.length) },
       {
-        label: "Functional Blocks",
-        value: String(
-          new Set(rows.flatMap((row) => row.functionalBlock.split(", "))).size,
-        ),
+        label: "BOM Last updated",
+        value: formatSummaryDate(params.generatedAt ?? new Date()),
       },
-      { label: "DNP Parts", value: String(doNotPlaceCount) },
+      { label: "Unique Components", value: String(rows.length) },
+      {
+        label: "Est. Price",
+        value: hasEstimatedPrice ? formatTotalPrice(totalEstimatedPrice) : "—",
+      },
+      {
+        label: "Maximum lead time",
+        value: formatLeadTimeSummary(maxLeadTimeWeeks),
+      },
     ],
     rows,
   }
@@ -246,6 +275,7 @@ function createGroupKey(params: {
 
 function resolveDisplayPartNumber(
   partNumber: string,
+  secondaryPartNumber: string | null | undefined,
   supplierPartNumber: string,
   componentType: string,
   value: string,
@@ -253,6 +283,7 @@ function resolveDisplayPartNumber(
 ) {
   return firstNonEmpty(
     partNumber,
+    normalizeText(secondaryPartNumber) ?? undefined,
     supplierPartNumber !== "—" ? supplierPartNumber : undefined,
     createFallbackPartNumber(componentType, value, packageName),
     "—",
@@ -316,6 +347,8 @@ async function fetchJlcSupplierPartDetails(
   const data = (await response.json()) as {
     components?: Array<{
       lcsc?: number
+      mfr?: string
+      description?: string
       stock?: number
       price?: string
     }>
@@ -331,6 +364,11 @@ async function fetchJlcSupplierPartDetails(
   if (!component) return null
 
   return {
+    manufacturer: null,
+    mpn: normalizeText(component.mfr),
+    description: normalizeText(component.description),
+    lifecycle: null,
+    leadTimeWeeks: null,
     stock: typeof component.stock === "number" ? component.stock : null,
     prices: parsePriceBreaks(component.price),
   }
@@ -395,6 +433,69 @@ function formatUnitPrice(value: number | null) {
 function formatStock(value: number | null) {
   if (value == null || Number.isNaN(value)) return "—"
   return value.toLocaleString("en-US")
+}
+
+function formatLifecycle(value: string | null, hasSupplierDetails: boolean) {
+  if (value && value.trim().length > 0) return value
+  if (hasSupplierDetails) return "Active"
+  return "—"
+}
+
+function formatLeadTimeCell(value: number | null) {
+  if (value == null || Number.isNaN(value)) return "—"
+  return `${value} week(s)`
+}
+
+function formatLeadTimeSummary(value: number | null) {
+  if (value == null || Number.isNaN(value)) return "—"
+  return `${value} ${value === 1 ? "week" : "weeks"}`
+}
+
+function formatTotalPrice(value: number) {
+  if (Number.isNaN(value)) return "—"
+
+  if (value >= 1) {
+    return `${trimTrailingZeros(value.toFixed(2))} USD`
+  }
+
+  return `${trimTrailingZeros(value.toFixed(4))} USD`
+}
+
+function formatSummaryDate(value: Date) {
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(value)
+}
+
+function resolvePartName(params: {
+  description: string | null
+  designators: string[]
+  mpn: string
+  value: string
+  packageName: string
+}) {
+  const normalizedDescription = normalizeText(params.description)
+  if (normalizedDescription) return normalizedDescription
+
+  const partName = [
+    params.mpn !== "—" ? params.mpn : "",
+    params.value !== "—" && params.value !== "DNP" ? params.value : "",
+    params.packageName !== "—" ? params.packageName : "",
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim()
+
+  if (partName) return partName
+
+  return params.designators.sort(naturalCompare).join(", ")
+}
+
+function normalizeText(value: string | null | undefined) {
+  const trimmed = value?.trim()
+  return trimmed ? trimmed : null
 }
 
 function trimTrailingZeros(value: string) {

@@ -4,15 +4,17 @@ export interface BomSummaryItem {
 }
 
 export interface BomViewRow {
-  partNumber: string
-  supplierPartNumber: string
+  manufacturer: string
+  mpn: string
   packageName: string
   value: string
   quantity: string
   functionalBlock: string
-  description: string
+  partName: string
+  lifecycle: string
   unitPrice: string
   stock: string
+  leadTime: string
 }
 
 export interface BomArtifacts {
@@ -21,6 +23,11 @@ export interface BomArtifacts {
 }
 
 export interface SupplierPartDetails {
+  manufacturer: string | null
+  mpn: string | null
+  description: string | null
+  lifecycle: string | null
+  leadTimeWeeks: number | null
   stock: number | null
   prices: Array<{
     qFrom: number

@@ -19,7 +19,7 @@ export function BomToolbar({
         </span>
         <input
           value={query}
-          placeholder="Search by part number, block, package or details"
+          placeholder="Search by manufacturer, MPN, block or package"
           onChange={(event) => onQueryChange(event.target.value)}
         />
       </label>
