@@ -1,20 +1,34 @@
 import { useEffect, useMemo, useState } from "react"
 import { BlockIcon } from "../../lib/design-system/icons"
-import type { SystemBlock } from "../../lib/system-json/system-json"
+import type {
+  SystemBlock,
+  SystemConnection,
+} from "../../lib/system-json/system-json"
 import { TiSubcircuitDefinitions } from "../../lib/system-blocks/TiSubcircuits"
+import {
+  CONNECTION_INTERFACES,
+  inferConnectionInterface,
+} from "./systemJsonCanvas"
 
 const TI_DEFINITIONS = Object.values(TiSubcircuitDefinitions)
 
 interface BlockPropertiesSidebarProps {
   block: SystemBlock | null
+  connection: SystemConnection | null
   onClose: () => void
   onApplySubcircuit: (blockId: string, subcircuitId: string) => void
+  onUpdateConnectionInterface: (
+    connectionId: string,
+    nextInterface: string,
+  ) => void
 }
 
 export function BlockPropertiesSidebar({
   block,
+  connection,
   onClose,
   onApplySubcircuit,
+  onUpdateConnectionInterface,
 }: BlockPropertiesSidebarProps) {
   const [selectedSubcircuitId, setSelectedSubcircuitId] = useState("")
 
@@ -38,6 +52,63 @@ export function BlockPropertiesSidebar({
       ""
     setSelectedSubcircuitId(currentSubcircuit)
   }, [block, subcircuitOptions])
+
+  if (connection) {
+    return (
+      <aside
+        className="properties-sidebar"
+        data-testid="link-functional-settings-container"
+        aria-label="Link and ports settings"
+      >
+        <div className="settings-panel link-settings-panel">
+          <div className="settings-panel-header">
+            <span className="settings-title">Link and ports settings</span>
+            <button
+              className="props-close"
+              type="button"
+              title="Close properties"
+              aria-label="Close properties"
+              onClick={onClose}
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+              >
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            </button>
+          </div>
+          <section className="settings-section">
+            <label className="settings-field">
+              <span>Interface</span>
+              <select
+                data-testid="connection-interface-select"
+                value={inferConnectionInterface(connection.label)}
+                onChange={(event) =>
+                  onUpdateConnectionInterface(
+                    connection.system_connection_id,
+                    event.target.value,
+                  )
+                }
+              >
+                {CONNECTION_INTERFACES.map((connectionInterface) => (
+                  <option key={connectionInterface} value={connectionInterface}>
+                    {connectionInterface}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </section>
+        </div>
+      </aside>
+    )
+  }
 
   if (!block) return null
 

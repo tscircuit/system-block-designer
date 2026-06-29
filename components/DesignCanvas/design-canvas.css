@@ -584,6 +584,29 @@ body {
   cursor: crosshair;
 }
 
+.port-add {
+  cursor: pointer;
+  color: var(--ink);
+}
+
+.port-add circle {
+  fill: #fff;
+  stroke: currentColor;
+  stroke-width: 2.4;
+}
+
+.port-add path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.port-add:hover {
+  color: var(--brand);
+}
+
 .connection {
   fill: none;
   stroke: var(--connection);
@@ -781,10 +804,23 @@ body {
 }
 
 .settings-panel {
+  position: relative;
   flex: 1;
   min-height: 0;
   overflow: auto;
   padding: 14px;
+}
+
+.settings-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-right: 34px;
+}
+
+.link-settings-panel {
+  flex: 0 0 auto;
 }
 
 .settings-title {

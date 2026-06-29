@@ -18,6 +18,13 @@ export function DesignCanvasContent({
     canvas.selection?.kind === "block"
       ? (canvas.blockMap.get(canvas.selection.id) ?? null)
       : null
+  const selectedConnection =
+    canvas.selection?.kind === "connection"
+      ? (canvas.connections.find(
+          (connection) =>
+            connection.system_connection_id === canvas.selection?.id,
+        ) ?? null)
+      : null
 
   return (
     <>
@@ -79,7 +86,9 @@ export function DesignCanvasContent({
         />
         <BlockPropertiesSidebar
           block={selectedBlock}
+          connection={selectedConnection}
           onApplySubcircuit={canvas.applyBlockSubcircuit}
+          onUpdateConnectionInterface={canvas.updateConnectionInterface}
           onClose={canvas.clearSelection}
         />
       </div>
