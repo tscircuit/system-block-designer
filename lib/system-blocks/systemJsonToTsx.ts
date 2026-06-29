@@ -26,11 +26,6 @@ interface TiRuntimeBlock {
   instance: SystemBlockTsx
 }
 
-export interface SystemJsonToTsxOptions {
-  boardWidth?: string
-  boardHeight?: string
-}
-
 export interface SystemJsonToTsxProject {
   files: Record<string, string>
 }
@@ -39,15 +34,12 @@ const TI_COMPONENT_NAMES = new Set(Object.keys(TiSystemBlockClasses))
 
 const TI_DEFINITIONS = Object.values(TiSubcircuitDefinitions)
 
-export function systemJsonToTsx(
-  systemJson: SystemJson[],
-  options: SystemJsonToTsxOptions = {},
-) {
+export function systemJsonToTsx(systemJson: SystemJson[]) {
   const runtimeBlocks = createConnectedRuntimeBlocks(systemJson)
   const imports = Array.from(
     new Set(runtimeBlocks.map((runtimeBlock) => runtimeBlock.componentName)),
   ).sort()
-  const board = createBoardTsx(runtimeBlocks, options)
+  const board = createBoardTsx(runtimeBlocks)
 
   return `import { ${imports.join(", ")} } from "@tsci/tscircuit.ti"
 
@@ -58,11 +50,10 @@ ${indent(board, 2)}
 
 export function systemJsonToTsxProject(
   systemJson: SystemJson[],
-  options: SystemJsonToTsxOptions = {},
 ): SystemJsonToTsxProject {
   return {
     files: {
-      "index.circuit.tsx": systemJsonToTsx(systemJson, options),
+      "index.circuit.tsx": systemJsonToTsx(systemJson),
     },
   }
 }
@@ -100,17 +91,12 @@ function createConnectedRuntimeBlocks(systemJson: SystemJson[]) {
   return runtimeBlocks
 }
 
-function createBoardTsx(
-  runtimeBlocks: TiRuntimeBlock[],
-  options: SystemJsonToTsxOptions,
-) {
-  const boardWidth = options.boardWidth ?? "100mm"
-  const boardHeight = options.boardHeight ?? "100mm"
+function createBoardTsx(runtimeBlocks: TiRuntimeBlock[]) {
   const children = runtimeBlocks
     .map((runtimeBlock) => `  ${runtimeBlock.instance.getTsxFile()}`)
     .join("\n")
 
-  return `<board width=${JSON.stringify(boardWidth)} height=${JSON.stringify(boardHeight)}>
+  return `<board routingDisabled>
 ${children}
   </board>`
 }
