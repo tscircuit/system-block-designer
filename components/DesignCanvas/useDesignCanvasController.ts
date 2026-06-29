@@ -627,10 +627,12 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
       const result = await resolveSystemJsonToCircuitJson(systemJsonRef.current)
       setResolvedTsx(result.tsx)
       setResolvedCircuitJson(result.circuitJson)
+      return result.circuitJson
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       setResolveError(message)
       console.error(error)
+      return null
     } finally {
       setResolving(false)
     }

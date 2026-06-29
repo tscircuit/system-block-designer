@@ -19,6 +19,7 @@
 		"@tscircuit/eval": "^0.0.955",
 		"@tscircuit/krt-wasm": "^0.1.6",
 		"@vitejs/plugin-react": "5",
+		"circuit-json-to-kicad": "^0.0.155",
 		"comlink": "^4.4.2",
 		"pdf-lib": "^1.17.1",
 		"react": "^19.1.0",
