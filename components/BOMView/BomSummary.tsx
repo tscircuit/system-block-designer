@@ -1,4 +1,4 @@
-import type { BomSummaryItem } from "./bomData"
+import type { BomSummaryItem } from "../../lib/bom/types"
 
 interface BomSummaryProps {
   items: BomSummaryItem[]

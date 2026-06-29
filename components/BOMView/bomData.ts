@@ -1,119 +1,88 @@
-export interface BomSummaryItem {
-  label: string
-  value: string
-}
-
-export interface BomRow {
-  manufacturer: string
-  mpn: string
-  packageName: string
-  value: string
-  quantity: string
-  functionalBlock: string
-  partName: string
-  lifecycle: "Active" | "End Of Life"
-  unitPrice: string
-  stock: string
-  leadTime: string
-}
+import type { BomSummaryItem, BomViewRow } from "../../lib/bom/types"
 
 export const bomSummary: BomSummaryItem[] = [
-  { label: "BOM Last updated", value: "26 Jun 2026" },
-  { label: "Unique Components", value: "18" },
-  { label: "Est. Price", value: "6.69 USD" },
-  { label: "Maximum lead time", value: "99 weeks" },
+  { label: "Unique Parts", value: "7" },
+  { label: "Placements", value: "7" },
+  { label: "Functional Blocks", value: "3" },
+  { label: "DNP Parts", value: "1" },
 ]
 
-export const bomRows: BomRow[] = [
+export const bomRows: BomViewRow[] = [
   {
-    manufacturer: "TE CONNECTIVITY LTD",
-    mpn: "5-534237-3",
+    partNumber: "5-534237-3",
+    supplierPartNumber: "C49661",
     packageName: "-",
     value: "FEMALE",
     quantity: "1",
     functionalBlock: "1. Batteries",
-    partName: "5-534237-3 Female Header V1",
-    lifecycle: "Active",
+    description: "J1",
     unitPrice: "1.6922 USD",
-    stock: "12755",
-    leadTime: "16 week(s)",
+    stock: "12,755",
   },
   {
-    manufacturer: "PANASONIC CORP",
-    mpn: "ERJ2RKF3322X",
+    partNumber: "ERJ2RKF3322X",
+    supplierPartNumber: "C25792",
     packageName: "0402",
     value: "33.2 kOhm",
     quantity: "1",
     functionalBlock: "1. Batteries",
-    partName: "5-534237-3 Female Header V1",
-    lifecycle: "Active",
+    description: "R1",
     unitPrice: "0.061 USD",
-    stock: "485068",
-    leadTime: "16 week(s)",
+    stock: "485,068",
   },
   {
-    manufacturer: "PANASONIC CORP",
-    mpn: "ERJ2RKF3321X",
+    partNumber: "ERJ2RKF3321X",
+    supplierPartNumber: "C25741",
     packageName: "0402",
     value: "3.32 kOhm",
     quantity: "1",
     functionalBlock: "1. Batteries",
-    partName: "5-534237-3 Female Header V1",
-    lifecycle: "Active",
+    description: "R2",
     unitPrice: "0.061 USD",
-    stock: "807790",
-    leadTime: "15 week(s)",
+    stock: "807,790",
   },
   {
-    manufacturer: "MURATA MANUFACTURING CO LTD",
-    mpn: "GCM155R71E104KE02D",
+    partNumber: "GCM155R71E104KE02D",
+    supplierPartNumber: "C1525",
     packageName: "1005M/0402",
     value: "100 nF",
     quantity: "1",
     functionalBlock: "2. LED Drivers",
-    partName: "PCA9532D,118 V1",
-    lifecycle: "Active",
+    description: "C1",
     unitPrice: "0.0429 USD",
-    stock: "5088006",
-    leadTime: "13 week(s)",
+    stock: "5,088,006",
   },
   {
-    manufacturer: "YAGEO CORP",
-    mpn: "RC0201FR-0710KL",
+    partNumber: "RC0201FR-0710KL",
+    supplierPartNumber: "C105871",
     packageName: "0201",
     value: "10 kOhm",
-    quantity: "1",
+    quantity: "2",
     functionalBlock: "2. LED Drivers",
-    partName: "PCA9532D,118 V1",
-    lifecycle: "Active",
+    description: "R3, R4",
     unitPrice: "0.022 USD",
-    stock: "123636708",
-    leadTime: "15 week(s)",
+    stock: "123,636,708",
   },
   {
-    manufacturer: "GENERIC SEMICONDUCTORS",
-    mpn: "CTRL9532D,118",
+    partNumber: "CTRL9532D,118",
+    supplierPartNumber: "—",
     packageName: "-",
-    value: "-",
+    value: "DNP",
     quantity: "1",
     functionalBlock: "2. LED Drivers",
-    partName: "PCA9532D,118 V1",
-    lifecycle: "End Of Life",
+    description: "U3",
     unitPrice: "1.66 USD",
-    stock: "-",
-    leadTime: "99 week(s)",
+    stock: "—",
   },
   {
-    manufacturer: "KYOCERA AVX COMPONENTS CORP",
-    mpn: "06035C104K4T2A",
+    partNumber: "06035C104K4T2A",
+    supplierPartNumber: "C7472806",
     packageName: "0603",
     value: "100 nF",
     quantity: "1",
     functionalBlock: "3. HDMI Connector",
-    partName: "HD05-19-TH-TR V1",
-    lifecycle: "Active",
+    description: "C2",
     unitPrice: "0.0462 USD",
-    stock: "35034080",
-    leadTime: "11 week(s)",
+    stock: "35,034,080",
   },
 ]

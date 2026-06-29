@@ -130,10 +130,12 @@ function OutputFileCard({
   file,
   onDownload,
   disabled,
+  disabledTitle,
 }: {
   file: OutputFile
   onDownload: (file: OutputFile, selectedOption?: string) => void
   disabled?: boolean
+  disabledTitle?: string
 }) {
   const [selectedOption, setSelectedOption] = useState(
     file.selected ?? file.options?.[0],
@@ -177,7 +179,7 @@ function OutputFileCard({
               aria-label={`Download ${file.title}`}
               title={
                 disabled
-                  ? "Resolve before downloading TSX"
+                  ? (disabledTitle ?? `Download ${file.title}`)
                   : `Download ${file.title}`
               }
               onClick={() => onDownload(file, selectedOption)}
@@ -234,6 +236,11 @@ export function OutputFiles({ systemJson }: OutputFilesProps) {
               file={file}
               onDownload={downloadFile}
               disabled={file.id === "project-package" && !systemJson}
+              disabledTitle={
+                file.id === "project-package"
+                  ? "Resolve before downloading TSX"
+                  : undefined
+              }
             />
           ))}
         </div>

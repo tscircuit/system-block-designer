@@ -1,22 +1,30 @@
-import { SearchIcon, SettingsIcon } from "./BomIcons"
+import { SearchIcon } from "./BomIcons"
 
-export function BomToolbar() {
+interface BomToolbarProps {
+  query: string
+  rowCount: number
+  onQueryChange: (value: string) => void
+}
+
+export function BomToolbar({
+  query,
+  rowCount,
+  onQueryChange,
+}: BomToolbarProps) {
   return (
     <div className="bom-toolbar">
       <label className="bom-search">
         <span>
           <SearchIcon />
         </span>
-        <input placeholder="Search by Manufacturer, MPN or Description" />
+        <input
+          value={query}
+          placeholder="Search by part number, block, package or details"
+          onChange={(event) => onQueryChange(event.target.value)}
+        />
       </label>
       <div className="bom-toolbar-actions">
-        <button className="bom-sort-button">Sort by⌄</button>
-        <button className="bom-square-button" aria-label="Column height">
-          ↕
-        </button>
-        <button className="bom-square-button" aria-label="Column settings">
-          <SettingsIcon />
-        </button>
+        <div className="bom-toolbar-count">{rowCount} row(s)</div>
       </div>
     </div>
   )

@@ -1,75 +1,54 @@
-import type { BomRow } from "./bomData"
-import { FilterIcon, InfoIcon, SortIcon } from "./BomIcons"
+import type { BomViewRow } from "../../lib/bom/types"
 
 interface BomColumn {
-  key: keyof Pick<
-    BomRow,
-    | "manufacturer"
-    | "mpn"
-    | "packageName"
-    | "value"
-    | "quantity"
-    | "functionalBlock"
-    | "lifecycle"
-    | "unitPrice"
-    | "stock"
-    | "leadTime"
-  >
+  key: keyof BomViewRow
   label: string
   width: number
   align?: "right"
-  filter?: boolean
-  sort?: boolean
-  info?: boolean
 }
 
 const columns: BomColumn[] = [
   {
-    key: "manufacturer",
-    label: "Manufacturer",
-    width: 280,
-    filter: true,
-    sort: true,
+    key: "partNumber",
+    label: "Part Number",
+    width: 240,
   },
-  { key: "mpn", label: "MPN", width: 170, sort: true },
+  { key: "supplierPartNumber", label: "Supplier Part #", width: 164 },
   {
     key: "packageName",
     label: "Package",
-    width: 102,
+    width: 118,
     align: "right",
-    sort: true,
   },
-  { key: "value", label: "Value", width: 82, align: "right" },
+  { key: "value", label: "Value", width: 110, align: "right" },
   {
     key: "quantity",
     label: "Quantity",
-    width: 102,
+    width: 92,
     align: "right",
-    sort: true,
   },
-  { key: "functionalBlock", label: "Functional Block(s)", width: 314 },
-  { key: "lifecycle", label: "Lifecycle", width: 108, filter: true },
   {
     key: "unitPrice",
-    label: "Est. Unit Price",
-    width: 142,
+    label: "Unit Price",
+    width: 124,
     align: "right",
-    sort: true,
-    info: true,
   },
   {
     key: "stock",
-    label: "Est. Stock",
-    width: 112,
+    label: "Stock",
+    width: 116,
     align: "right",
-    sort: true,
-    info: true,
   },
-  { key: "leadTime", label: "Lead time", width: 120, sort: true, info: true },
+  {
+    key: "functionalBlock",
+    label: "Functional Block(s)",
+    width: 264,
+  },
+  { key: "description", label: "Details", width: 196 },
 ]
 
 interface BomTableProps {
-  rows: BomRow[]
+  rows: BomViewRow[]
 }
 
 export function BomTable({ rows }: BomTableProps) {
@@ -88,52 +67,25 @@ export function BomTable({ rows }: BomTableProps) {
                 key={column.key}
                 className={column.align === "right" ? "is-right" : undefined}
               >
-                <span className="bom-th-content">
-                  <span>
-                    {column.info && <InfoIcon />}
-                    {column.label}
-                  </span>
-                  <span className="bom-th-icons">
-                    {column.sort && <SortIcon />}
-                    {column.filter && <FilterIcon />}
-                  </span>
-                </span>
+                <span className="bom-th-content">{column.label}</span>
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row.mpn}>
-              <td>
-                <div className="bom-manufacturer">{row.manufacturer}</div>
-                <a href="#">View Alternatives</a>
-              </td>
-              <td>
-                <a href="#">{row.mpn}</a>
-              </td>
+            <tr key={`${row.partNumber}-${row.description}`}>
+              <td className="bom-cell-strong">{row.partNumber}</td>
+              <td className="bom-cell-subtle">{row.supplierPartNumber}</td>
               <td className="is-right">{row.packageName}</td>
               <td className="is-right">{row.value}</td>
               <td className="is-right">{row.quantity}</td>
-              <td>
-                <div className="bom-functional-cell">
-                  <div>
-                    <a href="#">{row.functionalBlock}</a>
-                    <div>{row.partName}</div>
-                  </div>
-                  <span className="bom-locked">▣ Locked</span>
-                </div>
-              </td>
-              <td>
-                <span
-                  className={`bom-lifecycle ${row.lifecycle === "End Of Life" ? "is-eol" : ""}`}
-                >
-                  {row.lifecycle}
-                </span>
-              </td>
               <td className="is-right">{row.unitPrice}</td>
               <td className="is-right">{row.stock}</td>
-              <td>{row.leadTime}</td>
+              <td className="bom-cell-wrap">{row.functionalBlock}</td>
+              <td className="bom-cell-wrap bom-cell-subtle">
+                {row.description}
+              </td>
             </tr>
           ))}
         </tbody>

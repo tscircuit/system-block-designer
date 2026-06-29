@@ -1,3 +1,6 @@
+import { useEffect, useState } from "react"
+import { createBomArtifacts } from "../../lib/bom/createBomArtifacts"
+import type { BomArtifacts } from "../../lib/bom/types"
 import { BomView } from "../BOMView/BomView"
 import { DesignCanvasContent } from "../DesignCanvas/DesignCanvas"
 import type { DesignCanvasProps } from "../DesignCanvas/DesignCanvas.types"
@@ -12,9 +15,49 @@ export function SystemBlockDesigner({
   topBarActions,
 }: DesignCanvasProps) {
   const canvas = useDesignCanvasController(initialSystemJson)
+  const [bomArtifacts, setBomArtifacts] = useState<BomArtifacts | null>(null)
+  const [bomLoading, setBomLoading] = useState(false)
+  const [bomError, setBomError] = useState<string | null>(null)
 
   const showSystemJsonDownload = debugOptions?.showSystemJsonDownload ?? false
   const showCircuitJsonDownload = debugOptions?.showCircuitJsonDownload ?? false
+
+  useEffect(() => {
+    let cancelled = false
+
+    if (!canvas.resolvedCircuitJson) {
+      setBomArtifacts(null)
+      setBomError(null)
+      setBomLoading(false)
+      return
+    }
+
+    setBomLoading(true)
+    setBomError(null)
+
+    void createBomArtifacts({
+      systemJson: canvas.systemJson,
+      circuitJson: canvas.resolvedCircuitJson,
+    })
+      .then((nextBomArtifacts) => {
+        if (cancelled) return
+        setBomArtifacts(nextBomArtifacts)
+      })
+      .catch((error) => {
+        if (cancelled) return
+        const message = error instanceof Error ? error.message : String(error)
+        setBomArtifacts(null)
+        setBomError(message)
+      })
+      .finally(() => {
+        if (cancelled) return
+        setBomLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [canvas.resolvedCircuitJson, canvas.systemJson])
 
   const downloadJson = (value: unknown, filename: string) => {
     const blob = new Blob([JSON.stringify(value, null, 2)], {
@@ -91,7 +134,13 @@ export function SystemBlockDesigner({
         }
       />
       {canvas.activeTab === "bom" ? (
-        <BomView />
+        <BomView
+          rows={bomArtifacts?.rows ?? []}
+          summary={bomArtifacts?.summary ?? []}
+          loading={bomLoading}
+          error={bomError}
+          emptyMessage="No parts were generated for this design."
+        />
       ) : canvas.activeTab === "out" ? (
         <OutputFiles systemJson={canvas.systemJson} />
       ) : (
