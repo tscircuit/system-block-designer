@@ -15,6 +15,8 @@ export function SystemBlockDesigner({
 
   const showSystemJsonDownload = debugOptions?.showSystemJsonDownload ?? false
   const showCircuitJsonDownload = debugOptions?.showCircuitJsonDownload ?? false
+  const showSchematicSnapshotPreview =
+    debugOptions?.showSchematicSnapshotPreview ?? false
 
   const downloadJson = (value: unknown, filename: string) => {
     const blob = new Blob([JSON.stringify(value, null, 2)], {
@@ -93,7 +95,13 @@ export function SystemBlockDesigner({
       {canvas.activeTab === "bom" ? (
         <BomView />
       ) : canvas.activeTab === "out" ? (
-        <OutputFiles systemJson={canvas.systemJson} />
+        <OutputFiles
+          systemJson={canvas.systemJson}
+          circuitJson={canvas.resolvedCircuitJson}
+          resolvingCircuitJson={canvas.resolving}
+          onResolveCircuitJson={canvas.onResolve}
+          showSchematicSnapshotPreview={showSchematicSnapshotPreview}
+        />
       ) : (
         <DesignCanvasContent canvas={canvas} />
       )}
