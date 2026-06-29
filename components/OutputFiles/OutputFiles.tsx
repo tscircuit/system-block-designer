@@ -1,4 +1,6 @@
 import { useState } from "react"
+import { convertCircuitJsonToSchematicSvg } from "circuit-to-svg"
+import type { CircuitJson } from "../../lib/system-blocks/resolveSystemJsonToCircuitJson"
 import { systemJsonToTsx } from "../../lib/system-blocks/systemJsonToTsx"
 import type { SystemJson } from "../../lib/system-json/system-json"
 import { downloadBlob } from "./downloadBlob"
@@ -9,13 +11,16 @@ type OutputFile = {
   title: string
   description: string
   icon: "pdf" | "bom" | "kicad"
-  generatedAt?: string
   options?: string[]
   selected?: string
 }
 
 interface OutputFilesProps {
   systemJson?: SystemJson[]
+  circuitJson?: CircuitJson | null
+  resolvingCircuitJson?: boolean
+  onResolveCircuitJson?: () => void | Promise<void>
+  showSchematicSnapshotPreview?: boolean
 }
 
 const outputFiles: OutputFile[] = [
@@ -33,7 +38,6 @@ const outputFiles: OutputFile[] = [
     icon: "bom",
     options: ["Consolidated", "Grouped by subsystem", "Flat list"],
     selected: "Consolidated",
-    generatedAt: "Last generated 27 Jun 2026 5:08 PM",
   },
   {
     id: "project-package",
@@ -43,7 +47,6 @@ const outputFiles: OutputFile[] = [
     icon: "kicad",
     options: ["TSX", "KiCad"],
     selected: "TSX",
-    generatedAt: "Last generated 26 Jun 2026 8:50 PM",
   },
 ]
 
@@ -186,15 +189,34 @@ function OutputFileCard({
             </button>
           </div>
         </div>
-        {file.generatedAt ? (
-          <div className="output-file-meta">{file.generatedAt}</div>
-        ) : null}
       </div>
     </article>
   )
 }
 
-export function OutputFiles({ systemJson }: OutputFilesProps) {
+export function OutputFiles({
+  systemJson,
+  circuitJson,
+  resolvingCircuitJson = false,
+  onResolveCircuitJson,
+  showSchematicSnapshotPreview = false,
+}: OutputFilesProps) {
+  const [schematicPreviewOpen, setSchematicPreviewOpen] = useState(false)
+
+  const schematicSvg =
+    schematicPreviewOpen && circuitJson
+      ? convertCircuitJsonToSchematicSvg(
+          circuitJson as Parameters<typeof convertCircuitJsonToSchematicSvg>[0],
+        )
+      : null
+
+  const showSchematicPreview = () => {
+    setSchematicPreviewOpen(true)
+    if (!circuitJson && !resolvingCircuitJson) {
+      void onResolveCircuitJson?.()
+    }
+  }
+
   const downloadFile = (file: OutputFile, selectedOption?: string) => {
     if (file.id === "project-package" && selectedOption === "TSX") {
       if (!systemJson) return
@@ -242,6 +264,49 @@ export function OutputFiles({ systemJson }: OutputFilesProps) {
           <span aria-hidden="true">?</span>
           What is the next step in your EDA tool?
         </button>
+
+        {showSchematicSnapshotPreview ? (
+          <section
+            className="output-debug-panel"
+            aria-label="Schematic snapshot debug preview"
+          >
+            <div className="output-debug-header">
+              <div>
+                <h2>Schematic snapshot</h2>
+                <p>Debug preview generated from resolved Circuit JSON.</p>
+              </div>
+              <button
+                className="output-debug-button"
+                type="button"
+                onClick={showSchematicPreview}
+                disabled={resolvingCircuitJson}
+              >
+                {resolvingCircuitJson
+                  ? "Resolving..."
+                  : schematicPreviewOpen
+                    ? "Refresh preview"
+                    : "Preview"}
+              </button>
+            </div>
+
+            {schematicPreviewOpen ? (
+              <div className="output-schematic-preview">
+                {schematicSvg ? (
+                  <div
+                    className="output-schematic-svg"
+                    dangerouslySetInnerHTML={{ __html: schematicSvg }}
+                  />
+                ) : (
+                  <div className="output-schematic-empty">
+                    {resolvingCircuitJson
+                      ? "Resolving Circuit JSON..."
+                      : "Resolve the project to preview the schematic snapshot."}
+                  </div>
+                )}
+              </div>
+            ) : null}
+          </section>
+        ) : null}
       </section>
     </main>
   )

@@ -39,6 +39,7 @@ export interface DesignCanvasProps {
     systemJsonDownloadFilename?: string
     showCircuitJsonDownload?: boolean
     circuitJsonDownloadFilename?: string
+    showSchematicSnapshotPreview?: boolean
   }
   topBarActions?: ReactNode
 }
