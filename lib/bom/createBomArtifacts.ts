@@ -119,8 +119,6 @@ export async function createBomArtifacts(params: {
 
   let totalEstimatedPrice = 0
   let hasEstimatedPrice = false
-  let maxLeadTimeWeeks: number | null = null
-
   const rows = Array.from(groups.values())
     .map((group): BomViewRow => {
       const details = supplierPartDetails.get(group.supplierPartNumber) ?? null
@@ -128,7 +126,6 @@ export async function createBomArtifacts(params: {
         details?.prices ?? [],
         group.quantity,
       )
-      const leadTimeWeeks = details?.leadTimeWeeks ?? null
       const mpn = resolveDisplayPartNumber(
         group.partNumber,
         details?.mpn ?? null,
@@ -144,12 +141,8 @@ export async function createBomArtifacts(params: {
         hasEstimatedPrice = true
       }
 
-      if (leadTimeWeeks != null) {
-        maxLeadTimeWeeks = Math.max(maxLeadTimeWeeks ?? 0, leadTimeWeeks)
-      }
-
       return {
-        manufacturer: firstNonEmpty(details?.manufacturer ?? undefined, "—"),
+        manufacturer: "Texas Instruments",
         mpn,
         packageName: group.packageName,
         value,
@@ -168,7 +161,6 @@ export async function createBomArtifacts(params: {
         ),
         unitPrice: formatUnitPrice(unitPrice),
         stock: formatStock(details?.stock ?? null),
-        leadTime: formatLeadTimeCell(leadTimeWeeks),
       }
     })
     .sort((left, right) => {
@@ -189,10 +181,6 @@ export async function createBomArtifacts(params: {
       {
         label: "Est. Price",
         value: hasEstimatedPrice ? formatTotalPrice(totalEstimatedPrice) : "—",
-      },
-      {
-        label: "Maximum lead time",
-        value: formatLeadTimeSummary(maxLeadTimeWeeks),
       },
     ],
     rows,
@@ -364,11 +352,9 @@ async function fetchJlcSupplierPartDetails(
   if (!component) return null
 
   return {
-    manufacturer: null,
     mpn: normalizeText(component.mfr),
     description: normalizeText(component.description),
     lifecycle: null,
-    leadTimeWeeks: null,
     stock: typeof component.stock === "number" ? component.stock : null,
     prices: parsePriceBreaks(component.price),
   }
@@ -439,16 +425,6 @@ function formatLifecycle(value: string | null, hasSupplierDetails: boolean) {
   if (value && value.trim().length > 0) return value
   if (hasSupplierDetails) return "Active"
   return "—"
-}
-
-function formatLeadTimeCell(value: number | null) {
-  if (value == null || Number.isNaN(value)) return "—"
-  return `${value} week(s)`
-}
-
-function formatLeadTimeSummary(value: number | null) {
-  if (value == null || Number.isNaN(value)) return "—"
-  return `${value} ${value === 1 ? "week" : "weeks"}`
 }
 
 function formatTotalPrice(value: number) {

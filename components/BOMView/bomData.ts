@@ -4,12 +4,11 @@ export const bomSummary: BomSummaryItem[] = [
   { label: "BOM Last updated", value: "26 Jun 2026" },
   { label: "Unique Components", value: "7" },
   { label: "Est. Price", value: "3.59 USD" },
-  { label: "Maximum lead time", value: "16 weeks" },
 ]
 
 export const bomRows: BomViewRow[] = [
   {
-    manufacturer: "TE CONNECTIVITY LTD",
+    manufacturer: "Texas Instruments",
     mpn: "5-534237-3",
     packageName: "-",
     value: "FEMALE",
@@ -19,10 +18,9 @@ export const bomRows: BomViewRow[] = [
     lifecycle: "Active",
     unitPrice: "1.6922 USD",
     stock: "12,755",
-    leadTime: "16 week(s)",
   },
   {
-    manufacturer: "PANASONIC CORP",
+    manufacturer: "Texas Instruments",
     mpn: "ERJ2RKF3322X",
     packageName: "0402",
     value: "33.2 kOhm",
@@ -32,10 +30,9 @@ export const bomRows: BomViewRow[] = [
     lifecycle: "Active",
     unitPrice: "0.061 USD",
     stock: "485,068",
-    leadTime: "16 week(s)",
   },
   {
-    manufacturer: "PANASONIC CORP",
+    manufacturer: "Texas Instruments",
     mpn: "ERJ2RKF3321X",
     packageName: "0402",
     value: "3.32 kOhm",
@@ -45,10 +42,9 @@ export const bomRows: BomViewRow[] = [
     lifecycle: "Active",
     unitPrice: "0.061 USD",
     stock: "807,790",
-    leadTime: "15 week(s)",
   },
   {
-    manufacturer: "MURATA MANUFACTURING CO LTD",
+    manufacturer: "Texas Instruments",
     mpn: "GCM155R71E104KE02D",
     packageName: "1005M/0402",
     value: "100 nF",
@@ -58,10 +54,9 @@ export const bomRows: BomViewRow[] = [
     lifecycle: "Active",
     unitPrice: "0.0429 USD",
     stock: "5,088,006",
-    leadTime: "13 week(s)",
   },
   {
-    manufacturer: "YAGEO CORP",
+    manufacturer: "Texas Instruments",
     mpn: "RC0201FR-0710KL",
     packageName: "0201",
     value: "10 kOhm",
@@ -71,10 +66,9 @@ export const bomRows: BomViewRow[] = [
     lifecycle: "Active",
     unitPrice: "0.022 USD",
     stock: "123,636,708",
-    leadTime: "15 week(s)",
   },
   {
-    manufacturer: "GENERIC SEMICONDUCTORS",
+    manufacturer: "Texas Instruments",
     mpn: "CTRL9532D,118",
     packageName: "-",
     value: "-",
@@ -84,10 +78,9 @@ export const bomRows: BomViewRow[] = [
     lifecycle: "End Of Life",
     unitPrice: "1.66 USD",
     stock: "—",
-    leadTime: "99 week(s)",
   },
   {
-    manufacturer: "KYOCERA AVX COMPONENTS CORP",
+    manufacturer: "Texas Instruments",
     mpn: "06035C104K4T2A",
     packageName: "0603",
     value: "100 nF",
@@ -97,6 +90,5 @@ export const bomRows: BomViewRow[] = [
     lifecycle: "Active",
     unitPrice: "0.0462 USD",
     stock: "35,034,080",
-    leadTime: "11 week(s)",
   },
 ]

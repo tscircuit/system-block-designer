@@ -40,7 +40,6 @@ export function BomView({
         row.lifecycle,
         row.unitPrice,
         row.stock,
-        row.leadTime,
       ].some((value) => value.toLowerCase().includes(normalizedQuery)),
     )
   }, [query, resolvedRows])
