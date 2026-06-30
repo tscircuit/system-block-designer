@@ -4,6 +4,7 @@ import type { CircuitJson } from "../../lib/system-blocks/resolveSystemJsonToCir
 import { systemJsonToTsx } from "../../lib/system-blocks/systemJsonToTsx"
 import type { SystemJson } from "../../lib/system-json/system-json"
 import { createKicadProjectZip } from "./createKicadProjectZip"
+import { createProjectPdf, getProjectFileName } from "./createProjectPdf"
 import { downloadBlob } from "./downloadBlob"
 import "./output-files.css"
 
@@ -33,7 +34,7 @@ const outputFiles: OutputFile[] = [
     id: "pdf",
     title: "PDF",
     description:
-      "Project document containing project description, schematics and BOM.",
+      "Project document containing the project overview, system architecture, and schematics.",
     icon: "pdf",
   },
   {
@@ -209,6 +210,7 @@ export function OutputFiles({
   showSchematicSnapshotPreview = false,
 }: OutputFilesProps) {
   const [schematicPreviewOpen, setSchematicPreviewOpen] = useState(false)
+  const [generatingPdf, setGeneratingPdf] = useState(false)
 
   const schematicSvg =
     schematicPreviewOpen && circuitJson
@@ -225,6 +227,24 @@ export function OutputFiles({
   }
 
   const downloadFile = async (file: OutputFile, selectedOption?: string) => {
+    if (file.id === "pdf") {
+      if (!systemJson || generatingPdf) return
+
+      setGeneratingPdf(true)
+      try {
+        const currentCircuitJson =
+          circuitJson ?? (await onResolveCircuitJson?.()) ?? null
+        const pdfBytes = await createProjectPdf(systemJson, currentCircuitJson)
+        downloadBlob(
+          new Blob([pdfBytes], { type: "application/pdf" }),
+          `${getProjectFileName(systemJson)}.pdf`,
+        )
+      } finally {
+        setGeneratingPdf(false)
+      }
+      return
+    }
+
     if (file.id === "project-package" && selectedOption === "TSX") {
       if (!systemJson) return
 
@@ -263,6 +283,9 @@ export function OutputFiles({
   }
 
   const getDownloadDisabled = (file: OutputFile, selectedOption?: string) => {
+    if (file.id === "pdf") {
+      return !systemJson || generatingPdf || resolvingCircuitJson
+    }
     if (file.id !== "project-package") return false
     if (selectedOption === "TSX") return !systemJson
     if (selectedOption === "KiCad") {
@@ -272,6 +295,14 @@ export function OutputFiles({
   }
 
   const getDownloadTitle = (file: OutputFile, selectedOption?: string) => {
+    if (file.id === "pdf") {
+      if (!systemJson)
+        return "System JSON is required before downloading the PDF"
+      if (generatingPdf) return "Generating PDF..."
+      if (resolvingCircuitJson) return "Resolving Circuit JSON..."
+      if (!circuitJson) return "Resolve and download the project PDF"
+      return "Download project PDF"
+    }
     if (file.id !== "project-package") return `Download ${file.title}`
     if (selectedOption === "TSX" && !systemJson) {
       return "System JSON is required before downloading TSX"
