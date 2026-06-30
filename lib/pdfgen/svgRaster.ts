@@ -22,7 +22,8 @@ export async function rasterizeSvg(
   targetWidth: number,
 ): Promise<RasterizedImage> {
   if (!wasmReady) {
-    const wasmUrl = (await import("@resvg/resvg-wasm/index_bg.wasm?url")).default
+    const wasmUrl = (await import("@resvg/resvg-wasm/index_bg.wasm?url"))
+      .default
     wasmReady = initWasm(fetch(wasmUrl))
   }
   await wasmReady

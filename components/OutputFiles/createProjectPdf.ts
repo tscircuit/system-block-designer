@@ -10,7 +10,7 @@ import type {
 
 const DEFAULT_PROJECT_NAME = "System Block Design"
 
-export function getProjectName(systemJson: SystemJson[]): string {
+function getProjectName(systemJson: SystemJson[]): string {
   const diagram = systemJson.find(
     (item): item is SystemDiagram => item.type === "system_diagram",
   )
