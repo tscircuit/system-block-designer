@@ -1,6 +1,7 @@
 import type { PDFDocument, PDFPage } from "pdf-lib"
 import { degrees, rgb } from "pdf-lib"
 import { contain } from "./layout"
+import { rasterizeSvg } from "./svgRaster"
 import type {
   PdfFonts,
   PdfRenderContext,
@@ -55,7 +56,7 @@ export async function drawSchematicSheetPage(
   drawSideNotice(page, fonts, width, frame)
   drawSheetFooter(page, fonts, width, footerY)
 
-  const raster = await context.rasterizeSvg(input.svg, drawingFrame.width * 2.2)
+  const raster = await rasterizeSvg(input.svg, drawingFrame.width * 2.2)
   const image = await pdfDoc.embedPng(raster.bytes)
   const fit = contain(
     raster.width,

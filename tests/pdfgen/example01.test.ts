@@ -2,7 +2,15 @@ import { join } from "node:path"
 import { expect, test } from "bun:test"
 import { createSmartLockSystemJson } from "../../app/SmartLock/createSmartLockSystemJson"
 import { createPdf, type CreatePdfParams } from "../../lib/pdfgen/createPdf"
-import { rasterizeSvgWithResvg } from "../../lib/pdfgen/rasterizeSvgWithResvg"
+import { initResvgWasm } from "../../lib/pdfgen/svgRaster"
+
+// Node has no bundler to emit the wasm asset URL, so initialize resvg-wasm
+// from the binary shipped in node_modules before rendering.
+const resvgWasmPath = Bun.resolveSync(
+  "@resvg/resvg-wasm/index_bg.wasm",
+  import.meta.dir,
+)
+await initResvgWasm(await Bun.file(resvgWasmPath).arrayBuffer())
 
 const drv8876SchematicSheetSvg = await Bun.file(
   join(
@@ -98,8 +106,6 @@ const examplePdf: CreatePdfParams = {
 }
 
 test("snapshots each page of example01 as png", async () => {
-  const pdfBytes = await createPdf(examplePdf, {
-    rasterizeSvg: rasterizeSvgWithResvg,
-  })
+  const pdfBytes = await createPdf(examplePdf)
   await expect(pdfBytes).toMatchPdfSnapshot(import.meta.path)
 })

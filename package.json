@@ -17,7 +17,7 @@
 		"start:browser-test-server": "bun --port 3070 ./browser-tests/browsertest.html"
 	},
 	"dependencies": {
-		"@resvg/resvg-js": "^2.6.2",
+		"@resvg/resvg-wasm": "2.6.2",
 		"@tsci/tscircuit.ti": "^1.0.53",
 		"@tscircuit/eval": "^0.0.955",
 		"@tscircuit/krt-wasm": "^0.1.6",

@@ -1,14 +1,12 @@
 import { PDFDocument, StandardFonts } from "pdf-lib"
 import { PAGE_SIZES } from "./constants"
 import { drawPdfPage } from "./pages"
-import { rasterizeSvgInBrowser } from "./rasterizeSvgInBrowser"
 import type {
   CreatePdfParams,
   PdfFonts,
   PdfPageInput,
   PdfRenderContext,
   SchematicSheetPageInput,
-  SvgRasterizer,
 } from "./types"
 
 export type {
@@ -16,28 +14,13 @@ export type {
   PdfPageInput,
   PdfTextSection,
   ProjectDetailsPageInput,
-  RasterizedImage,
   SchematicSheetPageInput,
-  SvgRasterizer,
   SystemArchitecturePageInput,
   TechnicalSpecificationsPageInput,
   TitlePageInput,
 } from "./types"
 
-export interface CreatePdfOptions {
-  /**
-   * SVG -> PNG rasterizer used for the system-architecture and schematic
-   * pages. Defaults to a `<canvas>`-based rasterizer in the browser; Node
-   * callers must pass one (e.g. `rasterizeSvgWithResvg`).
-   */
-  rasterizeSvg?: SvgRasterizer
-}
-
-export async function createPdf(
-  params: CreatePdfParams,
-  options: CreatePdfOptions = {},
-): Promise<Uint8Array> {
-  const rasterizeSvg = options.rasterizeSvg ?? getDefaultSvgRasterizer()
+export async function createPdf(params: CreatePdfParams): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create()
   const fonts: PdfFonts = {
     regular: await pdfDoc.embedFont(StandardFonts.Helvetica),
@@ -55,7 +38,6 @@ export async function createPdf(
     const context: PdfRenderContext = {
       pageNumber: index + 1,
       pageCount: pages.length,
-      rasterizeSvg,
     }
     if (pageInput.type === "schematic_sheet") {
       schematicSheetNumber += 1
@@ -99,13 +81,4 @@ function getPageSize(pageInput: PdfPageInput) {
     pageInput.type === "schematic_sheet"
     ? PAGE_SIZES.landscape
     : PAGE_SIZES.portrait
-}
-
-function getDefaultSvgRasterizer(): SvgRasterizer {
-  if (typeof document !== "undefined") return rasterizeSvgInBrowser
-  throw new Error(
-    "createPdf could not find an SVG rasterizer. In the browser the canvas " +
-      "rasterizer is used automatically; in Node pass options.rasterizeSvg " +
-      "(e.g. rasterizeSvgWithResvg from ./rasterizeSvgWithResvg).",
-  )
 }

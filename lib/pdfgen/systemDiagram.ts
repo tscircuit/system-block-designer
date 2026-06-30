@@ -3,14 +3,14 @@ import { systemJsonToSvgSnapshot } from "../system-json/system-json-to-svg"
 import type { SystemJson } from "../system-json/system-json"
 import { COLORS } from "./constants"
 import { contain } from "./layout"
-import type { PdfFrame, SvgRasterizer } from "./types"
+import { rasterizeSvg } from "./svgRaster"
+import type { PdfFrame } from "./types"
 
 export async function drawSystemDiagram(
   pdfDoc: PDFDocument,
   page: PDFPage,
   systemJson: SystemJson[],
   frame: PdfFrame,
-  rasterizeSvg: SvgRasterizer,
 ) {
   page.drawRectangle({
     ...frame,
