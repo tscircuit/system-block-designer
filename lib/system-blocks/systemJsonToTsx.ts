@@ -1,5 +1,6 @@
 import type {
   SystemBlock as SystemBlockJson,
+  SystemBlockInterface,
   SystemConnection,
   SystemJson,
   SystemPort,
@@ -26,6 +27,11 @@ interface TiRuntimeBlock {
   instance: SystemBlockTsx
 }
 
+interface InterfaceTrace {
+  from: string
+  to: string
+}
+
 export interface SystemJsonToTsxProject {
   files: Record<string, string>
 }
@@ -35,15 +41,16 @@ const TI_COMPONENT_NAMES = new Set(Object.keys(TiSystemBlockClasses))
 const TI_DEFINITIONS = Object.values(TiSubcircuitDefinitions)
 
 export function systemJsonToTsx(systemJson: SystemJson[]) {
-  const runtimeBlocks = createConnectedRuntimeBlocks(systemJson)
+  const { runtimeBlocks, interfaceTraces } =
+    createConnectedRuntimeBlocks(systemJson)
   const imports = Array.from(
     new Set(runtimeBlocks.map((runtimeBlock) => runtimeBlock.componentName)),
   ).sort()
-  const board = createBoardTsx(runtimeBlocks)
+  const board = createBoardTsx(runtimeBlocks, interfaceTraces)
 
   return `import { ${imports.join(", ")} } from "@tsci/tscircuit.ti"
 
-circuit.add(
+export default () => (
 ${indent(board, 2)}
 )`
 }
@@ -84,21 +91,30 @@ function createConnectedRuntimeBlocks(systemJson: SystemJson[]) {
   )
   const portById = new Map(ports.map((port) => [port.system_port_id, port]))
 
-  for (const connection of connections) {
-    connectRuntimeBlocks(connection, portById, runtimeBlockById)
+  return {
+    runtimeBlocks,
+    interfaceTraces: connections.flatMap((connection) =>
+      createInterfaceTraces(connection, portById, runtimeBlockById),
+    ),
   }
-
-  return runtimeBlocks
 }
 
-function createBoardTsx(runtimeBlocks: TiRuntimeBlock[]) {
-  const children = runtimeBlocks
-    .map((runtimeBlock) => `  ${runtimeBlock.instance.getTsxFile()}`)
-    .join("\n")
+function createBoardTsx(
+  runtimeBlocks: TiRuntimeBlock[],
+  interfaceTraces: InterfaceTrace[],
+) {
+  const componentChildren = runtimeBlocks.map(
+    (runtimeBlock) => `  ${runtimeBlock.instance.getTsxFile()}`,
+  )
+  const traceChildren = interfaceTraces.map(
+    (trace) =>
+      `  <trace from=${JSON.stringify(trace.from)} to=${JSON.stringify(trace.to)} />`,
+  )
+  const children = [...componentChildren, ...traceChildren].join("\n")
 
   return `<board routingDisabled>
 ${children}
-  </board>`
+</board>`
 }
 
 function createRuntimeBlock(block: SystemBlockJson): TiRuntimeBlock | null {
@@ -123,34 +139,117 @@ function createRuntimeBlock(block: SystemBlockJson): TiRuntimeBlock | null {
   }
 }
 
-function connectRuntimeBlocks(
+function createInterfaceTraces(
   connection: SystemConnection,
   portById: Map<string, SystemPort>,
   runtimeBlockById: Map<string, TiRuntimeBlock>,
-) {
+): InterfaceTrace[] {
   if (!connection.source_system_port_id || !connection.target_system_port_id) {
-    return
+    return []
   }
 
   const sourcePort = portById.get(connection.source_system_port_id)
   const targetPort = portById.get(connection.target_system_port_id)
-  if (!sourcePort || !targetPort) return
+  if (!sourcePort || !targetPort) return []
 
   const sourceBlock = runtimeBlockById.get(sourcePort.system_block_id)
   const targetBlock = runtimeBlockById.get(targetPort.system_block_id)
-  if (!sourceBlock || !targetBlock) return
-  if (!sourcePort.label || !targetPort.label) {
-    throw new Error(
-      `Cannot convert ${connection.system_connection_id}: connected TI ports must have labels`,
+  if (!sourceBlock || !targetBlock) return []
+
+  const match = findMatchingInterface(
+    sourceBlock.json,
+    targetBlock.json,
+    connection.label,
+  )
+  if (!match) return []
+
+  return match.pinNames.map((pinName) => ({
+    from: createSubcircuitPinSelector(
+      sourceBlock.instanceName,
+      match.sourceInterface.i2cPins![pinName],
+    ),
+    to: createSubcircuitPinSelector(
+      targetBlock.instanceName,
+      match.targetInterface.i2cPins![pinName],
+    ),
+  }))
+}
+
+function findMatchingInterface(
+  sourceBlock: SystemBlockJson,
+  targetBlock: SystemBlockJson,
+  connectionLabel: string | undefined,
+): {
+  sourceInterface: SystemBlockInterface & {
+    i2cPins: Record<string, string>
+  }
+  targetInterface: SystemBlockInterface & {
+    i2cPins: Record<string, string>
+  }
+  pinNames: string[]
+} | null {
+  const normalizedLabel = connectionLabel?.trim().toLowerCase()
+  if (!normalizedLabel) return null
+
+  const sourceInterfaces = sourceBlock.interfaces ?? []
+  const targetInterfaces = targetBlock.interfaces ?? []
+
+  for (const sourceInterface of sourceInterfaces) {
+    if (!sourceInterface.i2cPins) continue
+    if (
+      sourceInterface.kind.toLowerCase() !== normalizedLabel &&
+      sourceInterface.name.toLowerCase() !== normalizedLabel
+    ) {
+      continue
+    }
+
+    const targetInterface = targetInterfaces.find(
+      (candidate) =>
+        candidate.i2cPins &&
+        candidate.kind.toLowerCase() === sourceInterface.kind.toLowerCase() &&
+        (candidate.name.toLowerCase() === sourceInterface.name.toLowerCase() ||
+          candidate.kind.toLowerCase() === normalizedLabel),
     )
+    if (!targetInterface?.i2cPins) continue
+
+    const sourcePinNames = Object.keys(sourceInterface.i2cPins)
+    const pinNames = sourcePinNames.filter(
+      (pinName) => pinName in targetInterface.i2cPins!,
+    )
+    const requiredPinNames =
+      sourceInterface.kind.toLowerCase() === "i2c" ? ["SDA", "SCL"] : []
+    const hasRequiredPins =
+      requiredPinNames.length > 0
+        ? requiredPinNames.every((pinName) => pinNames.includes(pinName))
+        : pinNames.length === sourcePinNames.length
+
+    if (hasRequiredPins) {
+      return {
+        sourceInterface: {
+          ...sourceInterface,
+          i2cPins: sourceInterface.i2cPins,
+        },
+        targetInterface: {
+          ...targetInterface,
+          i2cPins: targetInterface.i2cPins,
+        },
+        pinNames,
+      }
+    }
   }
 
-  sourceBlock.instance.setConnection(sourcePort.label, [
-    {
-      systemBlock: targetBlock.instance,
-      portName: targetPort.label,
-    },
-  ])
+  return null
+}
+
+function createSubcircuitPinSelector(
+  instanceName: string,
+  localPinPath: string,
+) {
+  const selectorParts = [instanceName, ...localPinPath.split(".")]
+  return selectorParts
+    .filter((part) => part.length > 0)
+    .map((part) => `.${part}`)
+    .join(" > ")
 }
 
 function getTiComponentName(block: SystemBlockJson): TiSystemBlockName | null {

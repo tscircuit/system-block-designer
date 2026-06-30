@@ -15,7 +15,7 @@
 	},
 	"dependencies": {
 		"@resvg/resvg-js": "^2.6.2",
-		"@tsci/tscircuit.ti": "^1.0.53",
+		"@tsci/tscircuit.ti": "^1.0.56",
 		"@tscircuit/eval": "^0.0.955",
 		"@tscircuit/krt-wasm": "^0.1.6",
 		"@vitejs/plugin-react": "5",

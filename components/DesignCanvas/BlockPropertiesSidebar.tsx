@@ -4,13 +4,18 @@ import type {
   SystemBlock,
   SystemConnection,
 } from "../../lib/system-json/system-json"
-import { TiSubcircuitDefinitions } from "../../lib/system-blocks/TiSubcircuits"
+import {
+  TiSubcircuitDefinitions,
+  type TiSubcircuitDefinition,
+} from "../../lib/system-blocks/TiSubcircuits"
 import {
   CONNECTION_INTERFACES,
   inferConnectionInterface,
 } from "./systemJsonCanvas"
 
-const TI_DEFINITIONS = Object.values(TiSubcircuitDefinitions)
+const TI_DEFINITIONS: TiSubcircuitDefinition[] = Object.values(
+  TiSubcircuitDefinitions,
+)
 
 interface BlockPropertiesSidebarProps {
   block: SystemBlock | null
@@ -122,6 +127,8 @@ export function BlockPropertiesSidebar({
   const selectedDefinition = subcircuitOptions.find(
     (definition) => definition.componentName === selectedSubcircuitId,
   )
+  const availableInterfaces =
+    selectedDefinition?.interfaces ?? block.interfaces ?? []
   const hasPendingSubcircuit =
     Boolean(selectedSubcircuitId) &&
     (selectedSubcircuitId !== block.subcircuit_id ||
@@ -219,6 +226,21 @@ export function BlockPropertiesSidebar({
           </label>
           {selectedDefinition && (
             <p className="part-description">{selectedDefinition.description}</p>
+          )}
+          {availableInterfaces.length > 0 && (
+            <div className="available-interfaces">
+              <span>Interfaces</span>
+              <ul>
+                {availableInterfaces.map((interfaceDefinition) => (
+                  <li
+                    key={`${interfaceDefinition.kind}-${interfaceDefinition.name}`}
+                  >
+                    <strong>{interfaceDefinition.name}</strong>
+                    <span>{interfaceDefinition.kind}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
           <button
             className="apply-updates"

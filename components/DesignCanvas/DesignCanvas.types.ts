@@ -25,11 +25,20 @@ export type Editing =
     }
   | null
 
-export type BlockContextMenu = {
-  blockId: string
-  x: number
-  y: number
-} | null
+export type CanvasContextMenu =
+  | {
+      kind: "block"
+      blockId: string
+      x: number
+      y: number
+    }
+  | {
+      kind: "connection"
+      connectionId: string
+      x: number
+      y: number
+    }
+  | null
 
 export interface DesignCanvasProps {
   projectTitle?: string
