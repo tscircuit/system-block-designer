@@ -1,5 +1,9 @@
 import { midpointOfPath } from "../design-system/midpointOfPath"
 import { pathPointsToSvgPath } from "../design-system/pathPointsToSvgPath"
+import {
+  solveSystemJsonTraceLines,
+  type SolvedSystemTraceLine,
+} from "../system-trace-solver"
 import type {
   SystemBlock,
   SystemConnection,
@@ -34,6 +38,11 @@ export function systemJsonToSvgSnapshot(
   const portMap = new Map(
     systemJson.ports.map((port) => [port.system_port_id, port]),
   )
+  const solvedTraceLines = solveSystemJsonTraceLines({
+    blocks: systemJson.blocks,
+    ports: systemJson.ports,
+    connections: systemJson.connections,
+  }).linesByConnectionId
   const connectedBlockIds = new Set<string>()
 
   for (const connection of systemJson.connections) {
@@ -47,7 +56,7 @@ export function systemJsonToSvgSnapshot(
     if (targetPort) connectedBlockIds.add(targetPort.system_block_id)
   }
 
-  const bounds = getBounds(systemJson, options.padding ?? 48)
+  const bounds = getBounds(systemJson, options.padding ?? 48, solvedTraceLines)
   const width = options.width ?? systemJson.diagram?.width ?? bounds.width
   const height = options.height ?? systemJson.diagram?.height ?? bounds.height
   const translateX = -bounds.minX
@@ -63,7 +72,12 @@ export function systemJsonToSvgSnapshot(
     `<rect class="grid-bg" x="0" y="0" width="${round(width)}" height="${round(height)}" fill="url(#dots)" />`,
     `<g transform="translate(${round(translateX)},${round(translateY)})">`,
     ...systemJson.connections.map((connection) =>
-      renderConnection(connection, portMap, blockMap),
+      renderConnection(
+        connection,
+        portMap,
+        blockMap,
+        solvedTraceLines[connection.system_connection_id],
+      ),
     ),
     ...systemJson.blocks.map((block, index) =>
       renderBlock(
@@ -101,13 +115,16 @@ function renderConnection(
   connection: SystemConnection,
   portMap: Map<string, SystemPort>,
   blockMap: Map<string, SystemBlock>,
+  solvedLine?: SolvedSystemTraceLine,
 ) {
   const ports = [...portMap.values()]
-  const points = getConnectionPath(connection, portMap, blockMap, ports)
+  const points =
+    solvedLine?.points ??
+    getConnectionPath(connection, portMap, blockMap, ports)
   if (points.length < 2) return ""
 
   const path = pathPointsToSvgPath(points)
-  const mid = midpointOfPath(points)
+  const mid = solvedLine?.labelPosition ?? midpointOfPath(points)
   const label = connection.label ?? ""
   const labelWidth = label.length * 6.6 + 14
 
@@ -204,7 +221,11 @@ function renderPort(
   return `<circle class="port" data-system-port-id="${escapeAttribute(port.system_port_id)}" cx="${round(position.x - blockX)}" cy="${round(position.y - blockY)}" r="4.5" fill="#fff" stroke="#cfd6df" stroke-width="1.6" />`
 }
 
-function getBounds(systemJson: NormalizedSystemJson, padding: number) {
+function getBounds(
+  systemJson: NormalizedSystemJson,
+  padding: number,
+  solvedTraceLines: Record<string, SolvedSystemTraceLine>,
+) {
   const points = [
     ...systemJson.blocks.flatMap((block) => {
       const x = block.center.x - block.size.width / 2
@@ -214,7 +235,11 @@ function getBounds(systemJson: NormalizedSystemJson, padding: number) {
         { x: x + block.size.width, y: y + block.size.height },
       ]
     }),
-    ...systemJson.connections.flatMap((connection) => connection.path),
+    ...systemJson.connections.flatMap(
+      (connection) =>
+        solvedTraceLines[connection.system_connection_id]?.points ??
+        connection.path,
+    ),
   ]
 
   if (points.length === 0) {

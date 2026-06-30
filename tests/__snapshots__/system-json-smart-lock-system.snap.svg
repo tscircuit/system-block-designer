@@ -1,70 +1,70 @@
-<svg width="1518" height="860" viewBox="0 0 1518 860" xmlns="http://www.w3.org/2000/svg">
+<svg width="1494" height="860" viewBox="0 0 1494 860" xmlns="http://www.w3.org/2000/svg">
 <defs>
 <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
 <circle cx="1.4" cy="1.4" r="1.4" fill="#e6eaef" />
 </pattern>
 </defs>
-<rect class="grid-bg" x="0" y="0" width="1518" height="860" fill="url(#dots)" />
-<g transform="translate(12,18)">
+<rect class="grid-bg" x="0" y="0" width="1494" height="860" fill="url(#dots)" />
+<g transform="translate(-12,18)">
 <g data-system-connection-id="w_9">
-<path class="wire" d="M 188 94.66666666666666 L 203 94.66666666666666 Q 212 94.66666666666666 221 94.66666666666666 L 365 94.66666666666666 Q 374 94.66666666666666 374 85.66666666666666 L 374 73.66666666666666 Q 374 64.66666666666666 383 64.66666666666666 L 527 64.66666666666666 Q 536 64.66666666666666 545 64.66666666666666 L 560 64.66666666666666" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
-<rect class="wlabel-bg" x="357.1" y="70.667" width="33.8" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
-<text class="wlabel-t" x="374" y="80.167" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">SPI</text>
+<path class="wire" d="M 188 94.66666666666666 L 527 94.66666666666666 Q 536 94.66666666666666 536 85.66666666666666 L 536 73.66666666666666 Q 536 64.66666666666666 545 64.66666666666666 L 560 64.66666666666666" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
+<rect class="wlabel-bg" x="345.1" y="85.667" width="33.8" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
+<text class="wlabel-t" x="362" y="95.167" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">SPI</text>
 </g>
 <g data-system-connection-id="w_10">
-<path class="wire" d="M 188 129.33333333333331 L 203 129.33333333333331 Q 212 129.33333333333331 221 129.33333333333331 L 365 129.33333333333331 Q 374 129.33333333333331 374 120.33333333333331 L 374 108.33333333333333 Q 374 99.33333333333333 383 99.33333333333333 L 527 99.33333333333333 Q 536 99.33333333333333 545 99.33333333333333 L 560 99.33333333333333" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
-<rect class="wlabel-bg" x="353.8" y="105.333" width="40.4" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
-<text class="wlabel-t" x="374" y="114.833" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">GPIO</text>
+<path class="wire" d="M 188 129.33333333333331 L 527 129.33333333333331 Q 536 129.33333333333331 536 120.33333333333331 L 536 108.33333333333333 Q 536 99.33333333333333 545 99.33333333333333 L 560 99.33333333333333" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
+<rect class="wlabel-bg" x="341.8" y="120.333" width="40.4" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
+<text class="wlabel-t" x="362" y="129.833" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">GPIO</text>
 </g>
 <g data-system-connection-id="w_11">
-<path class="wire" d="M 688 64.66666666666666 L 703 64.66666666666666 Q 712 64.66666666666666 721 64.66666666666666 L 805 64.66666666666666 Q 814 64.66666666666666 814 73.66666666666666 L 814 176 Q 814 185 823 185 L 907 185 Q 916 185 925 185 L 940 185" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
-<rect class="wlabel-bg" x="797.1" y="115.833" width="33.8" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
-<text class="wlabel-t" x="814" y="125.333" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">SPI</text>
+<path class="wire" d="M 688 64.66666666666666 L 907 64.66666666666666 Q 916 64.66666666666666 916 73.66666666666666 L 916 176 Q 916 185 925 185 L 940 185" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
+<rect class="wlabel-bg" x="785.1" y="55.667" width="33.8" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
+<text class="wlabel-t" x="802" y="65.167" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">SPI</text>
 </g>
 <g data-system-connection-id="w_12">
-<path class="wire" d="M 688 99.33333333333333 L 703 99.33333333333333 Q 712 99.33333333333333 721 99.33333333333333 L 805 99.33333333333333 Q 814 99.33333333333333 814 108.33333333333333 L 814 211 Q 814 220 823 220 L 907 220 Q 916 220 925 220 L 940 220" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
-<rect class="wlabel-bg" x="793.8" y="150.667" width="40.4" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
-<text class="wlabel-t" x="814" y="160.167" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">GPIO</text>
+<path class="wire" d="M 688 99.33333333333333 L 907 99.33333333333333 Q 916 99.33333333333333 916 108.33333333333333 L 916 211 Q 916 220 925 220 L 940 220" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
+<rect class="wlabel-bg" x="781.8" y="90.333" width="40.4" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
+<text class="wlabel-t" x="802" y="99.833" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">GPIO</text>
 </g>
 <g data-system-connection-id="w_13">
-<path class="wire" d="M 1116 196.66666666666666 L 1131 196.66666666666666 Q 1140 196.66666666666666 1149 196.66666666666666 L 1217 196.66666666666666 Q 1223 196.66666666666666 1223 190.66666666666666 L 1223 190.66666666666666 Q 1223 184.66666666666666 1229 184.66666666666666 L 1297 184.66666666666666 Q 1306 184.66666666666666 1315 184.66666666666666 L 1330 184.66666666666666" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
-<rect class="wlabel-bg" x="1206.1" y="181.667" width="33.8" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
-<text class="wlabel-t" x="1223" y="191.167" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">SPI</text>
+<path class="wire" d="M 1116 196.66666666666666 L 1300 196.66666666666666 Q 1306 196.66666666666666 1306 190.66666666666666 L 1306 190.66666666666666 Q 1306 184.66666666666666 1312 184.66666666666666 L 1330 184.66666666666666" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
+<rect class="wlabel-bg" x="1194.1" y="187.667" width="33.8" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
+<text class="wlabel-t" x="1211" y="197.167" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">SPI</text>
 </g>
 <g data-system-connection-id="w_14">
-<path class="wire" d="M 1116 243.33333333333331 L 1131 243.33333333333331 Q 1140 243.33333333333331 1149 243.33333333333331 L 1214 243.33333333333331 Q 1223 243.33333333333331 1223 234.33333333333331 L 1223 228.33333333333331 Q 1223 219.33333333333331 1232 219.33333333333331 L 1297 219.33333333333331 Q 1306 219.33333333333331 1315 219.33333333333331 L 1330 219.33333333333331" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
-<rect class="wlabel-bg" x="1202.8" y="222.333" width="40.4" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
-<text class="wlabel-t" x="1223" y="231.833" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">GPIO</text>
+<path class="wire" d="M 1116 243.33333333333331 L 1297 243.33333333333331 Q 1306 243.33333333333331 1306 234.33333333333331 L 1306 228.33333333333331 Q 1306 219.33333333333331 1315 219.33333333333331 L 1330 219.33333333333331" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
+<rect class="wlabel-bg" x="1190.8" y="234.333" width="40.4" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
+<text class="wlabel-t" x="1211" y="243.833" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">GPIO</text>
 </g>
 <g data-system-connection-id="w_15">
-<path class="wire" d="M 188 356 L 203 356 Q 212 356 221 356 L 373.33333333333337 356 Q 374 356 374 355.33333333333337 L 374 355.33333333333337 Q 374 354.6666666666667 374.66666666666663 354.6666666666667 L 527 354.6666666666667 Q 536 354.6666666666667 545 354.6666666666667 L 560 354.6666666666667" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
-<rect class="wlabel-bg" x="353.8" y="346.333" width="40.4" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
-<text class="wlabel-t" x="374" y="355.833" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">GPIO</text>
+<path class="wire" d="M 188 356 L 535.3333333333334 356 Q 536 356 536 355.33333333333337 L 536 355.33333333333337 Q 536 354.6666666666667 536.6666666666666 354.6666666666667 L 560 354.6666666666667" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
+<rect class="wlabel-bg" x="341.8" y="347" width="40.4" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
+<text class="wlabel-t" x="362" y="356.5" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">GPIO</text>
 </g>
 <g data-system-connection-id="w_16">
-<path class="wire" d="M 188 382 L 203 382 Q 212 382 221 382 L 370.33333333333337 382 Q 374 382 374 385.66666666666663 L 374 385.66666666666663 Q 374 389.3333333333333 377.66666666666663 389.3333333333333 L 527 389.3333333333333 Q 536 389.3333333333333 545 389.3333333333333 L 560 389.3333333333333" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
-<rect class="wlabel-bg" x="353.8" y="376.667" width="40.4" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
-<text class="wlabel-t" x="374" y="386.167" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">GPIO</text>
+<path class="wire" d="M 188 382 L 532.3333333333334 382 Q 536 382 536 385.66666666666663 L 536 385.66666666666663 Q 536 389.3333333333333 539.6666666666666 389.3333333333333 L 560 389.3333333333333" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
+<rect class="wlabel-bg" x="341.8" y="373" width="40.4" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
+<text class="wlabel-t" x="362" y="382.5" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">GPIO</text>
 </g>
 <g data-system-connection-id="w_17">
-<path class="wire" d="M 688 354.6666666666667 L 703 354.6666666666667 Q 712 354.6666666666667 721 354.6666666666667 L 805 354.6666666666667 Q 814 354.6666666666667 814 345.6666666666667 L 814 264 Q 814 255 823 255 L 907 255 Q 916 255 925 255 L 940 255" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
-<rect class="wlabel-bg" x="793.8" y="295.833" width="40.4" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
-<text class="wlabel-t" x="814" y="305.333" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">GPIO</text>
+<path class="wire" d="M 688 354.6666666666667 L 907 354.6666666666667 Q 916 354.6666666666667 916 345.6666666666667 L 916 264 Q 916 255 925 255 L 940 255" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
+<rect class="wlabel-bg" x="781.8" y="345.667" width="40.4" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
+<text class="wlabel-t" x="802" y="355.167" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">GPIO</text>
 </g>
 <g data-system-connection-id="w_18">
-<path class="wire" d="M 60 382 L 45 382 Q 36 382 45 382 L 157 382 Q 166 382 166 391 L 166 513 Q 166 522 175 522 L 287 522 Q 296 522 305 522 L 320 522" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
-<rect class="wlabel-bg" x="149.1" y="443" width="33.8" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
-<text class="wlabel-t" x="166" y="452.5" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">I2C</text>
+<path class="wire" d="M 60 382 L 287 382 Q 296 382 296 391 L 296 513 Q 296 522 305 522 L 320 522" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
+<rect class="wlabel-bg" x="279.1" y="373" width="33.8" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
+<text class="wlabel-t" x="296" y="382.5" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">I2C</text>
 </g>
 <g data-system-connection-id="w_19">
-<path class="wire" d="M 448 522 L 463 522 Q 472 522 481 522 L 685 522 Q 694 522 694 531 L 694 733 Q 694 742 703 742 L 907 742 Q 916 742 925 742 L 940 742" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
-<rect class="wlabel-bg" x="677.1" y="623" width="33.8" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
-<text class="wlabel-t" x="694" y="632.5" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">I2C</text>
+<path class="wire" d="M 448 522 L 907 522 Q 916 522 916 531 L 916 733 Q 916 742 925 742 L 940 742" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
+<rect class="wlabel-bg" x="665.1" y="513" width="33.8" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
+<text class="wlabel-t" x="682" y="522.5" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">I2C</text>
 </g>
 <g data-system-connection-id="w_20">
-<path class="wire" d="M 1068 742 L 1083 742 Q 1092 742 1083 742 L 1037 742 Q 1028 742 1028 733 L 1028 323 Q 1028 314 1028 305 L 1028 290" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
-<rect class="wlabel-bg" x="1001.2" y="551" width="53.6" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
-<text class="wlabel-t" x="1028" y="560.5" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">SUPPLY</text>
+<path class="wire" d="M 1068 742 L 1083 742 Q 1092 742 1092 733 L 1092 323 Q 1092 314 1083 314 L 1037 314 Q 1028 314 1028 305 L 1028 290" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
+<rect class="wlabel-bg" x="1065.2" y="519" width="53.6" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
+<text class="wlabel-t" x="1092" y="528.5" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">SUPPLY</text>
 </g>
 <g class="block" data-system-block-id="b_1" transform="translate(60,60)">
 <rect class="block-rect" width="128" height="104" rx="14" fill="#fff" stroke="#2b3543" stroke-width="1.6" />

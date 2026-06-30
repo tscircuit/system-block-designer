@@ -1,9 +1,11 @@
 import type { RefObject } from "react"
+import { useMemo } from "react"
 import type {
   SystemBlock,
   SystemConnection,
   SystemPort,
 } from "../../lib/system-json/system-json"
+import { solveSystemJsonTraceLines } from "../../lib/system-trace-solver"
 import { BlockNode } from "./BlockNode"
 import type {
   CanvasContextMenu,
@@ -76,6 +78,16 @@ export function CanvasStage({
   onCommitEdit,
   onCancelEdit,
 }: CanvasStageProps) {
+  const solvedTraceLines = useMemo(
+    () =>
+      solveSystemJsonTraceLines({
+        blocks,
+        ports,
+        connections,
+      }).linesByConnectionId,
+    [blocks, ports, connections],
+  )
+
   return (
     <>
       <button
@@ -152,6 +164,7 @@ export function CanvasStage({
                     selection?.kind === "connection" &&
                     selection.id === connection.system_connection_id
                   }
+                  solvedLine={solvedTraceLines[connection.system_connection_id]}
                 />
               ))}
             </g>

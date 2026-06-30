@@ -1,6 +1,7 @@
 import { pathPointsToSvgPath } from "../../lib/design-system/pathPointsToSvgPath"
 import { routeOrthogonalPath } from "../../lib/design-system/routeOrthogonalPath"
 import { findLibraryItem } from "../../lib/design-system/library"
+import { solveSystemJsonTraceLines } from "../../lib/system-trace-solver"
 import {
   TiSystemBlockClasses,
   type TiSystemBlockName,
@@ -204,49 +205,19 @@ export function createSystemJsonForLibraryBlock(
 
 export function updateConnectionPaths(systemJson: SystemJson[]) {
   const normalized = normalizeSystemJson(systemJson)
-  const blockMap = new Map(
-    normalized.blocks.map((block) => [block.system_block_id, block]),
-  )
-  const portMap = new Map(
-    normalized.ports.map((port) => [port.system_port_id, port]),
-  )
+  const solvedTraceLines = solveSystemJsonTraceLines({
+    blocks: normalized.blocks,
+    ports: normalized.ports,
+    connections: normalized.connections,
+  }).linesByConnectionId
 
   return systemJson.map((item) => {
     if (item.type !== "system_connection") return item
-    const sourcePort = item.source_system_port_id
-      ? portMap.get(item.source_system_port_id)
-      : undefined
-    const targetPort = item.target_system_port_id
-      ? portMap.get(item.target_system_port_id)
-      : undefined
-    const sourceBlock = sourcePort
-      ? blockMap.get(sourcePort.system_block_id)
-      : undefined
-    const targetBlock = targetPort
-      ? blockMap.get(targetPort.system_block_id)
-      : undefined
-
-    if (!sourcePort || !targetPort || !sourceBlock || !targetBlock) {
-      return item
-    }
-
+    const solvedLine = solvedTraceLines[item.system_connection_id]
+    if (!solvedLine) return item
     return {
       ...item,
-      path: routeSystemConnection(
-        sourceBlock,
-        sourcePort,
-        targetBlock,
-        targetPort,
-        normalized.ports,
-      ).d
-        ? routeSystemPathPoints(
-            sourceBlock,
-            sourcePort,
-            targetBlock,
-            targetPort,
-            normalized.ports,
-          )
-        : item.path,
+      path: solvedLine.points,
     }
   })
 }
