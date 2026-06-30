@@ -77,12 +77,6 @@ export interface PdfFonts {
   mono: PDFFont
 }
 
-export interface RasterizedImage {
-  bytes: Uint8Array
-  width: number
-  height: number
-}
-
 export interface NormalizedSystemJson {
   diagram?: SystemDiagram
   blocks: SystemBlock[]

@@ -1,12 +1,13 @@
 import { type ResvgRenderOptions, Resvg, initWasm } from "@resvg/resvg-wasm"
 import liberationSansFont from "./assets/liberation-sans-font"
-import type { RasterizedImage } from "./types"
 
 // resvg runs in the browser via WebAssembly. Unlike the native build it must be
 // initialized once and has no system fonts, so we bundle one (Liberation Sans).
 const FONT_FAMILY = "Liberation Sans"
+const fontBuffer = Uint8Array.from(atob(liberationSansFont), (char) =>
+  char.charCodeAt(0),
+)
 let wasmReady: Promise<unknown> | null = null
-let fontBuffer: Uint8Array | null = null
 
 /**
  * Node/tests initialize with explicit wasm bytes read off disk; the browser
@@ -17,10 +18,7 @@ export function initResvgWasm(input: Parameters<typeof initWasm>[0]) {
   return wasmReady
 }
 
-export async function rasterizeSvg(
-  svg: string,
-  targetWidth: number,
-): Promise<RasterizedImage> {
+export async function rasterizeSvg(svg: string, targetWidth: number) {
   if (!wasmReady) {
     if (typeof document === "undefined") {
       throw new Error(
@@ -32,11 +30,6 @@ export async function rasterizeSvg(
     wasmReady = initWasm(fetch(wasmUrl))
   }
   await wasmReady
-  if (!fontBuffer) {
-    fontBuffer = Uint8Array.from(atob(liberationSansFont), (char) =>
-      char.charCodeAt(0),
-    )
-  }
 
   const options: ResvgRenderOptions = {
     background: "white",
