@@ -3,6 +3,8 @@ import type {
   SystemConnection,
   SystemPort,
 } from "../../lib/system-json/system-json"
+import type { SolvedSystemTraceLine } from "../../lib/system-trace-solver"
+import { pathPointsToSvgPath } from "../../lib/design-system/pathPointsToSvgPath"
 import {
   inferConnectionInterface,
   systemConnectionToSvgPath,
@@ -14,6 +16,7 @@ interface ConnectionElProps {
   ports: SystemPort[]
   portMap: Map<string, SystemPort>
   selected: boolean
+  solvedLine?: SolvedSystemTraceLine
 }
 
 export function ConnectionEl({
@@ -22,13 +25,14 @@ export function ConnectionEl({
   ports,
   portMap,
   selected,
+  solvedLine,
 }: ConnectionElProps) {
-  const { d, mid } = systemConnectionToSvgPath(
-    connection,
-    blocks,
-    portMap,
-    ports,
-  )
+  const { d, mid } = solvedLine
+    ? {
+        d: pathPointsToSvgPath(solvedLine.points),
+        mid: solvedLine.labelPosition,
+      }
+    : systemConnectionToSvgPath(connection, blocks, portMap, ports)
   const label = inferConnectionInterface(connection.label)
   const labelWidth = label.length * 6.6 + 14
 
