@@ -146,6 +146,9 @@ export function SystemBlockDesigner({
       ) : canvas.activeTab === "out" ? (
         <OutputFiles
           systemJson={canvas.systemJson}
+          bomRows={bomArtifacts?.rows ?? []}
+          bomLoading={bomLoading}
+          bomError={bomError}
           circuitJson={canvas.resolvedCircuitJson}
           resolvingCircuitJson={canvas.resolving}
           onResolveCircuitJson={canvas.onResolve}
