@@ -12,7 +12,7 @@ import type {
   SystemJson,
   SystemPort,
 } from "../../lib/system-json/system-json"
-import type { BlockContextMenu, Editing } from "./DesignCanvas.types"
+import type { CanvasContextMenu, Editing } from "./DesignCanvas.types"
 import {
   duplicateBlockInSystemJson,
   removeBlockFromSystemJson,
@@ -96,7 +96,7 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
   const [resolvedTsx, setResolvedTsx] = useState<string | null>(null)
   const [resolveError, setResolveError] = useState<string | null>(null)
   const [editing, setEditing] = useState<Editing>(null)
-  const [contextMenu, setContextMenu] = useState<BlockContextMenu>(null)
+  const [contextMenu, setContextMenu] = useState<CanvasContextMenu>(null)
   const [tempConnection, setTempConnection] = useState<{
     fromSystemPortId: string
     to: Point
@@ -441,6 +441,29 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
   const onSvgContextMenu = useCallback(
     (event: React.MouseEvent<SVGSVGElement>) => {
       const target = event.target as Element
+      const stageRect = stageRef.current?.getBoundingClientRect()
+      if (!stageRect) return
+
+      const connectionHit = target.closest(
+        ".connection-hit, [data-label-connection-id]",
+      )
+      if (connectionHit) {
+        event.preventDefault()
+        const connectionId =
+          connectionHit.getAttribute("data-connection-id") ??
+          connectionHit.getAttribute("data-label-connection-id")
+        if (!connectionId) return
+
+        applySelection({ kind: "connection", id: connectionId })
+        setContextMenu({
+          kind: "connection",
+          connectionId,
+          x: event.clientX - stageRect.left,
+          y: event.clientY - stageRect.top,
+        })
+        return
+      }
+
       const blockElement = target.closest(".block")
       if (!blockElement) {
         setContextMenu(null)
@@ -449,11 +472,11 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
 
       event.preventDefault()
       const blockId = blockElement.getAttribute("data-id")
-      const stageRect = stageRef.current?.getBoundingClientRect()
-      if (!blockId || !stageRect) return
+      if (!blockId) return
 
       applySelection({ kind: "block", id: blockId })
       setContextMenu({
+        kind: "block",
         blockId,
         x: event.clientX - stageRect.left,
         y: event.clientY - stageRect.top,
@@ -668,6 +691,7 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
     connections: normalized.connections,
     contextMenu,
     deleteBlock,
+    deleteConnection,
     dropActive,
     duplicateBlock,
     editWrapper,
