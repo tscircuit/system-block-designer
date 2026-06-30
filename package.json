@@ -11,7 +11,10 @@
 		"preview": "vite preview",
 		"cosmos": "cosmos",
 		"cosmos:export": "cosmos-export",
-		"format": "biome format --write"
+		"format": "biome format --write",
+		"test": "bun test",
+		"test:playwright": "playwright test",
+		"start:browser-test-server": "bun --port 3070 ./browser-tests/browsertest.html"
 	},
 	"dependencies": {
 		"@resvg/resvg-js": "^2.6.2",
@@ -31,6 +34,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.1",
+		"@playwright/test": "^1.61.1",
 		"@types/pngjs": "^6.0.5",
 		"@types/react": "^19.1.0",
 		"@types/react-dom": "^19.1.0",

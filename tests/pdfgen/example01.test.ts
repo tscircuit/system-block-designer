@@ -2,6 +2,7 @@ import { join } from "node:path"
 import { expect, test } from "bun:test"
 import { createSmartLockSystemJson } from "../../app/SmartLock/createSmartLockSystemJson"
 import { createPdf, type CreatePdfParams } from "../../lib/pdfgen/createPdf"
+import { rasterizeSvgWithResvg } from "../../lib/pdfgen/rasterizeSvgWithResvg"
 
 const drv8876SchematicSheetSvg = await Bun.file(
   join(
@@ -97,6 +98,8 @@ const examplePdf: CreatePdfParams = {
 }
 
 test("snapshots each page of example01 as png", async () => {
-  const pdfBytes = await createPdf(examplePdf)
+  const pdfBytes = await createPdf(examplePdf, {
+    rasterizeSvg: rasterizeSvgWithResvg,
+  })
   await expect(pdfBytes).toMatchPdfSnapshot(import.meta.path)
 })

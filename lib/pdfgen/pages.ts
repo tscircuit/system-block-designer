@@ -153,6 +153,7 @@ export async function drawSystemArchitecturePage(
   page: PDFPage,
   fonts: PdfFonts,
   input: SystemArchitecturePageInput,
+  context: PdfRenderContext,
 ) {
   const { width } = page.getSize()
   drawPageChrome(page, fonts, input.title ?? "System Architecture")
@@ -162,12 +163,18 @@ export async function drawSystemArchitecturePage(
     input.title ?? "System Architecture",
     input.subtitle,
   )
-  await drawSystemDiagram(pdfDoc, page, input.systemJson, {
-    x: PAGE_MARGIN,
-    y: 64,
-    width: width - PAGE_MARGIN * 2,
-    height: y - 92,
-  })
+  await drawSystemDiagram(
+    pdfDoc,
+    page,
+    input.systemJson,
+    {
+      x: PAGE_MARGIN,
+      y: 64,
+      width: width - PAGE_MARGIN * 2,
+      height: y - 92,
+    },
+    context.rasterizeSvg,
+  )
 }
 
 export async function drawPdfPage(
@@ -189,7 +196,7 @@ export async function drawPdfPage(
   } else if (pageInput.type === "technical_specifications") {
     drawTechnicalSpecificationsPage(page, fonts, pageInput)
   } else if (pageInput.type === "system_architecture") {
-    await drawSystemArchitecturePage(pdfDoc, page, fonts, pageInput)
+    await drawSystemArchitecturePage(pdfDoc, page, fonts, pageInput, context)
   } else {
     await drawSchematicSheetPage(pdfDoc, page, fonts, pageInput, context)
   }

@@ -77,6 +77,24 @@ export interface PdfFonts {
   mono: PDFFont
 }
 
+export interface RasterizedImage {
+  bytes: Uint8Array
+  width: number
+  height: number
+}
+
+/**
+ * Converts an SVG string into PNG bytes at (roughly) the requested width.
+ *
+ * The implementation is environment-specific: Node/test code uses resvg, while
+ * the browser uses a `<canvas>`. Keeping it injectable is what lets `createPdf`
+ * run in the browser without pulling in the Node-only resvg native module.
+ */
+export type SvgRasterizer = (
+  svg: string,
+  targetWidth: number,
+) => RasterizedImage | Promise<RasterizedImage>
+
 export interface NormalizedSystemJson {
   diagram?: SystemDiagram
   blocks: SystemBlock[]
@@ -104,6 +122,7 @@ export interface PdfTextOptions {
 export interface PdfRenderContext {
   pageNumber: number
   pageCount: number
+  rasterizeSvg: SvgRasterizer
   schematicSheetNumber?: number
   schematicSheetCount?: number
 }

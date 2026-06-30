@@ -3,14 +3,14 @@ import { systemJsonToSvgSnapshot } from "../system-json/system-json-to-svg"
 import type { SystemJson } from "../system-json/system-json"
 import { COLORS } from "./constants"
 import { contain } from "./layout"
-import { rasterizeSvg } from "./svgRaster"
-import type { PdfFrame } from "./types"
+import type { PdfFrame, SvgRasterizer } from "./types"
 
 export async function drawSystemDiagram(
   pdfDoc: PDFDocument,
   page: PDFPage,
   systemJson: SystemJson[],
   frame: PdfFrame,
+  rasterizeSvg: SvgRasterizer,
 ) {
   page.drawRectangle({
     ...frame,
@@ -20,7 +20,7 @@ export async function drawSystemDiagram(
   })
 
   const svg = systemJsonToSvgSnapshot(systemJson)
-  const raster = rasterizeSvg(svg, frame.width * 2)
+  const raster = await rasterizeSvg(svg, frame.width * 2)
   const image = await pdfDoc.embedPng(raster.bytes)
   const fit = contain(
     raster.width,
