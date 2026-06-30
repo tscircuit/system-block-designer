@@ -21,6 +21,8 @@ export function SystemBlockDesigner({
 
   const showSystemJsonDownload = debugOptions?.showSystemJsonDownload ?? false
   const showCircuitJsonDownload = debugOptions?.showCircuitJsonDownload ?? false
+  const showSchematicSnapshotPreview =
+    debugOptions?.showSchematicSnapshotPreview ?? false
 
   useEffect(() => {
     let cancelled = false
@@ -142,7 +144,13 @@ export function SystemBlockDesigner({
           emptyMessage="No parts were generated for this design."
         />
       ) : canvas.activeTab === "out" ? (
-        <OutputFiles systemJson={canvas.systemJson} />
+        <OutputFiles
+          systemJson={canvas.systemJson}
+          circuitJson={canvas.resolvedCircuitJson}
+          resolvingCircuitJson={canvas.resolving}
+          onResolveCircuitJson={canvas.onResolve}
+          showSchematicSnapshotPreview={showSchematicSnapshotPreview}
+        />
       ) : (
         <DesignCanvasContent canvas={canvas} />
       )}

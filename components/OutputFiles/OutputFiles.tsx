@@ -1,6 +1,9 @@
 import { useState } from "react"
+import { convertCircuitJsonToSchematicSvg } from "circuit-to-svg"
+import type { CircuitJson } from "../../lib/system-blocks/resolveSystemJsonToCircuitJson"
 import { systemJsonToTsx } from "../../lib/system-blocks/systemJsonToTsx"
 import type { SystemJson } from "../../lib/system-json/system-json"
+import { createKicadProjectZip } from "./createKicadProjectZip"
 import { downloadBlob } from "./downloadBlob"
 import "./output-files.css"
 
@@ -9,13 +12,20 @@ type OutputFile = {
   title: string
   description: string
   icon: "pdf" | "bom" | "kicad"
-  generatedAt?: string
   options?: string[]
   selected?: string
 }
 
 interface OutputFilesProps {
   systemJson?: SystemJson[]
+  circuitJson?: CircuitJson | null
+  resolvingCircuitJson?: boolean
+  onResolveCircuitJson?: () =>
+    | CircuitJson
+    | null
+    | undefined
+    | Promise<CircuitJson | null | undefined>
+  showSchematicSnapshotPreview?: boolean
 }
 
 const outputFiles: OutputFile[] = [
@@ -33,7 +43,6 @@ const outputFiles: OutputFile[] = [
     icon: "bom",
     options: ["Consolidated", "Grouped by subsystem", "Flat list"],
     selected: "Consolidated",
-    generatedAt: "Last generated 27 Jun 2026 5:08 PM",
   },
   {
     id: "project-package",
@@ -43,7 +52,6 @@ const outputFiles: OutputFile[] = [
     icon: "kicad",
     options: ["TSX", "KiCad"],
     selected: "TSX",
-    generatedAt: "Last generated 26 Jun 2026 8:50 PM",
   },
 ]
 
@@ -129,17 +137,21 @@ function FolderIcon() {
 function OutputFileCard({
   file,
   onDownload,
-  disabled,
-  disabledTitle,
+  getDownloadDisabled,
+  getDownloadTitle,
 }: {
   file: OutputFile
-  onDownload: (file: OutputFile, selectedOption?: string) => void
-  disabled?: boolean
-  disabledTitle?: string
+  onDownload: (
+    file: OutputFile,
+    selectedOption?: string,
+  ) => void | Promise<void>
+  getDownloadDisabled?: (file: OutputFile, selectedOption?: string) => boolean
+  getDownloadTitle?: (file: OutputFile, selectedOption?: string) => string
 }) {
   const [selectedOption, setSelectedOption] = useState(
     file.selected ?? file.options?.[0],
   )
+  const disabled = getDownloadDisabled?.(file, selectedOption) ?? false
 
   return (
     <article
@@ -177,27 +189,42 @@ function OutputFileCard({
               type="button"
               disabled={disabled}
               aria-label={`Download ${file.title}`}
-              title={
-                disabled
-                  ? (disabledTitle ?? `Download ${file.title}`)
-                  : `Download ${file.title}`
-              }
+              title={getDownloadTitle?.(file, selectedOption)}
               onClick={() => onDownload(file, selectedOption)}
             >
               <DownloadIcon />
             </button>
           </div>
         </div>
-        {file.generatedAt ? (
-          <div className="output-file-meta">{file.generatedAt}</div>
-        ) : null}
       </div>
     </article>
   )
 }
 
-export function OutputFiles({ systemJson }: OutputFilesProps) {
-  const downloadFile = (file: OutputFile, selectedOption?: string) => {
+export function OutputFiles({
+  systemJson,
+  circuitJson,
+  resolvingCircuitJson = false,
+  onResolveCircuitJson,
+  showSchematicSnapshotPreview = false,
+}: OutputFilesProps) {
+  const [schematicPreviewOpen, setSchematicPreviewOpen] = useState(false)
+
+  const schematicSvg =
+    schematicPreviewOpen && circuitJson
+      ? convertCircuitJsonToSchematicSvg(
+          circuitJson as Parameters<typeof convertCircuitJsonToSchematicSvg>[0],
+        )
+      : null
+
+  const showSchematicPreview = () => {
+    setSchematicPreviewOpen(true)
+    if (!circuitJson && !resolvingCircuitJson) {
+      void onResolveCircuitJson?.()
+    }
+  }
+
+  const downloadFile = async (file: OutputFile, selectedOption?: string) => {
     if (file.id === "project-package" && selectedOption === "TSX") {
       if (!systemJson) return
 
@@ -210,12 +237,54 @@ export function OutputFiles({ systemJson }: OutputFilesProps) {
       return
     }
 
+    if (file.id === "project-package" && selectedOption === "KiCad") {
+      const currentCircuitJson =
+        circuitJson ?? (await onResolveCircuitJson?.()) ?? null
+      if (!currentCircuitJson) {
+        return
+      }
+
+      const projectName = "system-block-designer"
+      downloadBlob(
+        new Blob([createKicadProjectZip(currentCircuitJson, projectName)], {
+          type: "application/zip",
+        }),
+        `${projectName}-kicad.zip`,
+      )
+      return
+    }
+
     downloadBlob(
       new Blob([`${file.title} export is not available in this demo.\n`], {
         type: "text/plain",
       }),
       `${file.id}.txt`,
     )
+  }
+
+  const getDownloadDisabled = (file: OutputFile, selectedOption?: string) => {
+    if (file.id !== "project-package") return false
+    if (selectedOption === "TSX") return !systemJson
+    if (selectedOption === "KiCad") {
+      return resolvingCircuitJson || (!circuitJson && !onResolveCircuitJson)
+    }
+    return false
+  }
+
+  const getDownloadTitle = (file: OutputFile, selectedOption?: string) => {
+    if (file.id !== "project-package") return `Download ${file.title}`
+    if (selectedOption === "TSX" && !systemJson) {
+      return "System JSON is required before downloading TSX"
+    }
+    if (selectedOption === "KiCad") {
+      if (resolvingCircuitJson) return "Resolving Circuit JSON..."
+      if (!circuitJson && !onResolveCircuitJson) {
+        return "Circuit JSON is required before downloading KiCad"
+      }
+      if (!circuitJson) return "Resolve and download KiCad project"
+      return "Download KiCad project"
+    }
+    return `Download ${file.title}`
   }
 
   return (
@@ -235,12 +304,8 @@ export function OutputFiles({ systemJson }: OutputFilesProps) {
               key={file.id}
               file={file}
               onDownload={downloadFile}
-              disabled={file.id === "project-package" && !systemJson}
-              disabledTitle={
-                file.id === "project-package"
-                  ? "Resolve before downloading TSX"
-                  : undefined
-              }
+              getDownloadDisabled={getDownloadDisabled}
+              getDownloadTitle={getDownloadTitle}
             />
           ))}
         </div>
@@ -249,6 +314,49 @@ export function OutputFiles({ systemJson }: OutputFilesProps) {
           <span aria-hidden="true">?</span>
           What is the next step in your EDA tool?
         </button>
+
+        {showSchematicSnapshotPreview ? (
+          <section
+            className="output-debug-panel"
+            aria-label="Schematic snapshot debug preview"
+          >
+            <div className="output-debug-header">
+              <div>
+                <h2>Schematic snapshot</h2>
+                <p>Debug preview generated from resolved Circuit JSON.</p>
+              </div>
+              <button
+                className="output-debug-button"
+                type="button"
+                onClick={showSchematicPreview}
+                disabled={resolvingCircuitJson}
+              >
+                {resolvingCircuitJson
+                  ? "Resolving..."
+                  : schematicPreviewOpen
+                    ? "Refresh preview"
+                    : "Preview"}
+              </button>
+            </div>
+
+            {schematicPreviewOpen ? (
+              <div className="output-schematic-preview">
+                {schematicSvg ? (
+                  <div
+                    className="output-schematic-svg"
+                    dangerouslySetInnerHTML={{ __html: schematicSvg }}
+                  />
+                ) : (
+                  <div className="output-schematic-empty">
+                    {resolvingCircuitJson
+                      ? "Resolving Circuit JSON..."
+                      : "Resolve the project to preview the schematic snapshot."}
+                  </div>
+                )}
+              </div>
+            ) : null}
+          </section>
+        ) : null}
       </section>
     </main>
   )

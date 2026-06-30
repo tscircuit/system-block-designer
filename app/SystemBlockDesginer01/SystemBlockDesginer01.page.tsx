@@ -23,6 +23,7 @@ export function SystemBlockDesginer01Page({
               showCircuitJsonDownload: true,
               circuitJsonDownloadFilename:
                 "system-block-desginer-01-circuit.json",
+              showSchematicSnapshotPreview: true,
             }
           : undefined
       }
