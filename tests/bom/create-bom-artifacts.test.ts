@@ -155,28 +155,36 @@ test("createBomArtifacts consolidates BOM rows from resolved circuit json", asyn
     { label: "Unique Components", value: "3" },
     { label: "Est. Price", value: "1.61 USD" },
   ])
-  expect(artifacts.rows).toContainEqual({
-    manufacturer: "Texas Instruments",
-    mpn: "RC0402FR-074K7L",
-    packageName: "res0402",
-    value: "4.7k",
-    quantity: "2",
-    functionalBlock: "Environmental Sensor",
-    partName: "4.7 kOhm resistor",
-    lifecycle: "Active",
-    unitPrice: "0.000486 USD",
-    stock: "9,379,077",
-  })
-  expect(artifacts.rows).toContainEqual({
-    manufacturer: "Texas Instruments",
-    mpn: "MSPM0G3507SPMR",
-    packageName: "—",
-    value: "—",
-    quantity: "1",
-    functionalBlock: "Microcontroller",
-    partName: "64-pin microcontroller",
-    lifecycle: "Active",
-    unitPrice: "1.6071 USD",
-    stock: "15,830",
-  })
+  expect(artifacts.rows).toContainEqual(
+    expect.objectContaining({
+      referenceDesignators: "R1, R2",
+      manufacturer: "Texas Instruments",
+      mpn: "RC0402FR-074K7L",
+      packageName: "res0402",
+      value: "4.7k",
+      quantity: "2",
+      functionalBlock: "Environmental Sensor",
+      partName: "4.7 kOhm resistor",
+      description: "4.7 kOhm resistor",
+      lifecycle: "Active",
+      unitPrice: "0.000486 USD",
+      stock: "9,379,077",
+    }),
+  )
+  expect(artifacts.rows).toContainEqual(
+    expect.objectContaining({
+      referenceDesignators: "U1",
+      manufacturer: "Texas Instruments",
+      mpn: "MSPM0G3507SPMR",
+      packageName: "—",
+      value: "—",
+      quantity: "1",
+      functionalBlock: "Microcontroller",
+      partName: "64-pin microcontroller",
+      description: "64-pin microcontroller",
+      lifecycle: "Active",
+      unitPrice: "1.6071 USD",
+      stock: "15,830",
+    }),
+  )
 })

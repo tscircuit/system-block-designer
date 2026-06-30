@@ -1,6 +1,8 @@
 import type { PDFDocument, PDFPage } from "pdf-lib"
+import { drawBomPage } from "./bomPage"
 import { COLORS, PAGE_MARGIN } from "./constants"
 import {
+  drawPdfText,
   drawKeyValueGrid,
   drawPageChrome,
   drawPageTitle,
@@ -11,6 +13,7 @@ import {
 import { drawSchematicSheetPage } from "./schematicSheet"
 import { drawSystemDiagram } from "./systemDiagram"
 import type {
+  BomPageInput,
   PdfFonts,
   PdfRenderContext,
   ProjectDetailsPageInput,
@@ -88,14 +91,14 @@ export function drawTitlePage(
 
   let y = 148
   for (const [label, value] of meta) {
-    page.drawText(label.toUpperCase(), {
+    drawPdfText(page, label.toUpperCase(), {
       x: PAGE_MARGIN + 36,
       y: y + 16,
       size: 7.5,
       font: fonts.bold,
       color: COLORS.soft,
     })
-    page.drawText(value, {
+    drawPdfText(page, value, {
       x: PAGE_MARGIN + 36,
       y,
       size: 11,
@@ -178,6 +181,7 @@ export async function drawPdfPage(
     | TitlePageInput
     | ProjectDetailsPageInput
     | TechnicalSpecificationsPageInput
+    | BomPageInput
     | SystemArchitecturePageInput
     | SchematicSheetPageInput,
   context: PdfRenderContext,
@@ -188,6 +192,8 @@ export async function drawPdfPage(
     drawProjectDetailsPage(page, fonts, pageInput)
   } else if (pageInput.type === "technical_specifications") {
     drawTechnicalSpecificationsPage(page, fonts, pageInput)
+  } else if (pageInput.type === "bom") {
+    drawBomPage(page, fonts, pageInput, context)
   } else if (pageInput.type === "system_architecture") {
     await drawSystemArchitecturePage(pdfDoc, page, fonts, pageInput)
   } else {
