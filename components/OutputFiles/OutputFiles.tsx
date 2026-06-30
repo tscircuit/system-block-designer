@@ -46,7 +46,7 @@ const outputFiles: OutputFile[] = [
     title: "BOM",
     description: "CSV file containing the project Bill of Materials.",
     icon: "bom",
-    options: ["Consolidated", "Grouped by subsystem", "Flat list"],
+    options: ["Consolidated", "Flat list"],
     selected: "Consolidated",
   },
   {

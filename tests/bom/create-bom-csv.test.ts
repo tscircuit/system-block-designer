@@ -32,17 +32,18 @@ const rows: BomViewRow[] = [
 test("createBomCsv builds consolidated BOM csv", () => {
   const csv = createBomCsv(rows, "Consolidated")
 
-  expect(csv).toContain("Manufacturer,MPN,Package,Value,Quantity,Functional Block(s),Part Name,Lifecycle,Est. Unit Price,Est. Stock")
+  expect(csv).toContain(
+    "Manufacturer,MPN,Package,Value,Quantity,Functional Block(s),Part Name,Lifecycle,Est. Unit Price,Est. Stock",
+  )
   expect(csv).toContain('"Power, Control"')
   expect(csv).toContain('"Primary ""Controller"""')
 })
 
-test("createBomCsv expands grouped-by-subsystem rows", () => {
-  const csv = createBomCsv(rows, "Grouped by subsystem")
+test("createBomCsv sorts rows for flat-list export", () => {
+  const csv = createBomCsv(rows, "Flat list")
   const lines = csv.trim().split("\n")
 
-  expect(lines).toHaveLength(4)
-  expect(lines[1]).toContain(",Control,")
-  expect(lines[2]).toContain(",Power,")
-  expect(lines[3]).toContain(",Power,")
+  expect(lines).toHaveLength(3)
+  expect(lines[1]).toContain("ABC123")
+  expect(lines[2]).toContain("LM1117")
 })

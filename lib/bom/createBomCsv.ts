@@ -41,39 +41,11 @@ export function createBomCsv(rows: BomViewRow[], mode: BomExportMode) {
 }
 
 function createExportRows(rows: BomViewRow[], mode: BomExportMode) {
-  if (mode === "Grouped by subsystem") {
-    return rows
-      .flatMap((row) => expandFunctionalBlocks(row))
-      .sort(compareGroupedRows)
-  }
-
   if (mode === "Flat list") {
     return [...rows].sort(compareFlatRows)
   }
 
   return rows
-}
-
-function expandFunctionalBlocks(row: BomViewRow) {
-  const functionalBlocks = row.functionalBlock
-    .split(",")
-    .map((value) => value.trim())
-    .filter(Boolean)
-
-  if (functionalBlocks.length <= 1) return [row]
-
-  return functionalBlocks.map((functionalBlock) => ({
-    ...row,
-    functionalBlock,
-  }))
-}
-
-function compareGroupedRows(left: BomViewRow, right: BomViewRow) {
-  return (
-    left.functionalBlock.localeCompare(right.functionalBlock) ||
-    left.mpn.localeCompare(right.mpn) ||
-    left.partName.localeCompare(right.partName)
-  )
 }
 
 function compareFlatRows(left: BomViewRow, right: BomViewRow) {

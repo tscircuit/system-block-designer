@@ -3,10 +3,7 @@ export interface BomSummaryItem {
   value: string
 }
 
-export type BomExportMode =
-  | "Consolidated"
-  | "Grouped by subsystem"
-  | "Flat list"
+export type BomExportMode = "Consolidated" | "Flat list"
 
 export interface BomViewRow {
   manufacturer: string
