@@ -14,7 +14,6 @@ export interface BomViewRow {
   lifecycle: string
   unitPrice: string
   stock: string
-  leadTime: string
 }
 
 export interface BomArtifacts {
@@ -23,11 +22,9 @@ export interface BomArtifacts {
 }
 
 export interface SupplierPartDetails {
-  manufacturer: string | null
   mpn: string | null
   description: string | null
   lifecycle: string | null
-  leadTimeWeeks: number | null
   stock: number | null
   prices: Array<{
     qFrom: number

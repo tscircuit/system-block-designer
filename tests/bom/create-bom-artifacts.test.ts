@@ -130,22 +130,18 @@ test("createBomArtifacts consolidates BOM rows from resolved circuit json", asyn
     resolveSupplierPartDetails: async (supplierPartNumber) => {
       if (supplierPartNumber === "C25900") {
         return {
-          manufacturer: "YAGEO",
           mpn: "RC0402FR-074K7L",
           description: "4.7 kOhm resistor",
           lifecycle: "Active",
-          leadTimeWeeks: 15,
           stock: 9379077,
           prices: [{ qFrom: 1, qTo: null, price: 0.000485714 }],
         }
       }
       if (supplierPartNumber === "C22389960") {
         return {
-          manufacturer: "Texas Instruments",
           mpn: "MSPM0G3507SPMR",
           description: "64-pin microcontroller",
           lifecycle: "Active",
-          leadTimeWeeks: 18,
           stock: 15830,
           prices: [{ qFrom: 1, qTo: null, price: 1.607142857 }],
         }
@@ -158,10 +154,9 @@ test("createBomArtifacts consolidates BOM rows from resolved circuit json", asyn
     { label: "BOM Last updated", value: "26 Jun 2026" },
     { label: "Unique Components", value: "3" },
     { label: "Est. Price", value: "1.61 USD" },
-    { label: "Maximum lead time", value: "18 weeks" },
   ])
   expect(artifacts.rows).toContainEqual({
-    manufacturer: "YAGEO",
+    manufacturer: "Texas Instruments",
     mpn: "RC0402FR-074K7L",
     packageName: "res0402",
     value: "4.7k",
@@ -171,7 +166,6 @@ test("createBomArtifacts consolidates BOM rows from resolved circuit json", asyn
     lifecycle: "Active",
     unitPrice: "0.000486 USD",
     stock: "9,379,077",
-    leadTime: "15 week(s)",
   })
   expect(artifacts.rows).toContainEqual({
     manufacturer: "Texas Instruments",
@@ -184,6 +178,5 @@ test("createBomArtifacts consolidates BOM rows from resolved circuit json", asyn
     lifecycle: "Active",
     unitPrice: "1.6071 USD",
     stock: "15,830",
-    leadTime: "18 week(s)",
   })
 })

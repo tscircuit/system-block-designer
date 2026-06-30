@@ -57,7 +57,6 @@ const columns: BomColumn[] = [
     sort: true,
     info: true,
   },
-  { key: "leadTime", label: "Lead time", width: 118, sort: true, info: true },
 ]
 
 interface BomTableProps {
@@ -160,7 +159,6 @@ export function BomTable({ rows }: BomTableProps) {
                 </td>
                 <td className="is-right">{row.unitPrice}</td>
                 <td className="is-right">{row.stock}</td>
-                <td>{row.leadTime}</td>
               </tr>
             )
           })}
