@@ -1,5 +1,7 @@
 import { useState } from "react"
 import { convertCircuitJsonToSchematicSvg } from "circuit-to-svg"
+import { createBomCsv } from "../../lib/bom/createBomCsv"
+import type { BomExportMode, BomViewRow } from "../../lib/bom/types"
 import type { CircuitJson } from "../../lib/system-blocks/resolveSystemJsonToCircuitJson"
 import { systemJsonToTsx } from "../../lib/system-blocks/systemJsonToTsx"
 import type { SystemJson } from "../../lib/system-json/system-json"
@@ -19,6 +21,9 @@ type OutputFile = {
 
 interface OutputFilesProps {
   systemJson?: SystemJson[]
+  bomRows?: BomViewRow[]
+  bomLoading?: boolean
+  bomError?: string | null
   circuitJson?: CircuitJson | null
   resolvingCircuitJson?: boolean
   onResolveCircuitJson?: () =>
@@ -42,7 +47,7 @@ const outputFiles: OutputFile[] = [
     title: "BOM",
     description: "CSV file containing the project Bill of Materials.",
     icon: "bom",
-    options: ["Consolidated", "Grouped by subsystem", "Flat list"],
+    options: ["Consolidated", "Flat list"],
     selected: "Consolidated",
   },
   {
@@ -204,6 +209,9 @@ function OutputFileCard({
 
 export function OutputFiles({
   systemJson,
+  bomRows = [],
+  bomLoading = false,
+  bomError = null,
   circuitJson,
   resolvingCircuitJson = false,
   onResolveCircuitJson,
@@ -242,6 +250,20 @@ export function OutputFiles({
       } finally {
         setGeneratingPdf(false)
       }
+      return
+    }
+
+    if (file.id === "bom") {
+      if (bomRows.length === 0) return
+
+      const exportMode = (selectedOption ?? "Consolidated") as BomExportMode
+      const csv = createBomCsv(bomRows, exportMode)
+      downloadBlob(
+        new Blob([csv], {
+          type: "text/csv;charset=utf-8",
+        }),
+        `bom-${slugifyExportMode(exportMode)}.csv`,
+      )
       return
     }
 
@@ -286,6 +308,9 @@ export function OutputFiles({
     if (file.id === "pdf") {
       return !systemJson || generatingPdf || resolvingCircuitJson
     }
+    if (file.id === "bom") {
+      return bomLoading || Boolean(bomError) || bomRows.length === 0
+    }
     if (file.id !== "project-package") return false
     if (selectedOption === "TSX") return !systemJson
     if (selectedOption === "KiCad") {
@@ -302,6 +327,12 @@ export function OutputFiles({
       if (resolvingCircuitJson) return "Resolving Circuit JSON..."
       if (!circuitJson) return "Resolve and download the project PDF"
       return "Download project PDF"
+    }
+    if (file.id === "bom") {
+      if (bomLoading) return "Building BOM CSV..."
+      if (bomError) return "BOM generation failed"
+      if (bomRows.length === 0) return "No BOM rows available to download"
+      return `Download ${selectedOption ?? "Consolidated"} BOM CSV`
     }
     if (file.id !== "project-package") return `Download ${file.title}`
     if (selectedOption === "TSX" && !systemJson) {
@@ -391,6 +422,10 @@ export function OutputFiles({
       </section>
     </main>
   )
+}
+
+function slugifyExportMode(value: BomExportMode) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-")
 }
 
 export default OutputFiles
