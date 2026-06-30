@@ -1,30 +1,13 @@
-export interface BomSummaryItem {
-  label: string
-  value: string
-}
-
-export interface BomRow {
-  manufacturer: string
-  mpn: string
-  packageName: string
-  value: string
-  quantity: string
-  functionalBlock: string
-  partName: string
-  lifecycle: "Active" | "End Of Life"
-  unitPrice: string
-  stock: string
-  leadTime: string
-}
+import type { BomSummaryItem, BomViewRow } from "../../lib/bom/types"
 
 export const bomSummary: BomSummaryItem[] = [
   { label: "BOM Last updated", value: "26 Jun 2026" },
-  { label: "Unique Components", value: "18" },
-  { label: "Est. Price", value: "6.69 USD" },
-  { label: "Maximum lead time", value: "99 weeks" },
+  { label: "Unique Components", value: "7" },
+  { label: "Est. Price", value: "3.59 USD" },
+  { label: "Maximum lead time", value: "16 weeks" },
 ]
 
-export const bomRows: BomRow[] = [
+export const bomRows: BomViewRow[] = [
   {
     manufacturer: "TE CONNECTIVITY LTD",
     mpn: "5-534237-3",
@@ -35,7 +18,7 @@ export const bomRows: BomRow[] = [
     partName: "5-534237-3 Female Header V1",
     lifecycle: "Active",
     unitPrice: "1.6922 USD",
-    stock: "12755",
+    stock: "12,755",
     leadTime: "16 week(s)",
   },
   {
@@ -48,7 +31,7 @@ export const bomRows: BomRow[] = [
     partName: "5-534237-3 Female Header V1",
     lifecycle: "Active",
     unitPrice: "0.061 USD",
-    stock: "485068",
+    stock: "485,068",
     leadTime: "16 week(s)",
   },
   {
@@ -61,7 +44,7 @@ export const bomRows: BomRow[] = [
     partName: "5-534237-3 Female Header V1",
     lifecycle: "Active",
     unitPrice: "0.061 USD",
-    stock: "807790",
+    stock: "807,790",
     leadTime: "15 week(s)",
   },
   {
@@ -74,7 +57,7 @@ export const bomRows: BomRow[] = [
     partName: "PCA9532D,118 V1",
     lifecycle: "Active",
     unitPrice: "0.0429 USD",
-    stock: "5088006",
+    stock: "5,088,006",
     leadTime: "13 week(s)",
   },
   {
@@ -82,12 +65,12 @@ export const bomRows: BomRow[] = [
     mpn: "RC0201FR-0710KL",
     packageName: "0201",
     value: "10 kOhm",
-    quantity: "1",
+    quantity: "2",
     functionalBlock: "2. LED Drivers",
     partName: "PCA9532D,118 V1",
     lifecycle: "Active",
     unitPrice: "0.022 USD",
-    stock: "123636708",
+    stock: "123,636,708",
     leadTime: "15 week(s)",
   },
   {
@@ -100,7 +83,7 @@ export const bomRows: BomRow[] = [
     partName: "PCA9532D,118 V1",
     lifecycle: "End Of Life",
     unitPrice: "1.66 USD",
-    stock: "-",
+    stock: "—",
     leadTime: "99 week(s)",
   },
   {
@@ -113,7 +96,7 @@ export const bomRows: BomRow[] = [
     partName: "HD05-19-TH-TR V1",
     lifecycle: "Active",
     unitPrice: "0.0462 USD",
-    stock: "35034080",
+    stock: "35,034,080",
     leadTime: "11 week(s)",
   },
 ]

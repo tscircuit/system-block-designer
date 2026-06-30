@@ -1,20 +1,8 @@
-import type { BomRow } from "./bomData"
+import type { BomViewRow } from "../../lib/bom/types"
 import { FilterIcon, InfoIcon, SortIcon } from "./BomIcons"
 
 interface BomColumn {
-  key: keyof Pick<
-    BomRow,
-    | "manufacturer"
-    | "mpn"
-    | "packageName"
-    | "value"
-    | "quantity"
-    | "functionalBlock"
-    | "lifecycle"
-    | "unitPrice"
-    | "stock"
-    | "leadTime"
-  >
+  key: keyof BomViewRow
   label: string
   width: number
   align?: "right"
@@ -27,32 +15,36 @@ const columns: BomColumn[] = [
   {
     key: "manufacturer",
     label: "Manufacturer",
-    width: 280,
+    width: 240,
     filter: true,
     sort: true,
   },
-  { key: "mpn", label: "MPN", width: 170, sort: true },
+  { key: "mpn", label: "MPN", width: 152, sort: true },
   {
     key: "packageName",
     label: "Package",
-    width: 102,
+    width: 104,
     align: "right",
     sort: true,
   },
-  { key: "value", label: "Value", width: 82, align: "right" },
+  { key: "value", label: "Value", width: 94, align: "right" },
   {
     key: "quantity",
     label: "Quantity",
-    width: 102,
+    width: 92,
     align: "right",
     sort: true,
   },
-  { key: "functionalBlock", label: "Functional Block(s)", width: 314 },
-  { key: "lifecycle", label: "Lifecycle", width: 108, filter: true },
+  {
+    key: "functionalBlock",
+    label: "Functional Block(s)",
+    width: 280,
+  },
+  { key: "lifecycle", label: "Lifecycle", width: 110, filter: true },
   {
     key: "unitPrice",
     label: "Est. Unit Price",
-    width: 142,
+    width: 138,
     align: "right",
     sort: true,
     info: true,
@@ -60,16 +52,16 @@ const columns: BomColumn[] = [
   {
     key: "stock",
     label: "Est. Stock",
-    width: 112,
+    width: 118,
     align: "right",
     sort: true,
     info: true,
   },
-  { key: "leadTime", label: "Lead time", width: 120, sort: true, info: true },
+  { key: "leadTime", label: "Lead time", width: 118, sort: true, info: true },
 ]
 
 interface BomTableProps {
-  rows: BomRow[]
+  rows: BomViewRow[]
 }
 
 export function BomTable({ rows }: BomTableProps) {
@@ -103,41 +95,83 @@ export function BomTable({ rows }: BomTableProps) {
           </tr>
         </thead>
         <tbody>
-          {rows.map((row) => (
-            <tr key={row.mpn}>
-              <td>
-                <div className="bom-manufacturer">{row.manufacturer}</div>
-                <a href="#">View Alternatives</a>
-              </td>
-              <td>
-                <a href="#">{row.mpn}</a>
-              </td>
-              <td className="is-right">{row.packageName}</td>
-              <td className="is-right">{row.value}</td>
-              <td className="is-right">{row.quantity}</td>
-              <td>
-                <div className="bom-functional-cell">
-                  <div>
-                    <a href="#">{row.functionalBlock}</a>
-                    <div>{row.partName}</div>
+          {rows.map((row) => {
+            const alternativesQuery =
+              row.mpn !== "—"
+                ? row.mpn
+                : row.partName !== "—"
+                  ? row.partName
+                  : ""
+
+            return (
+              <tr key={`${row.mpn}-${row.partName}`}>
+                <td>
+                  <div className="bom-manufacturer">{row.manufacturer}</div>
+                  {alternativesQuery ? (
+                    <a
+                      href={createJlcSearchUrl(alternativesQuery)}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      View Alternatives
+                    </a>
+                  ) : null}
+                </td>
+                <td className="bom-cell-strong">
+                  {row.mpn !== "—" ? (
+                    <a
+                      href={createJlcSearchUrl(row.mpn)}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {row.mpn}
+                    </a>
+                  ) : (
+                    row.mpn
+                  )}
+                </td>
+                <td className="is-right">{row.packageName}</td>
+                <td className="is-right">{row.value}</td>
+                <td className="is-right">{row.quantity}</td>
+                <td>
+                  <div className="bom-functional-cell">
+                    <div>
+                      <span className="bom-inline-link">
+                        {row.functionalBlock}
+                      </span>
+                      <div className="bom-cell-subtle bom-cell-wrap">
+                        {row.partName}
+                      </div>
+                    </div>
+                    <span className="bom-locked">▣ Locked</span>
                   </div>
-                  <span className="bom-locked">▣ Locked</span>
-                </div>
-              </td>
-              <td>
-                <span
-                  className={`bom-lifecycle ${row.lifecycle === "End Of Life" ? "is-eol" : ""}`}
-                >
-                  {row.lifecycle}
-                </span>
-              </td>
-              <td className="is-right">{row.unitPrice}</td>
-              <td className="is-right">{row.stock}</td>
-              <td>{row.leadTime}</td>
-            </tr>
-          ))}
+                </td>
+                <td>
+                  {row.lifecycle === "Active" ||
+                  row.lifecycle === "End Of Life" ? (
+                    <span
+                      className={`bom-lifecycle ${row.lifecycle === "End Of Life" ? "is-eol" : ""}`}
+                    >
+                      {row.lifecycle}
+                    </span>
+                  ) : (
+                    <span className="bom-cell-subtle">{row.lifecycle}</span>
+                  )}
+                </td>
+                <td className="is-right">{row.unitPrice}</td>
+                <td className="is-right">{row.stock}</td>
+                <td>{row.leadTime}</td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
     </div>
   )
+}
+
+function createJlcSearchUrl(query: string) {
+  return `https://jlcsearch.tscircuit.com/components/list?search=${encodeURIComponent(
+    query,
+  )}`
 }
