@@ -13,8 +13,7 @@
 		"cosmos:export": "cosmos-export",
 		"format": "biome format --write",
 		"test": "bun test",
-		"test:playwright": "playwright test",
-		"start:browser-test-server": "bun --port 3070 ./browser-tests/browsertest.html"
+		"test:playwright": "playwright test"
 	},
 	"dependencies": {
 		"@resvg/resvg-wasm": "2.6.2",
