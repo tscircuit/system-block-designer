@@ -1,18 +1,48 @@
-import { Resvg } from "@resvg/resvg-js"
+import { type ResvgRenderOptions, Resvg, initWasm } from "@resvg/resvg-wasm"
+import liberationSansFont from "./assets/liberation-sans-font"
 
-export function rasterizeSvg(svg: string, targetWidth: number) {
-  const rendered = new Resvg(svg, {
+// resvg runs in the browser via WebAssembly. Unlike the native build it must be
+// initialized once and has no system fonts, so we bundle one (Liberation Sans).
+const FONT_FAMILY = "Liberation Sans"
+const fontBuffer = Uint8Array.from(atob(liberationSansFont), (char) =>
+  char.charCodeAt(0),
+)
+let wasmReady: Promise<unknown> | null = null
+
+/**
+ * Node/tests initialize with explicit wasm bytes read off disk; the browser
+ * auto-initializes from the asset URL the bundler emits.
+ */
+export function initResvgWasm(input: Parameters<typeof initWasm>[0]) {
+  if (!wasmReady) wasmReady = initWasm(input)
+  return wasmReady
+}
+
+export async function rasterizeSvg(svg: string, targetWidth: number) {
+  if (!wasmReady) {
+    if (typeof document === "undefined") {
+      throw new Error(
+        "resvg-wasm is not initialized. In Node, call initResvgWasm(wasmBytes) before rasterizeSvg.",
+      )
+    }
+    const wasmUrl = (await import("@resvg/resvg-wasm/index_bg.wasm?url"))
+      .default
+    wasmReady = initWasm(fetch(wasmUrl))
+  }
+  await wasmReady
+
+  const options: ResvgRenderOptions = {
     background: "white",
-    fitTo: {
-      mode: "width",
-      value: Math.max(1, Math.round(targetWidth)),
-    },
+    fitTo: { mode: "width", value: Math.max(1, Math.round(targetWidth)) },
     font: {
-      loadSystemFonts: true,
+      fontBuffers: [fontBuffer],
+      defaultFontFamily: FONT_FAMILY,
+      sansSerifFamily: FONT_FAMILY,
+      monospaceFamily: FONT_FAMILY,
     },
-    logLevel: "error",
-  }).render()
+  }
 
+  const rendered = new Resvg(svg, options).render()
   return {
     bytes: rendered.asPng(),
     width: rendered.width,

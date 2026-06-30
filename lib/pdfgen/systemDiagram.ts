@@ -20,7 +20,7 @@ export async function drawSystemDiagram(
   })
 
   const svg = systemJsonToSvgSnapshot(systemJson)
-  const raster = rasterizeSvg(svg, frame.width * 2)
+  const raster = await rasterizeSvg(svg, frame.width * 2)
   const image = await pdfDoc.embedPng(raster.bytes)
   const fit = contain(
     raster.width,

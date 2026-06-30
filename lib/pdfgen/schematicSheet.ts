@@ -56,7 +56,7 @@ export async function drawSchematicSheetPage(
   drawSideNotice(page, fonts, width, frame)
   drawSheetFooter(page, fonts, width, footerY)
 
-  const raster = rasterizeSvg(input.svg, drawingFrame.width * 2.2)
+  const raster = await rasterizeSvg(input.svg, drawingFrame.width * 2.2)
   const image = await pdfDoc.embedPng(raster.bytes)
   const fit = contain(
     raster.width,

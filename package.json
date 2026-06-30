@@ -11,10 +11,12 @@
 		"preview": "vite preview",
 		"cosmos": "cosmos",
 		"cosmos:export": "cosmos-export",
-		"format": "biome format --write"
+		"format": "biome format --write",
+		"test": "bun test",
+		"test:playwright": "playwright test"
 	},
 	"dependencies": {
-		"@resvg/resvg-js": "^2.6.2",
+		"@resvg/resvg-wasm": "^2.6.2",
 		"@tsci/tscircuit.ti": "^1.0.56",
 		"@tscircuit/eval": "^0.0.955",
 		"@tscircuit/krt-wasm": "^0.1.6",
@@ -31,6 +33,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.1",
+		"@playwright/test": "^1.61.1",
 		"@types/pngjs": "^6.0.5",
 		"@types/react": "^19.1.0",
 		"@types/react-dom": "^19.1.0",
