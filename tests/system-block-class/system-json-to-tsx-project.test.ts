@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test"
 import { createTiBlocksCircuitJsonSystemJson } from "../../components/pages/DesignCanvas/DesignCanvas01/createTiBlocksCircuitJsonSystemJson"
+import type { SystemJson } from "../../lib/system-json/system-json"
 import { systemJsonToTsxProject } from "../../lib/system-blocks/systemJsonToTsx"
 
 test("systemJsonToTsxProject emits one index file importing TI subcircuits", () => {
@@ -11,8 +12,72 @@ test("systemJsonToTsxProject emits one index file importing TI subcircuits", () 
   expect(files["index.circuit.tsx"]).toContain(
     'import { EnvironmentalSensor_HDC3020, Microcontroller_MSPM0G3507 } from "@tsci/tscircuit.ti"',
   )
+  expect(files["index.circuit.tsx"]).toContain("export default () => (")
+  expect(files["index.circuit.tsx"]).not.toContain("circuit.add(")
   expect(files["index.circuit.tsx"]).toContain("<board routingDisabled>")
   expect(files["index.circuit.tsx"]).toContain(
-    '<Microcontroller_MSPM0G3507 name="controller" connections={{ PA0: "sensor.SCL", PA1: "sensor.SDA", VDD: "sensor.VDD", GND: "sensor.GND" }} />',
+    '<Microcontroller_MSPM0G3507 name="controller" />',
   )
+  expect(files["index.circuit.tsx"]).not.toContain("connections={{")
+})
+
+test("TI system blocks include per-subcircuit I2C interface definitions", () => {
+  const blocks = createTiBlocksCircuitJsonSystemJson().filter(
+    (item) => item.type === "system_block",
+  )
+  const controller = blocks.find(
+    (block) => block.system_block_id === "controller",
+  )
+  const sensor = blocks.find((block) => block.system_block_id === "sensor")
+
+  expect(controller?.interfaces).toContainEqual({
+    name: "I2C1",
+    kind: "i2c",
+    i2cPins: {
+      SDA: "U1.PA1",
+      SCL: "U1.PA0",
+      VCC: "U1.VDD",
+      GND: "U1.GND",
+    },
+  })
+  expect(sensor?.interfaces).toContainEqual({
+    name: "I2C1",
+    kind: "i2c",
+    i2cPins: {
+      SDA: "U1.SDA",
+      SCL: "U1.SCL",
+      VCC: "U1.VDD",
+      GND: "U1.GND",
+    },
+  })
+})
+
+test("systemJsonToTsxProject matches I2C interfaces and emits cross-subcircuit traces", () => {
+  const systemJson = createTiBlocksCircuitJsonSystemJson()
+    .filter(
+      (item) =>
+        item.type !== "system_connection" ||
+        item.system_connection_id !== "w_sda",
+    )
+    .map<SystemJson>((item) =>
+      item.type === "system_connection" && item.system_connection_id === "w_scl"
+        ? { ...item, label: "i2c" }
+        : item,
+    )
+  const { files } = systemJsonToTsxProject(systemJson)
+  const tsx = files["index.circuit.tsx"]
+
+  expect(tsx).toContain(
+    '<trace from=".controller > .U1 > .PA1" to=".sensor > .U1 > .SDA" />',
+  )
+  expect(tsx).toContain(
+    '<trace from=".controller > .U1 > .PA0" to=".sensor > .U1 > .SCL" />',
+  )
+  expect(tsx).toContain(
+    '<trace from=".controller > .U1 > .VDD" to=".sensor > .U1 > .VDD" />',
+  )
+  expect(tsx).toContain(
+    '<trace from=".controller > .U1 > .GND" to=".sensor > .U1 > .GND" />',
+  )
+  expect(tsx).not.toContain('PA0: "sensor.SCL"')
 })

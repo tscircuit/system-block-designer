@@ -2,6 +2,7 @@ import type {
   Point,
   Size,
   SystemBlock as SystemBlockJson,
+  SystemBlockInterface,
   SystemJson,
   SystemPort,
 } from "../system-json/system-json"
@@ -42,6 +43,7 @@ export interface SystemBlockConfig {
   partNumber?: string
   description?: string
   subcircuitId?: string
+  interfaces?: SystemBlockInterface[]
   ports?: SystemBlockPortDefinition[]
   connectionPortExpansions?: Record<string, string[]>
 }
@@ -60,6 +62,7 @@ export abstract class SystemBlock {
   protected readonly partNumber?: string
   protected readonly description?: string
   protected readonly subcircuitId?: string
+  protected readonly interfaces: SystemBlockInterface[]
   protected readonly ports: SystemBlockPortDefinition[]
   protected readonly connectionPortExpansions: Record<string, string[]>
   protected readonly connections: Record<string, SystemBlockConnectionValue> =
@@ -79,6 +82,7 @@ export abstract class SystemBlock {
     this.partNumber = config.partNumber
     this.description = config.description
     this.subcircuitId = config.subcircuitId
+    this.interfaces = config.interfaces ?? []
     this.ports = config.ports ?? []
     this.connectionPortExpansions = config.connectionPortExpansions ?? {}
   }
@@ -96,6 +100,13 @@ export abstract class SystemBlock {
       ...(this.partNumber ? { part_number: this.partNumber } : {}),
       ...(this.description ? { description: this.description } : {}),
       ...(this.subcircuitId ? { subcircuit_id: this.subcircuitId } : {}),
+      ...(this.interfaces.length > 0
+        ? {
+            interfaces: this.interfaces.map((interfaceDefinition) => ({
+              ...interfaceDefinition,
+            })),
+          }
+        : {}),
     }
 
     return [

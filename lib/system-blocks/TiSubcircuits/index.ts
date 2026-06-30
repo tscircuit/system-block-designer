@@ -1,4 +1,5 @@
 import { SystemBlock, type SystemBlockConfig } from "../SystemBlock"
+import type { SystemBlockInterface } from "../../system-json/system-json"
 
 type TiSystemBlockConfig = Partial<
   Pick<
@@ -22,8 +23,23 @@ export interface TiSubcircuitDefinition {
   description: string
   icon: string
   size?: SystemBlockConfig["size"]
+  interfaces?: SystemBlockInterface[]
   ports: Partial<Record<PortSide, string[]>>
   connectionPortExpansions?: Record<string, string[]>
+}
+
+function createI2cPins(pins: {
+  SDA: string
+  SCL: string
+  VCC?: string
+  GND?: string
+}): Record<string, string> {
+  return {
+    SDA: pins.SDA,
+    SCL: pins.SCL,
+    ...(pins.VCC ? { VCC: pins.VCC } : {}),
+    ...(pins.GND ? { GND: pins.GND } : {}),
+  }
 }
 
 function createTiSubcircuitConfig(
@@ -44,6 +60,7 @@ function createTiSubcircuitConfig(
     icon: definition.icon,
     partNumber: definition.partNumber,
     description: definition.description,
+    interfaces: definition.interfaces,
     ports: Object.entries(definition.ports).flatMap(([sideOfBlock, names]) =>
       (names ?? []).map((name) => ({
         name,
@@ -88,6 +105,17 @@ export const TiSubcircuitDefinitions = {
       "TI BQ25895 I2C-controlled single-cell switch-mode battery charger.",
     icon: "battery2",
     size: { width: 260, height: 184 },
+    interfaces: [
+      {
+        name: "I2C1",
+        kind: "i2c",
+        i2cPins: createI2cPins({
+          SDA: "U1.SDA",
+          SCL: "U1.SCL",
+          GND: "U1.GND",
+        }),
+      },
+    ],
     ports: {
       top: ["VBUS", "PMID", "SYS", "BAT"],
       bottom: ["GND"],
@@ -103,6 +131,17 @@ export const TiSubcircuitDefinitions = {
     description: "TI BQ27441-G1 single-cell battery fuel gauge.",
     icon: "monitor",
     size: { width: 220, height: 148 },
+    interfaces: [
+      {
+        name: "I2C1",
+        kind: "i2c",
+        i2cPins: createI2cPins({
+          SDA: "U1.SDA",
+          SCL: "U1.SCL",
+          GND: "U1.PGND",
+        }),
+      },
+    ],
     ports: {
       top: ["PACKP", "VSYS"],
       bottom: ["PGND"],
@@ -253,6 +292,18 @@ export const TiSubcircuitDefinitions = {
       "TI HDC2080 temperature and humidity sensor with I2C interface.",
     icon: "sensor",
     size: { width: 180, height: 112 },
+    interfaces: [
+      {
+        name: "I2C1",
+        kind: "i2c",
+        i2cPins: createI2cPins({
+          SDA: "U1.SDA",
+          SCL: "U1.SCL",
+          VCC: "U1.VDD",
+          GND: "U1.GND",
+        }),
+      },
+    ],
     ports: {
       top: ["VDD"],
       bottom: ["GND"],
@@ -272,6 +323,18 @@ export const TiSubcircuitDefinitions = {
       "TI HDC3020 temperature and humidity sensor with I2C interface.",
     icon: "sensor",
     size: { width: 180, height: 112 },
+    interfaces: [
+      {
+        name: "I2C1",
+        kind: "i2c",
+        i2cPins: createI2cPins({
+          SDA: "U1.SDA",
+          SCL: "U1.SCL",
+          VCC: "U1.VDD",
+          GND: "U1.GND",
+        }),
+      },
+    ],
     ports: {
       top: ["VDD"],
       bottom: ["GND"],
@@ -291,6 +354,18 @@ export const TiSubcircuitDefinitions = {
       "TI HDC3022 temperature and humidity sensor with I2C interface.",
     icon: "sensor",
     size: { width: 180, height: 112 },
+    interfaces: [
+      {
+        name: "I2C1",
+        kind: "i2c",
+        i2cPins: createI2cPins({
+          SDA: "U1.SDA",
+          SCL: "U1.SCL",
+          VCC: "U1.VDD",
+          GND: "U1.GND",
+        }),
+      },
+    ],
     ports: {
       top: ["VDD"],
       bottom: ["GND"],
@@ -310,6 +385,18 @@ export const TiSubcircuitDefinitions = {
       "TI INA237 high-precision current, voltage, and power monitor.",
     icon: "monitor",
     size: { width: 220, height: 148 },
+    interfaces: [
+      {
+        name: "I2C1",
+        kind: "i2c",
+        i2cPins: createI2cPins({
+          SDA: "U1.SDA",
+          SCL: "U1.SCL",
+          VCC: "U1.VS",
+          GND: "U1.GND",
+        }),
+      },
+    ],
     ports: {
       top: ["VS", "BUS_HIGH", "LOAD_CHARGER"],
       bottom: ["GND"],
@@ -328,6 +415,18 @@ export const TiSubcircuitDefinitions = {
     description: "TI MSPM0G3507 Arm Cortex-M0+ microcontroller reference.",
     icon: "chip",
     size: { width: 220, height: 156 },
+    interfaces: [
+      {
+        name: "I2C1",
+        kind: "i2c",
+        i2cPins: createI2cPins({
+          SDA: "U1.PA1",
+          SCL: "U1.PA0",
+          VCC: "U1.VDD",
+          GND: "U1.GND",
+        }),
+      },
+    ],
     ports: {
       top: ["VDD"],
       bottom: ["GND"],
@@ -347,6 +446,18 @@ export const TiSubcircuitDefinitions = {
     description: "TI TMP1075 digital temperature sensor with I2C interface.",
     icon: "sensor",
     size: { width: 180, height: 112 },
+    interfaces: [
+      {
+        name: "I2C1",
+        kind: "i2c",
+        i2cPins: createI2cPins({
+          SDA: "U1.SDA",
+          SCL: "U1.SCL",
+          VCC: "U1.VDD",
+          GND: "U1.GND",
+        }),
+      },
+    ],
     ports: {
       top: ["VDD"],
       bottom: ["GND"],

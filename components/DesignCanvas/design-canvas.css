@@ -883,6 +883,50 @@ body {
   line-height: 1.45;
 }
 
+.available-interfaces {
+  margin-top: 12px;
+  color: var(--ink-faint);
+  font-size: 12px;
+}
+
+.available-interfaces > span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+.available-interfaces ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.available-interfaces li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #f8fafc;
+  padding: 5px 8px;
+}
+
+.available-interfaces strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.available-interfaces li span {
+  color: var(--ink-faint);
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
 .apply-updates {
   margin-top: 14px;
   height: 32px;

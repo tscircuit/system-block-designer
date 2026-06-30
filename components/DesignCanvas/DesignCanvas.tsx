@@ -80,6 +80,7 @@ export function DesignCanvasContent({
           onSvgDoubleClick={canvas.onSvgDoubleClick}
           onDuplicateBlock={canvas.duplicateBlock}
           onDeleteBlock={canvas.deleteBlock}
+          onDeleteConnection={canvas.deleteConnection}
           onEditChange={canvas.setEditing}
           onCommitEdit={canvas.commitEdit}
           onCancelEdit={() => canvas.setEditing(null)}
