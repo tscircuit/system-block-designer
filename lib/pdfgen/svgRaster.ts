@@ -22,6 +22,11 @@ export async function rasterizeSvg(
   targetWidth: number,
 ): Promise<RasterizedImage> {
   if (!wasmReady) {
+    if (typeof document === "undefined") {
+      throw new Error(
+        "resvg-wasm is not initialized. In Node, call initResvgWasm(wasmBytes) before rasterizeSvg.",
+      )
+    }
     const wasmUrl = (await import("@resvg/resvg-wasm/index_bg.wasm?url"))
       .default
     wasmReady = initWasm(fetch(wasmUrl))
