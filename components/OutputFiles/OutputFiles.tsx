@@ -1,5 +1,7 @@
 import { useState } from "react"
 import { convertCircuitJsonToSchematicSvg } from "circuit-to-svg"
+import { createBomCsv } from "../../lib/bom/createBomCsv"
+import type { BomExportMode, BomViewRow } from "../../lib/bom/types"
 import type { CircuitJson } from "../../lib/system-blocks/resolveSystemJsonToCircuitJson"
 import { systemJsonToTsx } from "../../lib/system-blocks/systemJsonToTsx"
 import type { SystemJson } from "../../lib/system-json/system-json"
@@ -18,6 +20,9 @@ type OutputFile = {
 
 interface OutputFilesProps {
   systemJson?: SystemJson[]
+  bomRows?: BomViewRow[]
+  bomLoading?: boolean
+  bomError?: string | null
   circuitJson?: CircuitJson | null
   resolvingCircuitJson?: boolean
   onResolveCircuitJson?: () =>
@@ -203,6 +208,9 @@ function OutputFileCard({
 
 export function OutputFiles({
   systemJson,
+  bomRows = [],
+  bomLoading = false,
+  bomError = null,
   circuitJson,
   resolvingCircuitJson = false,
   onResolveCircuitJson,
@@ -225,6 +233,20 @@ export function OutputFiles({
   }
 
   const downloadFile = async (file: OutputFile, selectedOption?: string) => {
+    if (file.id === "bom") {
+      if (bomRows.length === 0) return
+
+      const exportMode = (selectedOption ?? "Consolidated") as BomExportMode
+      const csv = createBomCsv(bomRows, exportMode)
+      downloadBlob(
+        new Blob([csv], {
+          type: "text/csv;charset=utf-8",
+        }),
+        `bom-${slugifyExportMode(exportMode)}.csv`,
+      )
+      return
+    }
+
     if (file.id === "project-package" && selectedOption === "TSX") {
       if (!systemJson) return
 
@@ -263,6 +285,9 @@ export function OutputFiles({
   }
 
   const getDownloadDisabled = (file: OutputFile, selectedOption?: string) => {
+    if (file.id === "bom") {
+      return bomLoading || Boolean(bomError) || bomRows.length === 0
+    }
     if (file.id !== "project-package") return false
     if (selectedOption === "TSX") return !systemJson
     if (selectedOption === "KiCad") {
@@ -272,6 +297,12 @@ export function OutputFiles({
   }
 
   const getDownloadTitle = (file: OutputFile, selectedOption?: string) => {
+    if (file.id === "bom") {
+      if (bomLoading) return "Building BOM CSV..."
+      if (bomError) return "BOM generation failed"
+      if (bomRows.length === 0) return "No BOM rows available to download"
+      return `Download ${selectedOption ?? "Consolidated"} BOM CSV`
+    }
     if (file.id !== "project-package") return `Download ${file.title}`
     if (selectedOption === "TSX" && !systemJson) {
       return "System JSON is required before downloading TSX"
@@ -360,6 +391,10 @@ export function OutputFiles({
       </section>
     </main>
   )
+}
+
+function slugifyExportMode(value: BomExportMode) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-")
 }
 
 export default OutputFiles
