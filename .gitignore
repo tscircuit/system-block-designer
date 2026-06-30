@@ -4,4 +4,3 @@ cosmos-export/
 .vercel/
 playwright-report/
 test-results/
-blob-report/
