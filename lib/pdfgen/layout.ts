@@ -370,17 +370,92 @@ export function wrapText(
     const words = paragraph.trim().split(/\s+/).filter(Boolean)
     let line = ""
     for (const word of words) {
+      const wrappedWord = wrapLongToken(word, font, size, maxWidth)
+      if (wrappedWord.length > 1) {
+        if (line) {
+          lines.push(line)
+          line = ""
+        }
+        lines.push(...wrappedWord.slice(0, -1))
+        line = wrappedWord[wrappedWord.length - 1]
+        continue
+      }
+
       const candidate = line ? `${line} ${word}` : word
       if (measureTextWidth(font, candidate, size) <= maxWidth || !line) {
         line = candidate
       } else {
         lines.push(line)
-        line = word
+        const nextWordLines = wrapLongToken(word, font, size, maxWidth)
+        if (nextWordLines.length > 1) {
+          lines.push(...nextWordLines.slice(0, -1))
+          line = nextWordLines[nextWordLines.length - 1]
+        } else {
+          line = word
+        }
       }
     }
     if (line) lines.push(line)
   }
   return lines
+}
+
+function wrapLongToken(
+  token: string,
+  font: PDFFont,
+  size: number,
+  maxWidth: number,
+) {
+  if (!token || measureTextWidth(font, token, size) <= maxWidth) return [token]
+
+  const coarseSegments = splitTokenAtPreferredBreaks(token)
+  const lines: string[] = []
+  let line = ""
+
+  for (const segment of coarseSegments) {
+    const parts = breakOversizedSegment(segment, font, size, maxWidth)
+    for (const part of parts) {
+      const candidate = `${line}${part}`
+      if (!line || measureTextWidth(font, candidate, size) <= maxWidth) {
+        line = candidate
+      } else {
+        lines.push(line)
+        line = part
+      }
+    }
+  }
+
+  if (line) lines.push(line)
+  return lines
+}
+
+function splitTokenAtPreferredBreaks(token: string) {
+  const segments = token.match(/[^_.\-/]+(?:[_.\-/]+)?/g)
+  return segments && segments.length > 0 ? segments : [token]
+}
+
+function breakOversizedSegment(
+  segment: string,
+  font: PDFFont,
+  size: number,
+  maxWidth: number,
+) {
+  if (measureTextWidth(font, segment, size) <= maxWidth) return [segment]
+
+  const parts: string[] = []
+  let current = ""
+  for (const character of segment) {
+    const candidate = `${current}${character}`
+    if (!current || measureTextWidth(font, candidate, size) <= maxWidth) {
+      current = candidate
+      continue
+    }
+    parts.push(current)
+    current = character
+  }
+
+  if (current) parts.push(current)
+  return parts
 }
 
 export function drawPdfText(
