@@ -6,6 +6,7 @@ import type {
   SystemJson,
   SystemPort,
 } from "../system-json/system-json"
+import type { IconColor } from "../system-json/icon-colors"
 
 export type SystemBlockConnectionValue = string | string[]
 
@@ -40,6 +41,7 @@ export interface SystemBlockConfig {
   componentName: string
   tsxInstanceName?: string
   icon?: string
+  iconColor?: IconColor
   partNumber?: string
   description?: string
   subcircuitId?: string
@@ -61,6 +63,7 @@ export abstract class SystemBlock {
   protected readonly tsxInstanceName: string
   protected readonly hasExplicitTsxInstanceName: boolean
   protected readonly icon?: string
+  protected readonly iconColor?: IconColor
   protected readonly partNumber?: string
   protected readonly description?: string
   protected readonly subcircuitId?: string
@@ -82,6 +85,7 @@ export abstract class SystemBlock {
     this.tsxInstanceName = config.tsxInstanceName ?? this.systemBlockId
     this.hasExplicitTsxInstanceName = config.tsxInstanceName !== undefined
     this.icon = config.icon
+    this.iconColor = config.iconColor
     this.partNumber = config.partNumber
     this.description = config.description
     this.subcircuitId = config.subcircuitId
@@ -101,6 +105,7 @@ export abstract class SystemBlock {
       label: this.label,
       category: [...this.category],
       ...(this.icon ? { icon: this.icon } : {}),
+      ...(this.iconColor ? { icon_color: this.iconColor } : {}),
       ...(this.partNumber ? { part_number: this.partNumber } : {}),
       ...(this.description ? { description: this.description } : {}),
       ...(this.subcircuitId ? { subcircuit_id: this.subcircuitId } : {}),

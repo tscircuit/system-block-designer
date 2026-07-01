@@ -1,4 +1,5 @@
 import { BlockIcon } from "../../lib/design-system/icons"
+import { normalizeIconColor } from "../../lib/system-json/icon-colors"
 import type { SystemBlock, SystemPort } from "../../lib/system-json/system-json"
 import { getSystemPortPosition } from "./systemJsonCanvas"
 
@@ -20,6 +21,7 @@ export function BlockNode({
   const x = block.center.x - block.size.width / 2
   const y = block.center.y - block.size.height / 2
   const iconSize = Math.min(46, block.size.height * 0.4)
+  const iconColor = normalizeIconColor(block.icon_color)
   const blockPorts = ports.filter(
     (port) => port.system_block_id === block.system_block_id,
   )
@@ -72,7 +74,7 @@ export function BlockNode({
         x={(block.size.width - iconSize) / 2}
         y={(block.size.height - iconSize) / 2 - 7}
         size={iconSize}
-        style={{ color: "var(--ink)" }}
+        style={{ color: iconColor }}
       />
       <text
         className="block-label"
