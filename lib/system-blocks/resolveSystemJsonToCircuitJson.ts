@@ -1,10 +1,11 @@
 import { createCircuitWebWorker } from "@tscircuit/eval/worker"
 import workerEntrypointUrl from "@tscircuit/eval/worker-entrypoint?url"
+import type { CircuitJson as TypedCircuitJson } from "circuit-json"
 import type { SystemJson } from "../system-json/system-json"
 import { executeTsxInCircuitWorker } from "./executeTsxInCircuitWorker"
 import { systemJsonToTsx } from "./systemJsonToTsx"
 
-export type CircuitJson = Array<Record<string, unknown>>
+export type CircuitJson = TypedCircuitJson
 
 export interface ResolvedCircuitJson {
   tsx: string
