@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test"
 import { convertCircuitJsonToStackedSchematicSheetsSvg } from "circuit-to-svg"
-import { createSystemBlockDesginer01SystemJson } from "../app/SystemBlockDesginer01/createSystemBlockDesginer01SystemJson"
-import { systemJsonToTsx } from "../lib/system-blocks/systemJsonToTsx"
-import { renderTsxToCircuitJson } from "./fixtures/render-tsx-to-circuit-json"
+import { createSystemBlockDesginer01SystemJson } from "../../../app/SystemBlockDesginer01/createSystemBlockDesginer01SystemJson"
+import { systemJsonToTsx } from "../../../lib/system-blocks/systemJsonToTsx"
+import { renderTsxToCircuitJson } from "../../fixtures/render-tsx-to-circuit-json"
 
 test("system block desginer 01 circuit json renders to schematic snapshot", async () => {
   const systemJson = createSystemBlockDesginer01SystemJson()

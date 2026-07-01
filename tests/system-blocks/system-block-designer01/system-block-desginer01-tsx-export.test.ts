@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
-import { createSystemBlockDesginer01SystemJson } from "../app/SystemBlockDesginer01/createSystemBlockDesginer01SystemJson"
-import { systemJsonToTsxProject } from "../lib/system-blocks/systemJsonToTsx"
+import { createSystemBlockDesginer01SystemJson } from "../../../app/SystemBlockDesginer01/createSystemBlockDesginer01SystemJson"
+import { systemJsonToTsxProject } from "../../../lib/system-blocks/systemJsonToTsx"
 
 test("system block desginer 01 TSX export includes TI I2C traces", () => {
   const { files } = systemJsonToTsxProject(
