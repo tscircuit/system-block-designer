@@ -12,6 +12,13 @@ export const Size = z.object({
 })
 export type Size = z.infer<typeof Size>
 
+export const SystemBlockInterface = z.object({
+  name: z.string(),
+  kind: z.string(),
+  i2cPins: z.record(z.string()).optional(),
+})
+export type SystemBlockInterface = z.infer<typeof SystemBlockInterface>
+
 export const SystemDiagram = z.object({
   type: z.literal("system_diagram"),
   system_diagram_id: z.string(),
@@ -34,6 +41,7 @@ export const SystemBlock = z.object({
   part_number: z.string().optional(),
   description: z.string().optional(),
   subcircuit_id: z.string().optional(),
+  interfaces: z.array(SystemBlockInterface).optional(),
 })
 export type SystemBlock = z.infer<typeof SystemBlock>
 

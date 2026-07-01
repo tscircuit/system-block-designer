@@ -6,7 +6,7 @@ import type {
 } from "../../lib/system-json/system-json"
 import { BlockNode } from "./BlockNode"
 import type {
-  BlockContextMenu,
+  CanvasContextMenu,
   CanvasView,
   Editing,
   Selection,
@@ -26,7 +26,7 @@ interface CanvasStageProps {
   dropActive: boolean
   tempPath: string | null
   editing: Editing
-  contextMenu: BlockContextMenu
+  contextMenu: CanvasContextMenu
   editWrapper: { x: number; y: number } | null
   svgRef: RefObject<SVGSVGElement | null>
   stageRef: RefObject<HTMLElement | null>
@@ -39,6 +39,7 @@ interface CanvasStageProps {
   onSvgDoubleClick: (event: React.MouseEvent<SVGSVGElement>) => void
   onDuplicateBlock: (blockId: string) => void
   onDeleteBlock: (blockId: string) => void
+  onDeleteConnection: (connectionId: string) => void
   onEditChange: (editing: Editing) => void
   onCommitEdit: () => void
   onCancelEdit: () => void
@@ -70,6 +71,7 @@ export function CanvasStage({
   onSvgDoubleClick,
   onDuplicateBlock,
   onDeleteBlock,
+  onDeleteConnection,
   onEditChange,
   onCommitEdit,
   onCancelEdit,
@@ -210,34 +212,44 @@ export function CanvasStage({
             onMouseDown={(event) => event.stopPropagation()}
             onContextMenu={(event) => event.preventDefault()}
           >
-            <li
-              aria-disabled="false"
-              className="block-context-menu-item"
-              data-test-id="context-menu-item-clone-element"
-              id="context-menu-item-clone-element"
-              onClick={() => onDuplicateBlock(contextMenu.blockId)}
-            >
-              <span data-testid="ellipsis-text-Duplicate">Duplicate</span>
-            </li>
+            {contextMenu.kind === "block" && (
+              <li
+                aria-disabled="false"
+                className="block-context-menu-item"
+                data-test-id="context-menu-item-clone-element"
+                id="context-menu-item-clone-element"
+                onClick={() => onDuplicateBlock(contextMenu.blockId)}
+              >
+                <span data-testid="ellipsis-text-Duplicate">Duplicate</span>
+              </li>
+            )}
             <li
               aria-disabled="false"
               className="block-context-menu-item"
               data-test-id="context-menu-item-delete-element"
               id="context-menu-item-delete-element"
-              onClick={() => onDeleteBlock(contextMenu.blockId)}
+              onClick={() => {
+                if (contextMenu.kind === "block") {
+                  onDeleteBlock(contextMenu.blockId)
+                } else {
+                  onDeleteConnection(contextMenu.connectionId)
+                }
+              }}
             >
               <span data-testid="ellipsis-text-Delete">Delete</span>
             </li>
-            <li
-              aria-disabled="true"
-              className="block-context-menu-item disabled"
-              data-test-id="context-menu-item-show-specs"
-              id="context-menu-item-show-specs"
-            >
-              <span data-testid="ellipsis-text-Manage settings">
-                Manage settings
-              </span>
-            </li>
+            {contextMenu.kind === "block" && (
+              <li
+                aria-disabled="true"
+                className="block-context-menu-item disabled"
+                data-test-id="context-menu-item-show-specs"
+                id="context-menu-item-show-specs"
+              >
+                <span data-testid="ellipsis-text-Manage settings">
+                  Manage settings
+                </span>
+              </li>
+            )}
           </ul>
         )}
       </section>

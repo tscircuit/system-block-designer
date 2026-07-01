@@ -2,11 +2,11 @@ import { useState } from "react"
 import { convertCircuitJsonToSchematicSvg } from "circuit-to-svg"
 import { createBomCsv } from "../../lib/bom/createBomCsv"
 import type { BomExportMode, BomViewRow } from "../../lib/bom/types"
-import { createPdf } from "../../lib/pdfgen/createPdf"
 import type { CircuitJson } from "../../lib/system-blocks/resolveSystemJsonToCircuitJson"
 import { systemJsonToTsx } from "../../lib/system-blocks/systemJsonToTsx"
 import type { SystemJson } from "../../lib/system-json/system-json"
 import { createKicadProjectZip } from "./createKicadProjectZip"
+import { createProjectPdf, getProjectFileName } from "./createProjectPdf"
 import { downloadBlob } from "./downloadBlob"
 import "./output-files.css"
 
@@ -40,7 +40,7 @@ const outputFiles: OutputFile[] = [
     id: "pdf",
     title: "PDF",
     description:
-      "Project document containing project description, schematics and BOM.",
+      "Project document containing the project overview, schematics, and BOM.",
     icon: "pdf",
   },
   {
@@ -220,6 +220,7 @@ export function OutputFiles({
   showSchematicSnapshotPreview = false,
 }: OutputFilesProps) {
   const [schematicPreviewOpen, setSchematicPreviewOpen] = useState(false)
+  const [generatingPdf, setGeneratingPdf] = useState(false)
 
   const schematicSvg =
     schematicPreviewOpen && circuitJson
@@ -237,77 +238,24 @@ export function OutputFiles({
 
   const downloadFile = async (file: OutputFile, selectedOption?: string) => {
     if (file.id === "pdf") {
-      if (!systemJson?.length) return
+      if (!systemJson || generatingPdf) return
 
-      const currentCircuitJson =
-        circuitJson ?? (await onResolveCircuitJson?.()) ?? null
-      if (!currentCircuitJson) {
-        return
-      }
-
-      const schematicSvg = convertCircuitJsonToSchematicSvg(
-        currentCircuitJson as Parameters<
-          typeof convertCircuitJsonToSchematicSvg
-        >[0],
-      )
-      const today = new Date().toISOString().slice(0, 10)
-      const pdfBytes = await createPdf({
-        titlePage: {
-          type: "title",
-          projectName: projectTitle,
-          subtitle: "System design package",
-          description:
-            "Project document containing project description, schematics and BOM.",
-          preparedBy: "System Block Designer",
-          date: today,
-        },
-        projectDetailsPage: {
-          type: "project_details",
-          summary: "Generated from the current resolved system design.",
-          details: {
-            Project: projectTitle,
-            "System Blocks": String(countSystemBlocks(systemJson)),
-            "BOM Rows": String(bomRows.length),
-            Schematics: "Included",
-          },
-          sections: [
-            {
-              title: "Export contents",
-              items: [
-                "System architecture snapshot",
-                bomRows.length > 0
-                  ? "Resolved bill of materials"
-                  : "Empty bill of materials section",
-                "Resolved schematic snapshot",
-              ],
-            },
-          ],
-        },
-        bomPage: {
-          type: "bom",
-          projectLabel: projectTitle,
-          rows: bomRows,
-        },
-        systemArchitecturePage: {
-          type: "system_architecture",
-          subtitle: "Generated from the current system design.",
+      setGeneratingPdf(true)
+      try {
+        const currentCircuitJson =
+          circuitJson ?? (await onResolveCircuitJson?.()) ?? null
+        const pdfBytes = await createProjectPdf(
           systemJson,
-        },
-        schematicSheetSvgs: [
-          {
-            type: "schematic_sheet",
-            title: `${projectTitle} Schematics`,
-            svg: schematicSvg,
-          },
-        ],
-      })
-
-      downloadBlob(
-        new Blob([Uint8Array.from(pdfBytes)], {
-          type: "application/pdf",
-        }),
-        `${slugifyFilename(projectTitle)}-report.pdf`,
-      )
+          currentCircuitJson,
+          bomRows,
+        )
+        downloadBlob(
+          new Blob([pdfBytes], { type: "application/pdf" }),
+          `${getProjectFileName(systemJson)}.pdf`,
+        )
+      } finally {
+        setGeneratingPdf(false)
+      }
       return
     }
 
@@ -365,14 +313,13 @@ export function OutputFiles({
   const getDownloadDisabled = (file: OutputFile, selectedOption?: string) => {
     if (file.id === "pdf") {
       return (
+        generatingPdf ||
         bomLoading ||
         Boolean(bomError) ||
         resolvingCircuitJson ||
-        !systemJson?.length ||
-        (!circuitJson && !onResolveCircuitJson)
+        !systemJson
       )
     }
-
     if (file.id === "bom") {
       return bomLoading || Boolean(bomError) || bomRows.length === 0
     }
@@ -388,18 +335,19 @@ export function OutputFiles({
     if (file.id === "pdf") {
       if (bomLoading) return "Building BOM data..."
       if (bomError) return "BOM generation failed"
-      if (!systemJson?.length) {
-        return "System JSON is required before downloading PDF"
-      }
+      if (!systemJson)
+        return "System JSON is required before downloading the PDF"
+      if (generatingPdf) return "Generating PDF..."
       if (resolvingCircuitJson) return "Resolving Circuit JSON..."
-      if (!circuitJson && !onResolveCircuitJson) {
-        return "Circuit JSON is required before downloading PDF"
+      if (!circuitJson) {
+        return bomRows.length > 0
+          ? "Download PDF report with BOM; schematic pages are included when Circuit JSON is available"
+          : "Download project PDF"
       }
       return bomRows.length > 0
         ? "Download PDF report with BOM and schematics"
         : "Download PDF report with an empty BOM section"
     }
-
     if (file.id === "bom") {
       if (bomLoading) return "Building BOM CSV..."
       if (bomError) return "BOM generation failed"
@@ -498,14 +446,6 @@ export function OutputFiles({
 
 function slugifyExportMode(value: BomExportMode) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "-")
-}
-
-function slugifyFilename(value: string) {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-")
-}
-
-function countSystemBlocks(systemJson: SystemJson[]) {
-  return systemJson.filter((item) => item.type === "system_block").length
 }
 
 export default OutputFiles
