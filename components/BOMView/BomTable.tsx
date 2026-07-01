@@ -40,7 +40,6 @@ const columns: BomColumn[] = [
     label: "Functional Block(s)",
     width: 280,
   },
-  { key: "lifecycle", label: "Lifecycle", width: 110, filter: true },
   {
     key: "unitPrice",
     label: "Est. Unit Price",
@@ -142,21 +141,9 @@ export function BomTable({ rows }: BomTableProps) {
                         {row.partName}
                       </div>
                     </div>
-                    <span className="bom-locked">▣ Locked</span>
                   </div>
                 </td>
-                <td>
-                  {row.lifecycle === "Active" ||
-                  row.lifecycle === "End Of Life" ? (
-                    <span
-                      className={`bom-lifecycle ${row.lifecycle === "End Of Life" ? "is-eol" : ""}`}
-                    >
-                      {row.lifecycle}
-                    </span>
-                  ) : (
-                    <span className="bom-cell-subtle">{row.lifecycle}</span>
-                  )}
-                </td>
+
                 <td className="is-right">{row.unitPrice}</td>
                 <td className="is-right">{row.stock}</td>
               </tr>

@@ -13,7 +13,7 @@ test("executeTsxInCircuitWorker runs exported TSX through mainComponentPath", as
         calls.push(options)
       },
     },
-    'export default () => <board />',
+    "export default () => <board />",
   )
 
   expect(calls).toHaveLength(1)
