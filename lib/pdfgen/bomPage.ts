@@ -90,12 +90,10 @@ export function drawBomPage(
 
   if (input.rows.length === 0) {
     drawEmptyBomState(page, fonts, BOM_TABLE_TOP)
-    drawBomFooter(page, fonts)
     return
   }
 
   drawBomTable(page, fonts, input.rows, BOM_TABLE_X, BOM_TABLE_TOP)
-  drawBomFooter(page, fonts)
 }
 
 function drawBomTable(
@@ -310,7 +308,7 @@ function drawBomHeader(
   const { width, height } = page.getSize()
   const topY = height - 30
   const title = input.title ?? "Bill of Materials (BOM)"
-  const pageLabel = `${context.pageNumber} | ${input.projectLabel ?? "System Block Designer"}`
+  const pageLabel = `${context.pageNumber} | tscircuit`
   const showingLabel = createShowingLabel(input)
   const titleWidth = measureTextWidth(fonts.regular, title, 9)
   const showingWidth = measureTextWidth(fonts.regular, showingLabel, 8.5)
@@ -351,18 +349,4 @@ function createShowingLabel(input: BomPageInput) {
   const start = (input.rowStart ?? 0) + 1
   const end = (input.rowStart ?? 0) + input.rows.length
   return `Showing ${start} - ${end} of ${totalRows}`
-}
-
-function drawBomFooter(page: PDFPage, fonts: PdfFonts) {
-  const { width } = page.getSize()
-  const label = "Powered by tscircuit"
-  const labelWidth = measureTextWidth(fonts.regular, label, 7)
-
-  drawPdfText(page, label, {
-    x: width - BOM_TABLE_X - labelWidth,
-    y: BOM_FOOTER_Y,
-    size: 7,
-    font: fonts.regular,
-    color: COLORS.soft,
-  })
 }

@@ -9,7 +9,6 @@ import type {
 } from "./types"
 
 const SCHEMATIC_BACKGROUND = rgb(245 / 255, 241 / 255, 237 / 255)
-const TSCIRCUIT_BLUE = rgb(75 / 255, 138 / 255, 244 / 255)
 
 export async function drawSchematicSheetPage(
   pdfDoc: PDFDocument,
@@ -22,7 +21,6 @@ export async function drawSchematicSheetPage(
   const sheetNumber = context.schematicSheetNumber ?? 1
   const sheetCount = context.schematicSheetCount ?? 1
   const headerY = height - 32
-  const footerY = 24
   const frame = {
     x: 76,
     y: 66,
@@ -54,7 +52,6 @@ export async function drawSchematicSheetPage(
   })
   drawDrawingBackground(page, frame)
   drawSideNotice(page, fonts, width, frame)
-  drawSheetFooter(page, fonts, width, footerY)
 
   const raster = await rasterizeSvg(input.svg, drawingFrame.width * 2.2)
   const image = await pdfDoc.embedPng(raster.bytes)
@@ -137,56 +134,4 @@ function drawSideNotice(
       rotate: degrees(90),
     },
   )
-}
-
-function drawSheetFooter(
-  page: PDFPage,
-  fonts: PdfFonts,
-  width: number,
-  y: number,
-) {
-  drawPdfText(page, "T", {
-    x: 8,
-    y: y + 4,
-    size: 76,
-    font: fonts.bold,
-    color: TSCIRCUIT_BLUE,
-    opacity: 0.14,
-  })
-  drawPdfText(page, "S", {
-    x: 58,
-    y: y + 4,
-    size: 76,
-    font: fonts.bold,
-    color: TSCIRCUIT_BLUE,
-    opacity: 0.14,
-  })
-  drawPdfText(page, "tscircuit Inc. (c) 2026", {
-    x: 34,
-    y,
-    size: 9,
-    font: fonts.regular,
-    color: rgb(0.45, 0.52, 0.6),
-  })
-  drawPdfText(page, "tscircuit", {
-    x: width / 2 - 42,
-    y: y - 6,
-    size: 24,
-    font: fonts.bold,
-    color: TSCIRCUIT_BLUE,
-  })
-  drawPdfText(page, "Powered by", {
-    x: width - 96,
-    y: y + 10,
-    size: 8,
-    font: fonts.regular,
-    color: rgb(0.58, 0.62, 0.68),
-  })
-  drawPdfText(page, "tscircuit", {
-    x: width - 96,
-    y: y - 5,
-    size: 15,
-    font: fonts.bold,
-    color: TSCIRCUIT_BLUE,
-  })
 }
