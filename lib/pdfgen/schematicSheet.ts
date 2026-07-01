@@ -22,10 +22,10 @@ export async function drawSchematicSheetPage(
   const sheetCount = context.schematicSheetCount ?? 1
   const headerY = height - 32
   const frame = {
-    x: 76,
-    y: 66,
-    width: width - 144,
-    height: height - 126,
+    x: 52,
+    y: 52,
+    width: width - 104,
+    height: height - 104,
   }
   const drawingFrame = {
     x: frame.x,
