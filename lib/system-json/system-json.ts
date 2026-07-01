@@ -17,6 +17,7 @@ export const SystemBlockInterface = z.object({
   name: z.string(),
   kind: z.string(),
   i2cPins: z.record(z.string()).optional(),
+  spiPins: z.record(z.string()).optional(),
 })
 export type SystemBlockInterface = z.infer<typeof SystemBlockInterface>
 
