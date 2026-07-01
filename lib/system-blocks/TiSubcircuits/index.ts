@@ -43,6 +43,24 @@ function createI2cPins(pins: {
   }
 }
 
+function createSpiPins(pins: {
+  SCLK: string
+  MOSI: string
+  CS: string
+  MISO?: string
+  VCC?: string
+  GND?: string
+}): Record<string, string> {
+  return {
+    SCLK: pins.SCLK,
+    MOSI: pins.MOSI,
+    CS: pins.CS,
+    ...(pins.MISO ? { MISO: pins.MISO } : {}),
+    ...(pins.VCC ? { VCC: pins.VCC } : {}),
+    ...(pins.GND ? { GND: pins.GND } : {}),
+  }
+}
+
 function createTiSubcircuitConfig(
   definition: TiSubcircuitDefinition,
   config: TiSystemBlockConfig,
@@ -188,6 +206,18 @@ export const TiSubcircuitDefinitions = {
     description: "TI CC3235SF SimpleLink Wi-Fi wireless MCU reference.",
     icon: "antenna",
     size: { width: 460, height: 360 },
+    interfaces: [
+      {
+        name: "SPI_FLASH",
+        kind: "spi",
+        spiPins: createSpiPins({
+          CS: "U2.FLASH_SPI_CS",
+          SCLK: "U2.FLASH_SPI_CLK",
+          MOSI: "U2.FLASH_SPI_DOUT",
+          MISO: "U2.FLASH_SPI_DIN",
+        }),
+      },
+    ],
     ports: {
       top: [
         "VBAT_CC",
