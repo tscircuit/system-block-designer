@@ -153,12 +153,12 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
       )
       const system_diagram_id = diagram?.system_diagram_id ?? "system_diagram_0"
       const id = nextId("b")
-      const blockSystemJson = createSystemJsonForLibraryBlock(
+      const blockSystemJson = createSystemJsonForLibraryBlock({
         system_diagram_id,
-        id,
+        blockId: id,
         type,
-        { x: cx, y: cy },
-      )
+        center: { x: cx, y: cy },
+      })
       if (!blockSystemJson) return
 
       mutate([...currentSystemJson, ...blockSystemJson])
