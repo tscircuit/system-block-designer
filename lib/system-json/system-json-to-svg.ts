@@ -1,4 +1,5 @@
 import { midpointOfPath } from "../design-system/midpointOfPath"
+import { ICON_PATHS } from "../design-system/iconPaths"
 import { pathPointsToSvgPath } from "../design-system/pathPointsToSvgPath"
 import { normalizeIconColor } from "./icon-colors"
 import type {
@@ -163,37 +164,11 @@ function renderBlockIcon(
   size: number,
   iconColor: string | undefined,
 ) {
-  const centerX = x + size / 2
-  const centerY = y + size / 2
   const iconName = icon ?? "chip"
   const color = normalizeIconColor(iconColor)
+  const path = ICON_PATHS[iconName] ?? ICON_PATHS.chip
 
-  if (iconName.includes("battery")) {
-    return [
-      `<rect x="${round(x + size * 0.18)}" y="${round(y + size * 0.3)}" width="${round(size * 0.58)}" height="${round(size * 0.4)}" rx="3" fill="none" stroke="${color}" stroke-width="2" />`,
-      `<rect x="${round(x + size * 0.76)}" y="${round(y + size * 0.42)}" width="${round(size * 0.08)}" height="${round(size * 0.16)}" rx="1" fill="${color}" />`,
-    ].join("\n")
-  }
-
-  if (iconName.includes("power")) {
-    return [
-      `<circle cx="${round(centerX)}" cy="${round(centerY)}" r="${round(size * 0.28)}" fill="none" stroke="${color}" stroke-width="2" />`,
-      `<path d="M ${round(centerX)} ${round(y + size * 0.18)} v ${round(size * 0.28)}" stroke="${color}" stroke-width="2.4" stroke-linecap="round" />`,
-    ].join("\n")
-  }
-
-  if (iconName.includes("antenna") || iconName.includes("uwb")) {
-    return [
-      `<path d="M ${round(centerX)} ${round(y + size * 0.7)} V ${round(y + size * 0.38)}" stroke="${color}" stroke-width="2" stroke-linecap="round" />`,
-      `<path d="M ${round(centerX - size * 0.18)} ${round(y + size * 0.35)} Q ${round(centerX)} ${round(y + size * 0.18)} ${round(centerX + size * 0.18)} ${round(y + size * 0.35)}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" />`,
-      `<path d="M ${round(centerX - size * 0.3)} ${round(y + size * 0.25)} Q ${round(centerX)} ${round(y + size * 0.02)} ${round(centerX + size * 0.3)} ${round(y + size * 0.25)}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" />`,
-    ].join("\n")
-  }
-
-  return [
-    `<rect x="${round(x + size * 0.18)}" y="${round(y + size * 0.18)}" width="${round(size * 0.64)}" height="${round(size * 0.64)}" rx="5" fill="none" stroke="${color}" stroke-width="2" />`,
-    `<path d="M ${round(x + size * 0.34)} ${round(centerY)} h ${round(size * 0.32)} M ${round(centerX)} ${round(y + size * 0.34)} v ${round(size * 0.32)}" stroke="${color}" stroke-width="1.8" stroke-linecap="round" />`,
-  ].join("\n")
+  return `<g transform="translate(${round(x)},${round(y)}) scale(${round(size / 24)})" fill="none" stroke="${escapeAttribute(color)}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${path}</g>`
 }
 
 function renderPort(
