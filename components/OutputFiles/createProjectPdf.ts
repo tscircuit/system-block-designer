@@ -1,4 +1,5 @@
 import { convertCircuitJsonToSchematicSvg } from "circuit-to-svg"
+import type { BomViewRow } from "../../lib/bom/types"
 import { type CreatePdfParams, createPdf } from "../../lib/pdfgen/createPdf"
 import type { CircuitJson } from "../../lib/system-blocks/resolveSystemJsonToCircuitJson"
 import type {
@@ -33,6 +34,7 @@ export function getProjectFileName(systemJson: SystemJson[]): string {
 export function buildProjectPdfParams(
   systemJson: SystemJson[],
   circuitJson: CircuitJson | null,
+  bomRows: BomViewRow[] = [],
 ): CreatePdfParams {
   const diagram = systemJson.find(
     (item): item is SystemDiagram => item.type === "system_diagram",
@@ -52,7 +54,7 @@ export function buildProjectPdfParams(
       subtitle: "System design package",
       description:
         diagram?.description ??
-        "Generated from the system block designer, covering the project overview, system architecture, and schematic sheets.",
+        "Generated from the system block designer, covering the project overview, system architecture, schematic sheets, and BOM.",
       preparedBy: "System Block Designer",
     },
     projectDetailsPage: {
@@ -62,11 +64,12 @@ export function buildProjectPdfParams(
         Project: projectName,
         Blocks: blocks.length,
         Connections: connections.length,
+        "BOM Rows": bomRows.length,
       },
       sections: [
         {
           title: "Scope",
-          body: "This package captures the project overview, the system architecture diagram, and schematic sheet previews resolved from the design.",
+          body: "This package captures the project overview, the system architecture diagram, schematic sheet previews resolved from the design, and the resolved bill of materials.",
         },
       ],
     },
@@ -83,6 +86,11 @@ export function buildProjectPdfParams(
       type: "system_architecture",
       subtitle: `${blocks.length} blocks, ${connections.length} connections`,
       systemJson,
+    },
+    bomPage: {
+      type: "bom",
+      projectLabel: projectName,
+      rows: bomRows,
     },
   }
 
@@ -105,8 +113,11 @@ export function buildProjectPdfParams(
 export async function createProjectPdf(
   systemJson: SystemJson[],
   circuitJson: CircuitJson | null,
+  bomRows: BomViewRow[] = [],
 ): Promise<Uint8Array<ArrayBuffer>> {
-  const bytes = await createPdf(buildProjectPdfParams(systemJson, circuitJson))
+  const bytes = await createPdf(
+    buildProjectPdfParams(systemJson, circuitJson, bomRows),
+  )
   // pdf-lib types its output as Uint8Array<ArrayBufferLike>; normalize to an
   // owned ArrayBuffer-backed view so the bytes are a valid Blob part.
   return new Uint8Array(bytes)

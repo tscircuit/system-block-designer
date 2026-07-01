@@ -145,6 +145,7 @@ export function SystemBlockDesigner({
         />
       ) : canvas.activeTab === "out" ? (
         <OutputFiles
+          projectTitle={projectTitle}
           systemJson={canvas.systemJson}
           bomRows={bomArtifacts?.rows ?? []}
           bomLoading={bomLoading}

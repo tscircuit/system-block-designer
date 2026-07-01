@@ -20,6 +20,7 @@ type OutputFile = {
 }
 
 interface OutputFilesProps {
+  projectTitle?: string
   systemJson?: SystemJson[]
   bomRows?: BomViewRow[]
   bomLoading?: boolean
@@ -39,7 +40,7 @@ const outputFiles: OutputFile[] = [
     id: "pdf",
     title: "PDF",
     description:
-      "Project document containing the project overview, system architecture, and schematics.",
+      "Project document containing the project overview, schematics, and BOM.",
     icon: "pdf",
   },
   {
@@ -208,6 +209,7 @@ function OutputFileCard({
 }
 
 export function OutputFiles({
+  projectTitle = "System Block Designer",
   systemJson,
   bomRows = [],
   bomLoading = false,
@@ -242,7 +244,11 @@ export function OutputFiles({
       try {
         const currentCircuitJson =
           circuitJson ?? (await onResolveCircuitJson?.()) ?? null
-        const pdfBytes = await createProjectPdf(systemJson, currentCircuitJson)
+        const pdfBytes = await createProjectPdf(
+          systemJson,
+          currentCircuitJson,
+          bomRows,
+        )
         downloadBlob(
           new Blob([pdfBytes], { type: "application/pdf" }),
           `${getProjectFileName(systemJson)}.pdf`,
@@ -306,7 +312,13 @@ export function OutputFiles({
 
   const getDownloadDisabled = (file: OutputFile, selectedOption?: string) => {
     if (file.id === "pdf") {
-      return !systemJson || generatingPdf || resolvingCircuitJson
+      return (
+        generatingPdf ||
+        bomLoading ||
+        Boolean(bomError) ||
+        resolvingCircuitJson ||
+        !systemJson
+      )
     }
     if (file.id === "bom") {
       return bomLoading || Boolean(bomError) || bomRows.length === 0
@@ -321,12 +333,20 @@ export function OutputFiles({
 
   const getDownloadTitle = (file: OutputFile, selectedOption?: string) => {
     if (file.id === "pdf") {
+      if (bomLoading) return "Building BOM data..."
+      if (bomError) return "BOM generation failed"
       if (!systemJson)
         return "System JSON is required before downloading the PDF"
       if (generatingPdf) return "Generating PDF..."
       if (resolvingCircuitJson) return "Resolving Circuit JSON..."
-      if (!circuitJson) return "Resolve and download the project PDF"
-      return "Download project PDF"
+      if (!circuitJson) {
+        return bomRows.length > 0
+          ? "Download PDF report with BOM; schematic pages are included when Circuit JSON is available"
+          : "Download project PDF"
+      }
+      return bomRows.length > 0
+        ? "Download PDF report with BOM and schematics"
+        : "Download PDF report with an empty BOM section"
     }
     if (file.id === "bom") {
       if (bomLoading) return "Building BOM CSV..."

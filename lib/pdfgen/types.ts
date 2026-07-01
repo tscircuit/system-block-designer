@@ -1,4 +1,5 @@
 import type { PDFFont, RGB } from "pdf-lib"
+import type { BomViewRow } from "../bom/types"
 import type {
   SystemBlock,
   SystemConnection,
@@ -11,6 +12,7 @@ export type PdfPageInput =
   | TitlePageInput
   | ProjectDetailsPageInput
   | TechnicalSpecificationsPageInput
+  | BomPageInput
   | SystemArchitecturePageInput
   | SchematicSheetPageInput
 
@@ -19,6 +21,7 @@ export interface CreatePdfParams {
   titlePage?: TitlePageInput
   projectDetailsPage?: ProjectDetailsPageInput
   technicalSpecificationsPage?: TechnicalSpecificationsPageInput
+  bomPage?: BomPageInput
   systemArchitecturePage?: SystemArchitecturePageInput
   schematicSheetSvgs?: Array<string | SchematicSheetPageInput>
 }
@@ -50,6 +53,15 @@ export interface TechnicalSpecificationsPageInput {
   specifications?: Record<string, string | number | undefined>
   rows?: Array<{ name: string; value: string | number; notes?: string }>
   sections?: PdfTextSection[]
+}
+
+export interface BomPageInput {
+  type: "bom"
+  title?: string
+  projectLabel?: string
+  rows: BomViewRow[]
+  rowStart?: number
+  totalRows?: number
 }
 
 export interface SystemArchitecturePageInput {

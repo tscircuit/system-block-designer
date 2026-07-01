@@ -1,6 +1,6 @@
 import type { PDFDocument, PDFPage } from "pdf-lib"
 import { degrees, rgb } from "pdf-lib"
-import { contain } from "./layout"
+import { contain, drawPdfText, measureTextWidth } from "./layout"
 import { rasterizeSvg } from "./svgRaster"
 import type {
   PdfFonts,
@@ -85,22 +85,22 @@ function drawSheetHeader(
     y: number
   },
 ) {
-  const titleWidth = fonts.regular.widthOfTextAtSize(options.title, 10)
-  page.drawText(`${options.pageNumber} | tscircuit`, {
+  const titleWidth = measureTextWidth(fonts.regular, options.title, 10)
+  drawPdfText(page, `${options.pageNumber} | tscircuit`, {
     x: 34,
     y: options.y,
     size: 9,
     font: fonts.regular,
     color: rgb(0.39, 0.47, 0.56),
   })
-  page.drawText(options.title, {
+  drawPdfText(page, options.title, {
     x: (options.width - titleWidth) / 2,
     y: options.y,
     size: 10,
     font: fonts.regular,
     color: rgb(0.39, 0.47, 0.56),
   })
-  page.drawText(`Sheet ${options.sheetNumber}/${options.sheetCount}`, {
+  drawPdfText(page, `Sheet ${options.sheetNumber}/${options.sheetCount}`, {
     x: options.width - 88,
     y: options.y,
     size: 9,
@@ -125,7 +125,8 @@ function drawSideNotice(
   pageWidth: number,
   frame: { y: number; height: number },
 ) {
-  page.drawText(
+  drawPdfText(
+    page,
     "TSCIRCUIT ELECTRONIC DESIGNS ARE MACHINE-GENERATED DRAFTS AND REQUIRE VERIFICATION BY QUALIFIED SPECIALISTS.",
     {
       x: pageWidth - 46,
@@ -144,7 +145,7 @@ function drawSheetFooter(
   width: number,
   y: number,
 ) {
-  page.drawText("T", {
+  drawPdfText(page, "T", {
     x: 8,
     y: y + 4,
     size: 76,
@@ -152,7 +153,7 @@ function drawSheetFooter(
     color: TSCIRCUIT_BLUE,
     opacity: 0.14,
   })
-  page.drawText("S", {
+  drawPdfText(page, "S", {
     x: 58,
     y: y + 4,
     size: 76,
@@ -160,28 +161,28 @@ function drawSheetFooter(
     color: TSCIRCUIT_BLUE,
     opacity: 0.14,
   })
-  page.drawText("tscircuit Inc. (c) 2026", {
+  drawPdfText(page, "tscircuit Inc. (c) 2026", {
     x: 34,
     y,
     size: 9,
     font: fonts.regular,
     color: rgb(0.45, 0.52, 0.6),
   })
-  page.drawText("tscircuit", {
+  drawPdfText(page, "tscircuit", {
     x: width / 2 - 42,
     y: y - 6,
     size: 24,
     font: fonts.bold,
     color: TSCIRCUIT_BLUE,
   })
-  page.drawText("Powered by", {
+  drawPdfText(page, "Powered by", {
     x: width - 96,
     y: y + 10,
     size: 8,
     font: fonts.regular,
     color: rgb(0.58, 0.62, 0.68),
   })
-  page.drawText("tscircuit", {
+  drawPdfText(page, "tscircuit", {
     x: width - 96,
     y: y - 5,
     size: 15,
