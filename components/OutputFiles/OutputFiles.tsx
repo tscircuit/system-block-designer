@@ -246,7 +246,9 @@ export function OutputFiles({
       }
 
       const schematicSvg = convertCircuitJsonToSchematicSvg(
-        currentCircuitJson as Parameters<typeof convertCircuitJsonToSchematicSvg>[0],
+        currentCircuitJson as Parameters<
+          typeof convertCircuitJsonToSchematicSvg
+        >[0],
       )
       const today = new Date().toISOString().slice(0, 10)
       const pdfBytes = await createPdf({

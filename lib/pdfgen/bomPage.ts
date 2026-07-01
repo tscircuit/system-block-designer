@@ -1,12 +1,7 @@
 import type { PDFPage } from "pdf-lib"
 import type { BomViewRow } from "../bom/types"
 import { COLORS, PAGE_SIZES } from "./constants"
-import {
-  drawPdfText,
-  drawText,
-  measureTextWidth,
-  wrapText,
-} from "./layout"
+import { drawPdfText, drawText, measureTextWidth, wrapText } from "./layout"
 import type { BomPageInput, PdfFonts, PdfRenderContext } from "./types"
 
 type BomColumn = {
@@ -229,14 +224,20 @@ function measureBomRowHeight(row: BomViewRow, fonts: PdfFonts) {
 }
 
 function getRowHeightFromLines(rowLines: string[][]) {
-  const maxLines = Math.max(...rowLines.map((lines) => Math.max(lines.length, 1)))
+  const maxLines = Math.max(
+    ...rowLines.map((lines) => Math.max(lines.length, 1)),
+  )
   return Math.max(
     BOM_MIN_ROW_HEIGHT,
     maxLines * BOM_LINE_HEIGHT + BOM_CELL_PADDING_Y * 2,
   )
 }
 
-function wrapCellValue(value: string, font: PdfFonts["regular"], maxWidth: number) {
+function wrapCellValue(
+  value: string,
+  font: PdfFonts["regular"],
+  maxWidth: number,
+) {
   const lines = wrapText(value || "—", font, BOM_BODY_FONT_SIZE, maxWidth)
   return lines.length > 0 ? lines : ["—"]
 }

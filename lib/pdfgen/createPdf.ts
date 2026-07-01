@@ -67,7 +67,6 @@ function normalizePages(
     params.titlePage,
     params.projectDetailsPage,
     params.technicalSpecificationsPage,
-    params.bomPage,
     params.systemArchitecturePage,
     ...(params.schematicSheetSvgs ?? []).map((sheet, index) =>
       typeof sheet === "string"
@@ -78,6 +77,7 @@ function normalizePages(
           } satisfies SchematicSheetPageInput)
         : sheet,
     ),
+    params.bomPage,
   ]
 
   return rawPages

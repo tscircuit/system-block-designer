@@ -346,7 +346,9 @@ export function sanitizePdfText(text: string, font: PDFFont) {
       continue
     }
 
-    const decomposed = character.normalize("NFKD").replace(combiningMarkPattern, "")
+    const decomposed = character
+      .normalize("NFKD")
+      .replace(combiningMarkPattern, "")
     if (decomposed && decomposed !== character) {
       result += sanitizePdfText(decomposed, font)
       continue

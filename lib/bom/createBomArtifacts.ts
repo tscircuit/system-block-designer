@@ -511,7 +511,7 @@ function prettifyComponentType(value: string) {
       return "Part"
     default:
       return prettifyLabel(normalized)
-    }
+  }
 }
 
 function normalizeText(value: string | null | undefined) {
