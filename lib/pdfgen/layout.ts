@@ -190,8 +190,15 @@ export function drawSpecTable(
 ) {
   const { width: pageWidth } = page.getSize()
   const width = pageWidth - PAGE_MARGIN * 2
-  const rowHeight = 34
   const headerHeight = 26
+  const notesColumnX = x + 414
+  const notesFontSize = 8.5
+  const notesTextWidth = width - 428
+  const notesLineHeight = 11
+  // Vertical metrics chosen so a single-line row keeps the original 34px height
+  // (21 + 13 = 34); extra note lines simply grow the row downward.
+  const firstBaselineOffset = 21
+  const rowBottomPadding = 13
 
   page.drawRectangle({
     x,
@@ -215,7 +222,7 @@ export function drawSpecTable(
     color: COLORS.white,
   })
   drawPdfText(page, "Notes", {
-    x: x + 414,
+    x: notesColumnX,
     y: y - 17,
     size: 9,
     font: fonts.bold,
@@ -224,7 +231,19 @@ export function drawSpecTable(
 
   let cursor = y - headerHeight
   for (const [index, row] of rows.entries()) {
+    const wrappedNotes = wrapText(
+      row.notes ?? "",
+      fonts.regular,
+      notesFontSize,
+      notesTextWidth,
+    )
+    // Grow the row so it always contains every wrapped note line.
+    const rowHeight =
+      firstBaselineOffset +
+      Math.max(0, wrappedNotes.length - 1) * notesLineHeight +
+      rowBottomPadding
     cursor -= rowHeight
+    const rowBaseline = cursor + rowHeight - firstBaselineOffset
     page.drawRectangle({
       x,
       y: cursor,
@@ -236,28 +255,28 @@ export function drawSpecTable(
     })
     drawPdfText(page, row.name, {
       x: x + 14,
-      y: cursor + 13,
+      y: rowBaseline,
       size: 9.5,
       font: fonts.bold,
       color: COLORS.ink,
     })
     drawPdfText(page, String(row.value), {
       x: x + 248,
-      y: cursor + 13,
+      y: rowBaseline,
       size: 9.5,
       font: fonts.regular,
       color: COLORS.ink,
     })
-    if (row.notes) {
-      drawText(page, row.notes, {
-        x: x + 414,
-        y: cursor + 13,
-        size: 8.5,
+    let noteLineY = rowBaseline
+    for (const line of wrappedNotes) {
+      drawPdfText(page, line, {
+        x: notesColumnX,
+        y: noteLineY,
+        size: notesFontSize,
         font: fonts.regular,
         color: COLORS.muted,
-        maxWidth: width - 428,
-        lineHeight: 11,
       })
+      noteLineY -= notesLineHeight
     }
   }
 
