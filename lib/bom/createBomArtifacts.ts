@@ -12,6 +12,16 @@ type SourceComponentElement = CircuitElement & {
   name?: string
   ftype?: string
   manufacturer_part_number?: string
+  resistance?: number
+  display_resistance?: string
+  capacitance?: number
+  display_capacitance?: string
+  inductance?: number
+  display_inductance?: string
+  max_resistance?: number
+  display_max_resistance?: string
+  voltage?: number
+  current?: number
 }
 
 type PcbComponentElement = CircuitElement & {
@@ -39,6 +49,7 @@ interface PlacementMeta {
   componentType: string
   functionalBlock: string
   partNumber: string
+  formattedValue: string | null
 }
 
 interface BomRowGroup {
@@ -78,7 +89,11 @@ export async function createBomArtifacts(params: {
       "—",
     )
     const packageName = firstNonEmpty(row.footprint, "—")
-    const value = firstNonEmpty(row.value, row.comment, "—")
+    const libraryValue = firstNonEmpty(row.value, row.comment)
+    const value =
+      libraryValue === "DNP"
+        ? "DNP"
+        : firstNonEmpty(meta.formattedValue ?? undefined, libraryValue, "—")
     const isDoNotPlace = value === "DNP"
 
     const key = createGroupKey({
@@ -238,9 +253,118 @@ function createPlacementMetas(
           blockLabelById,
         ),
         partNumber: asString(sourceComponent.manufacturer_part_number) ?? "",
+        formattedValue: formatSourceComponentValue(sourceComponent),
       } satisfies PlacementMeta,
     ]
   })
+}
+
+function formatSourceComponentValue(sourceComponent: SourceComponentElement) {
+  switch (sourceComponent.ftype) {
+    case "simple_resistor":
+      return formatValueWithUnit(
+        sourceComponent.resistance,
+        "Ohm",
+        sourceComponent.display_resistance,
+      )
+    case "simple_capacitor":
+      return formatValueWithUnit(
+        sourceComponent.capacitance,
+        "F",
+        sourceComponent.display_capacitance,
+      )
+    case "simple_inductor":
+      return formatValueWithUnit(
+        sourceComponent.inductance,
+        "H",
+        sourceComponent.display_inductance,
+      )
+    case "simple_potentiometer":
+      return formatValueWithUnit(
+        sourceComponent.max_resistance,
+        "Ohm",
+        sourceComponent.display_max_resistance,
+      )
+    case "simple_power_source":
+      return formatValueWithUnit(sourceComponent.voltage, "V")
+    case "simple_current_source":
+      return formatValueWithUnit(sourceComponent.current, "A")
+    default:
+      return null
+  }
+}
+
+function formatValueWithUnit(
+  value: number | undefined,
+  unit: string,
+  fallbackDisplayValue?: string,
+) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return formatEngineeringValue(value, unit)
+  }
+
+  const normalizedDisplayValue = normalizeDisplayValueWithUnit(
+    fallbackDisplayValue,
+    unit,
+  )
+  return normalizedDisplayValue ?? null
+}
+
+function normalizeDisplayValueWithUnit(
+  value: string | undefined,
+  unit: string,
+) {
+  const normalizedValue = normalizeText(value)
+  if (!normalizedValue) return null
+
+  const prefixedValueMatch = normalizedValue.match(
+    /^([-+]?\d*\.?\d+(?:e[-+]?\d+)?)\s*([pnumkMGT])$/u,
+  )
+  if (prefixedValueMatch) {
+    return `${prefixedValueMatch[1]} ${prefixedValueMatch[2]}${unit}`
+  }
+
+  const bareValueMatch = normalizedValue.match(
+    /^[-+]?\d*\.?\d+(?:e[-+]?\d+)?$/u,
+  )
+  if (bareValueMatch) {
+    return `${normalizedValue} ${unit}`
+  }
+
+  return normalizedValue
+}
+
+function formatEngineeringValue(value: number, unit: string) {
+  if (value === 0) return `0 ${unit}`
+
+  const prefixes: Record<number, string> = {
+    [-12]: "p",
+    [-9]: "n",
+    [-6]: "u",
+    [-3]: "m",
+    0: "",
+    3: "k",
+    6: "M",
+    9: "G",
+    12: "T",
+  }
+  const sign = value < 0 ? "-" : ""
+  const absoluteValue = Math.abs(value)
+  let exponent = Math.floor(Math.log10(absoluteValue) / 3) * 3
+
+  exponent = Math.min(12, Math.max(-12, exponent))
+
+  let scaledValue = absoluteValue / 10 ** exponent
+  let roundedValue = Number(scaledValue.toPrecision(3))
+
+  if (roundedValue >= 1000 && exponent < 12) {
+    exponent += 3
+    scaledValue = absoluteValue / 10 ** exponent
+    roundedValue = Number(scaledValue.toPrecision(3))
+  }
+
+  const prefix = prefixes[exponent] ?? ""
+  return `${sign}${trimTrailingZeros(String(roundedValue))} ${prefix}${unit}`
 }
 
 function resolveFunctionalBlockName(
