@@ -118,6 +118,7 @@ export function BomTable({ rows }: BomTableProps) {
                 <td className="bom-cell-strong">
                   {row.mpn !== "—" ? (
                     <a
+                      className="bom-mpn-link"
                       href={createJlcSearchUrl(row.mpn)}
                       target="_blank"
                       rel="noreferrer"
