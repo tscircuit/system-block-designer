@@ -16,7 +16,7 @@ const coloredIconSystemJson: SystemJson[] = [
     size: { width: 128, height: 104 },
     label: "Sensor",
     category: ["Sensor"],
-    icon: "chip",
+    icon: "sensor",
     icon_color: "#00A4A4",
   },
 ]
@@ -25,4 +25,5 @@ test("renders system json block icons with configured icon color", () => {
   const svg = systemJsonToSvgSnapshot(coloredIconSystemJson)
 
   expect(svg).toContain('stroke="#00A4A4"')
+  expect(svg).toContain('d="M9 3v3M15 3v3')
 })
