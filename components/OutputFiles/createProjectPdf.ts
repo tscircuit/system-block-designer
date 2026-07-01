@@ -18,7 +18,7 @@ const SHEET_SVG_WIDTH = 1400
 const SHEET_SVG_HEIGHT = Math.round((SHEET_SVG_WIDTH * 210) / 297)
 
 function getSchematicSheets(circuitJson: CircuitJson): SchematicSheet[] {
-  return (circuitJson as unknown as AnyCircuitElement[])
+  return (circuitJson as AnyCircuitElement[])
     .filter(
       (element): element is SchematicSheet =>
         element.type === "schematic_sheet",
