@@ -200,7 +200,13 @@ export async function drawPdfPage(
   } else if (pageInput.type === "bom") {
     drawBomPage(page, fonts, pageInput, context)
   } else if (pageInput.type === "system_architecture") {
-    await drawSystemArchitecturePage(pdfDoc, page, fonts, pageInput, context.pageNumber)
+    await drawSystemArchitecturePage(
+      pdfDoc,
+      page,
+      fonts,
+      pageInput,
+      context.pageNumber,
+    )
   } else {
     await drawSchematicSheetPage(pdfDoc, page, fonts, pageInput, context)
   }

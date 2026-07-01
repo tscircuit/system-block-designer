@@ -109,17 +109,22 @@ export abstract class SystemBlock {
         : {}),
     }
 
-    return [
-      block,
-      ...this.ports.map<SystemPort>((port) => ({
+    return [block]
+  }
+
+  getSystemPortJson(systemPortIds: string[] = []): SystemPort[] {
+    const portIdSet = new Set(systemPortIds)
+
+    return this.ports
+      .map<SystemPort>((port) => ({
         type: "system_port",
         system_diagram_id: this.systemDiagramId,
         system_block_id: this.systemBlockId,
         system_port_id: `${this.systemBlockId}_${this.createId(port.name)}`,
         label: port.name,
         side_of_block: port.sideOfBlock,
-      })),
-    ]
+      }))
+      .filter((port) => portIdSet.has(port.system_port_id))
   }
 
   setConnection(

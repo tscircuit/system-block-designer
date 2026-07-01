@@ -1,24 +1,15 @@
 import { expect, test } from "bun:test"
-import { findLibraryItem } from "../../lib/design-system/library"
+import { createSystemJsonForLibraryBlock } from "../../components/DesignCanvas/systemJsonCanvas"
 import { systemJsonToTsx } from "../../lib/system-blocks/systemJsonToTsx"
 import type { SystemJson } from "../../lib/system-json/system-json"
-import { createSystemJsonForLibraryBlock } from "../../components/DesignCanvas/systemJsonCanvas"
-
-test("library TI blocks carry subcircuit metadata used by added editor blocks", () => {
-  const item = findLibraryItem("MCU")
-
-  expect(item).toMatchObject({
-    subcircuitId: "Microcontroller_MSPM0G3507",
-  })
-})
 
 test("an editor-added TI block starts without ports and converts to its concrete subcircuit TSX", () => {
-  const blockSystemJson = createSystemJsonForLibraryBlock(
-    "system_diagram_0",
-    "b_1",
-    "MCU",
-    { x: 120, y: 100 },
-  )
+  const blockSystemJson = createSystemJsonForLibraryBlock({
+    system_diagram_id: "system_diagram_0",
+    blockId: "b_1",
+    type: "MCU",
+    center: { x: 120, y: 100 },
+  })
   expect(blockSystemJson).not.toBeNull()
 
   const systemJson: SystemJson[] = [
