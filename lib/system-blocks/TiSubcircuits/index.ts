@@ -10,6 +10,7 @@ type TiSystemBlockConfig = Partial<
     | "size"
     | "tsxInstanceName"
     | "subcircuitId"
+    | "schSheetName"
   >
 >
 
@@ -54,6 +55,7 @@ function createTiSubcircuitConfig(
     size: config.size ?? definition.size ?? { width: 200, height: 128 },
     tsxInstanceName: config.tsxInstanceName,
     subcircuitId: config.subcircuitId,
+    schSheetName: config.schSheetName,
     label: definition.label,
     category: definition.category,
     componentName: definition.componentName,

@@ -43,6 +43,8 @@ export interface SystemBlockConfig {
   partNumber?: string
   description?: string
   subcircuitId?: string
+  /** Name of the `<schematicsheet>` this block's subcircuit is rendered on. */
+  schSheetName?: string
   interfaces?: SystemBlockInterface[]
   ports?: SystemBlockPortDefinition[]
   connectionPortExpansions?: Record<string, string[]>
@@ -62,6 +64,7 @@ export abstract class SystemBlock {
   protected readonly partNumber?: string
   protected readonly description?: string
   protected readonly subcircuitId?: string
+  protected readonly schSheetName?: string
   protected readonly interfaces: SystemBlockInterface[]
   protected readonly ports: SystemBlockPortDefinition[]
   protected readonly connectionPortExpansions: Record<string, string[]>
@@ -82,6 +85,7 @@ export abstract class SystemBlock {
     this.partNumber = config.partNumber
     this.description = config.description
     this.subcircuitId = config.subcircuitId
+    this.schSheetName = config.schSheetName
     this.interfaces = config.interfaces ?? []
     this.ports = config.ports ?? []
     this.connectionPortExpansions = config.connectionPortExpansions ?? {}
@@ -172,6 +176,10 @@ export abstract class SystemBlock {
 
     if (this.hasExplicitTsxInstanceName) {
       props.push(`name=${JSON.stringify(this.tsxInstanceName)}`)
+    }
+
+    if (this.schSheetName) {
+      props.push(`schSheetName=${JSON.stringify(this.schSheetName)}`)
     }
 
     if (Object.keys(this.connections).length > 0) {

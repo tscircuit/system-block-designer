@@ -18,6 +18,7 @@ type TiBlockConstructor = new (config: {
   size?: SystemBlockJson["size"]
   tsxInstanceName?: string
   subcircuitId?: string
+  schSheetName?: string
 }) => SystemBlockTsx
 
 interface TiRuntimeBlock {
@@ -103,6 +104,13 @@ function createBoardTsx(
   runtimeBlocks: TiRuntimeBlock[],
   interfaceTraces: InterfaceTrace[],
 ) {
+  // One schematic sheet per block. Each block's subcircuit is pinned to its sheet
+  // via schSheetName (see createRuntimeBlock), so the schematic renders one framed
+  // sheet per block with cross-block connections shown as net labels.
+  const sheetChildren = runtimeBlocks.map((runtimeBlock, index) => {
+    const displayName = runtimeBlock.json.label ?? runtimeBlock.instanceName
+    return `  <schematicsheet name=${JSON.stringify(runtimeBlock.instanceName)} displayName=${JSON.stringify(displayName)} sheetIndex={${index}} />`
+  })
   const componentChildren = runtimeBlocks.map(
     (runtimeBlock) => `  ${runtimeBlock.instance.getTsxFile()}`,
   )
@@ -110,7 +118,11 @@ function createBoardTsx(
     (trace) =>
       `  <trace from=${JSON.stringify(trace.from)} to=${JSON.stringify(trace.to)} />`,
   )
-  const children = [...componentChildren, ...traceChildren].join("\n")
+  const children = [
+    ...sheetChildren,
+    ...componentChildren,
+    ...traceChildren,
+  ].join("\n")
 
   return `<board routingDisabled>
 ${children}
@@ -129,6 +141,8 @@ function createRuntimeBlock(block: SystemBlockJson): TiRuntimeBlock | null {
     size: block.size,
     tsxInstanceName: instanceName,
     subcircuitId: componentName,
+    // Each block renders on its own schematic sheet, keyed by its instance name.
+    schSheetName: instanceName,
   })
 
   return {
