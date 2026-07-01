@@ -58,7 +58,6 @@ export interface TechnicalSpecificationsPageInput {
 export interface BomPageInput {
   type: "bom"
   title?: string
-  projectLabel?: string
   rows: BomViewRow[]
   rowStart?: number
   totalRows?: number

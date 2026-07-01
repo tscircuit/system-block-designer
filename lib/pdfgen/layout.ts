@@ -1,4 +1,5 @@
 import type { PDFPage, PDFFont } from "pdf-lib"
+import { rgb } from "pdf-lib"
 import { COLORS, PAGE_MARGIN } from "./constants"
 import type { PdfFonts, PdfTextOptions, PdfTextSection } from "./types"
 
@@ -25,9 +26,13 @@ const PDF_TEXT_FALLBACKS: Record<string, string> = {
 const combiningMarkPattern = /\p{Mark}+/gu
 const fontCharacterSetCache = new WeakMap<PDFFont, Set<number>>()
 
-export function drawPageChrome(page: PDFPage, fonts: PdfFonts, label: string) {
+export function drawPageChrome(
+  page: PDFPage,
+  fonts: PdfFonts,
+  pageNumber: number,
+) {
   const { width, height } = page.getSize()
-  drawPdfText(page, label.toUpperCase(), {
+  drawPdfText(page, `${pageNumber} | tscircuit`, {
     x: PAGE_MARGIN,
     y: height - 32,
     size: 7.5,
@@ -39,6 +44,61 @@ export function drawPageChrome(page: PDFPage, fonts: PdfFonts, label: string) {
     end: { x: width - PAGE_MARGIN, y: height - 42 },
     thickness: 0.8,
     color: COLORS.line,
+  })
+}
+
+// Shared page footer drawn on every page: faded "TS" monogram + copyright on
+// the left, the centered "tscircuit" wordmark, and a "Powered by tscircuit"
+// badge on the right.
+export function drawFooter(page: PDFPage, fonts: PdfFonts) {
+  const { width } = page.getSize()
+  const y = 24
+
+  drawPdfText(page, "T", {
+    x: 8,
+    y: y + 4,
+    size: 76,
+    font: fonts.bold,
+    color: COLORS.tscircuitBlue,
+    opacity: 0.14,
+  })
+  drawPdfText(page, "S", {
+    x: 58,
+    y: y + 4,
+    size: 76,
+    font: fonts.bold,
+    color: COLORS.tscircuitBlue,
+    opacity: 0.14,
+  })
+  drawPdfText(page, "tscircuit Inc. (c) 2026", {
+    x: 34,
+    y,
+    size: 9,
+    font: fonts.regular,
+    color: rgb(0.45, 0.52, 0.6),
+  })
+
+  drawPdfText(page, "tscircuit", {
+    x: width / 2 - 42,
+    y: y - 6,
+    size: 24,
+    font: fonts.bold,
+    color: COLORS.tscircuitBlue,
+  })
+
+  drawPdfText(page, "Powered by", {
+    x: width - 96,
+    y: y + 10,
+    size: 8,
+    font: fonts.regular,
+    color: COLORS.soft,
+  })
+  drawPdfText(page, "tscircuit", {
+    x: width - 96,
+    y: y - 5,
+    size: 15,
+    font: fonts.bold,
+    color: COLORS.tscircuitBlue,
   })
 }
 

@@ -23,4 +23,5 @@ export const COLORS = {
   accentSoft: rgb(0.86, 0.93, 0.98),
   white: rgb(1, 1, 1),
   green: rgb(0.13, 0.68, 0.34),
+  tscircuitBlue: rgb(75 / 255, 138 / 255, 244 / 255),
 }

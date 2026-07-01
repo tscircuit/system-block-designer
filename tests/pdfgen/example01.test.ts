@@ -134,7 +134,6 @@ const examplePdf: CreatePdfParams = {
   },
   bomPage: {
     type: "bom",
-    projectLabel: "CELUS Design Platform",
     rows: bomRows,
   },
   systemArchitecturePage: {

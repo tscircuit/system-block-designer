@@ -89,7 +89,6 @@ export function buildProjectPdfParams(
     },
     bomPage: {
       type: "bom",
-      projectLabel: projectName,
       rows: bomRows,
     },
   }

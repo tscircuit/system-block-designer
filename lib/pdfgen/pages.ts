@@ -6,6 +6,7 @@ import {
   drawKeyValueGrid,
   drawPageChrome,
   drawPageTitle,
+  drawFooter,
   drawSections,
   drawSpecTable,
   drawText,
@@ -27,9 +28,10 @@ export function drawTitlePage(
   page: PDFPage,
   fonts: PdfFonts,
   input: TitlePageInput,
+  pageNumber: number,
 ) {
   const { width, height } = page.getSize()
-  drawPageChrome(page, fonts, "Project Report")
+  drawPageChrome(page, fonts, pageNumber)
 
   page.drawRectangle({
     x: PAGE_MARGIN,
@@ -113,8 +115,9 @@ export function drawProjectDetailsPage(
   page: PDFPage,
   fonts: PdfFonts,
   input: ProjectDetailsPageInput,
+  pageNumber: number,
 ) {
-  drawPageChrome(page, fonts, input.title ?? "Project Details")
+  drawPageChrome(page, fonts, pageNumber)
   let y = drawPageTitle(
     page,
     fonts,
@@ -133,8 +136,9 @@ export function drawTechnicalSpecificationsPage(
   page: PDFPage,
   fonts: PdfFonts,
   input: TechnicalSpecificationsPageInput,
+  pageNumber: number,
 ) {
-  drawPageChrome(page, fonts, input.title ?? "Technical Specifications")
+  drawPageChrome(page, fonts, pageNumber)
   let y = drawPageTitle(
     page,
     fonts,
@@ -156,9 +160,10 @@ export async function drawSystemArchitecturePage(
   page: PDFPage,
   fonts: PdfFonts,
   input: SystemArchitecturePageInput,
+  pageNumber: number,
 ) {
   const { width } = page.getSize()
-  drawPageChrome(page, fonts, input.title ?? "System Architecture")
+  drawPageChrome(page, fonts, pageNumber)
   const y = drawPageTitle(
     page,
     fonts,
@@ -187,16 +192,18 @@ export async function drawPdfPage(
   context: PdfRenderContext,
 ) {
   if (pageInput.type === "title") {
-    drawTitlePage(page, fonts, pageInput)
+    drawTitlePage(page, fonts, pageInput, context.pageNumber)
   } else if (pageInput.type === "project_details") {
-    drawProjectDetailsPage(page, fonts, pageInput)
+    drawProjectDetailsPage(page, fonts, pageInput, context.pageNumber)
   } else if (pageInput.type === "technical_specifications") {
-    drawTechnicalSpecificationsPage(page, fonts, pageInput)
+    drawTechnicalSpecificationsPage(page, fonts, pageInput, context.pageNumber)
   } else if (pageInput.type === "bom") {
     drawBomPage(page, fonts, pageInput, context)
   } else if (pageInput.type === "system_architecture") {
-    await drawSystemArchitecturePage(pdfDoc, page, fonts, pageInput)
+    await drawSystemArchitecturePage(pdfDoc, page, fonts, pageInput, context.pageNumber)
   } else {
     await drawSchematicSheetPage(pdfDoc, page, fonts, pageInput, context)
   }
+
+  drawFooter(page, fonts)
 }
