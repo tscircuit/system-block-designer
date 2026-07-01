@@ -79,6 +79,7 @@ export function replaceBlockSubcircuitInSystemJson(
     ...replacementBlock,
     center: block.center,
     size: block.size,
+    ...(block.icon_color ? { icon_color: block.icon_color } : {}),
   }
 
   return systemJson.map((item) =>

@@ -1012,7 +1012,11 @@ body {
   gap: 8px;
   padding: 0 8px;
   color: var(--ink-faint);
-  cursor: default;
+  cursor: pointer;
+}
+
+.icon-color-control {
+  position: relative;
 }
 
 .icon-color-preview {
@@ -1027,8 +1031,8 @@ body {
   height: 16px;
   flex: 0 0 16px;
   border: 1px solid var(--line-strong);
-  border-radius: 50%;
-  background: #ffffff;
+  border-radius: 3px;
+  background: #000000;
 }
 
 .icon-color-icon {
@@ -1038,6 +1042,50 @@ body {
   color: var(--ink);
   display: grid;
   place-items: center;
+}
+
+.icon-color-palette {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 90;
+  display: none;
+  width: 132px;
+  padding: 9px 3px 3px 9px;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  background: #fff;
+  box-shadow:
+    0 3px 6px -4px rgba(0, 0, 0, 0.12),
+    0 6px 16px rgba(0, 0, 0, 0.08),
+    0 9px 28px 8px rgba(0, 0, 0, 0.05);
+}
+
+.icon-color-palette[data-open="true"] {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.icon-color-option {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  margin: 0 6px 6px 0;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.icon-color-option:focus {
+  outline: 2px solid var(--brand);
+  outline-offset: 1px;
+}
+
+.icon-color-option[aria-pressed="true"] {
+  box-shadow:
+    0 0 0 2px #fff inset,
+    0 0 0 2px var(--brand);
 }
 
 .block-context-menu {
