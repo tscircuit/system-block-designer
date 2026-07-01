@@ -33,6 +33,12 @@ interface InterfaceTrace {
   to: string
 }
 
+type InterfacePinMap = Record<string, string>
+
+type MatchedInterface = SystemBlockInterface & {
+  pinMap: InterfacePinMap
+}
+
 export interface SystemJsonToTsxProject {
   files: Record<string, string>
 }
@@ -180,11 +186,11 @@ function createInterfaceTraces(
   return match.pinNames.map((pinName) => ({
     from: createSubcircuitPinSelector(
       sourceBlock.instanceName,
-      match.sourceInterface.i2cPins![pinName],
+      match.sourceInterface.pinMap[pinName],
     ),
     to: createSubcircuitPinSelector(
       targetBlock.instanceName,
-      match.targetInterface.i2cPins![pinName],
+      match.targetInterface.pinMap[pinName],
     ),
   }))
 }
@@ -194,12 +200,8 @@ function findMatchingInterface(
   targetBlock: SystemBlockJson,
   connectionLabel: string | undefined,
 ): {
-  sourceInterface: SystemBlockInterface & {
-    i2cPins: Record<string, string>
-  }
-  targetInterface: SystemBlockInterface & {
-    i2cPins: Record<string, string>
-  }
+  sourceInterface: MatchedInterface
+  targetInterface: MatchedInterface
   pinNames: string[]
 } | null {
   const normalizedLabel = connectionLabel?.trim().toLowerCase()
@@ -209,7 +211,9 @@ function findMatchingInterface(
   const targetInterfaces = targetBlock.interfaces ?? []
 
   for (const sourceInterface of sourceInterfaces) {
-    if (!sourceInterface.i2cPins) continue
+    const sourcePinMap = getInterfacePinMap(sourceInterface)
+    if (!sourcePinMap) continue
+
     if (
       sourceInterface.kind.toLowerCase() !== normalizedLabel &&
       sourceInterface.name.toLowerCase() !== normalizedLabel
@@ -217,21 +221,22 @@ function findMatchingInterface(
       continue
     }
 
-    const targetInterface = targetInterfaces.find(
-      (candidate) =>
-        candidate.i2cPins &&
+    const targetInterface = targetInterfaces.find((candidate) => {
+      if (!getInterfacePinMap(candidate)) return false
+      return (
         candidate.kind.toLowerCase() === sourceInterface.kind.toLowerCase() &&
         (candidate.name.toLowerCase() === sourceInterface.name.toLowerCase() ||
-          candidate.kind.toLowerCase() === normalizedLabel),
-    )
-    if (!targetInterface?.i2cPins) continue
+          candidate.kind.toLowerCase() === normalizedLabel)
+      )
+    })
+    if (!targetInterface) continue
 
-    const sourcePinNames = Object.keys(sourceInterface.i2cPins)
-    const pinNames = sourcePinNames.filter(
-      (pinName) => pinName in targetInterface.i2cPins!,
-    )
-    const requiredPinNames =
-      sourceInterface.kind.toLowerCase() === "i2c" ? ["SDA", "SCL"] : []
+    const targetPinMap = getInterfacePinMap(targetInterface)
+    if (!targetPinMap) continue
+
+    const sourcePinNames = Object.keys(sourcePinMap)
+    const pinNames = sourcePinNames.filter((pinName) => pinName in targetPinMap)
+    const requiredPinNames = getRequiredPinNames(sourceInterface.kind)
     const hasRequiredPins =
       requiredPinNames.length > 0
         ? requiredPinNames.every((pinName) => pinNames.includes(pinName))
@@ -241,11 +246,11 @@ function findMatchingInterface(
       return {
         sourceInterface: {
           ...sourceInterface,
-          i2cPins: sourceInterface.i2cPins,
+          pinMap: sourcePinMap,
         },
         targetInterface: {
           ...targetInterface,
-          i2cPins: targetInterface.i2cPins,
+          pinMap: targetPinMap,
         },
         pinNames,
       }
@@ -253,6 +258,20 @@ function findMatchingInterface(
   }
 
   return null
+}
+
+function getInterfacePinMap(
+  interfaceDefinition: SystemBlockInterface,
+): InterfacePinMap | undefined {
+  const kind = interfaceDefinition.kind.toLowerCase()
+  if (kind === "i2c") return interfaceDefinition.i2cPins
+  if (kind === "spi") return interfaceDefinition.spiPins
+  return interfaceDefinition.i2cPins ?? interfaceDefinition.spiPins
+}
+
+function getRequiredPinNames(interfaceKind: string) {
+  if (interfaceKind.toLowerCase() === "i2c") return ["SDA", "SCL"]
+  return []
 }
 
 function createSubcircuitPinSelector(
