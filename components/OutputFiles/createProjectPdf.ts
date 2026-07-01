@@ -51,7 +51,7 @@ export function buildProjectPdfParams(
     titlePage: {
       type: "title",
       projectName,
-      subtitle: "System design package",
+      subtitle: "Project document",
       description:
         diagram?.description ??
         "Generated from the system block designer, covering the project overview, system architecture, schematic sheets, and BOM.",

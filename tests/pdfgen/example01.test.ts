@@ -73,7 +73,7 @@ const examplePdf: CreatePdfParams = {
   titlePage: {
     type: "title",
     projectName: "Smart Lock (UWB Smart Lock)",
-    subtitle: "System design package",
+    subtitle: "Project document",
     description:
       "Reference package generated from the system block designer PDF generator.",
     preparedFor: "Product Engineering",
