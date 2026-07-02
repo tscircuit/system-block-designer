@@ -41,7 +41,9 @@ test("buildProjectPdfParams maps system json onto pdf pages", () => {
   expect(params.projectDetailsPage?.entries?.[5]?.value).toBe(
     expectedExportedOn,
   )
-  expect(params.projectDetailsPage?.disclaimer).toContain("AI-generated")
+  expect(params.projectDetailsPage?.disclaimer).toBe(
+    "Project Title, Project Description, and Block Diagram may be AI-Generated. Schematics, BOM, and Components are not AI-Generated.",
+  )
   expect(params.systemArchitecturePage?.systemJson).toBe(systemJson)
   expect(params.technicalSpecificationsPage?.rows?.length).toBeGreaterThan(0)
   expect(params.bomPage?.rows).toEqual(bomRows)

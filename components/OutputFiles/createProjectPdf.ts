@@ -17,7 +17,7 @@ const DEFAULT_GENERATED_BY = "Unknown Author"
 const DEFAULT_CAD_TOOL = "System Block Designer"
 const DEFAULT_HEADER_LABEL = "System Block Designer"
 const DEFAULT_DISCLAIMER =
-  "Project title, description, and block diagram content may be AI-generated. Schematics, BOM, and resolved components are derived from the current design export."
+  "Project Title, Project Description, and Block Diagram may be AI-Generated. Schematics, BOM, and Components are not AI-Generated."
 const FUNCTIONALITY_CATEGORY_ORDER = LIBRARY.map((category) => category.name)
 const FUNCTIONALITY_CATEGORY_LOOKUP = new Map(
   FUNCTIONALITY_CATEGORY_ORDER.map((category) => [
