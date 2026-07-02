@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test"
-import { createSystemBlockDesginer01SystemJson } from "../../../app/SystemBlockDesginer01/createSystemBlockDesginer01SystemJson"
+import { createSystemBlockDesigner01SystemJson } from "../../../app/SystemBlockDesigner01/createSystemBlockDesigner01SystemJson"
 
-test("system block desginer 01 only emits ports used by connections", () => {
-  const systemJson = createSystemBlockDesginer01SystemJson()
+test("system block designer 01 only emits ports used by connections", () => {
+  const systemJson = createSystemBlockDesigner01SystemJson()
   const ports = systemJson.filter((item) => item.type === "system_port")
   const connections = systemJson.filter(
     (item) => item.type === "system_connection",

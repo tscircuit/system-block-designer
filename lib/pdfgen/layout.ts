@@ -365,22 +365,97 @@ export function wrapText(
   maxWidth: number,
 ) {
   const safeText = sanitizePdfText(text, font)
+  const wordWrapper = createWordWrapper({ font, size, maxWidth })
   const lines: string[] = []
   for (const paragraph of safeText.split(/\n+/)) {
     const words = paragraph.trim().split(/\s+/).filter(Boolean)
     let line = ""
     for (const word of words) {
+      const wrappedWord = wordWrapper.wrapLongWord(word)
+      if (wrappedWord.length > 1) {
+        if (line) {
+          lines.push(line)
+          line = ""
+        }
+        lines.push(...wrappedWord.slice(0, -1))
+        line = wrappedWord[wrappedWord.length - 1]
+        continue
+      }
+
       const candidate = line ? `${line} ${word}` : word
       if (measureTextWidth(font, candidate, size) <= maxWidth || !line) {
         line = candidate
       } else {
         lines.push(line)
-        line = word
+        const nextWordLines = wordWrapper.wrapLongWord(word)
+        if (nextWordLines.length > 1) {
+          lines.push(...nextWordLines.slice(0, -1))
+          line = nextWordLines[nextWordLines.length - 1]
+        } else {
+          line = word
+        }
       }
     }
     if (line) lines.push(line)
   }
   return lines
+}
+
+type WordWrapMetrics = Pick<PdfTextOptions, "font" | "size" | "maxWidth">
+
+function createWordWrapper(metrics: WordWrapMetrics) {
+  const fitsWithinWidth = (text: string) =>
+    measureTextWidth(metrics.font, text, metrics.size) <= metrics.maxWidth
+
+  const breakOversizedWordSegment = (segment: string) => {
+    if (fitsWithinWidth(segment)) return [segment]
+
+    const parts: string[] = []
+    let current = ""
+    for (const character of segment) {
+      const candidate = `${current}${character}`
+      if (!current || fitsWithinWidth(candidate)) {
+        current = candidate
+        continue
+      }
+      parts.push(current)
+      current = character
+    }
+
+    if (current) parts.push(current)
+    return parts
+  }
+
+  return {
+    wrapLongWord(word: string) {
+      if (!word || fitsWithinWidth(word)) return [word]
+
+      const coarseSegments = splitWordAtPreferredBreaks(word)
+      const lines: string[] = []
+      let line = ""
+
+      for (const segment of coarseSegments) {
+        const parts = breakOversizedWordSegment(segment)
+        for (const part of parts) {
+          const candidate = `${line}${part}`
+          if (!line || fitsWithinWidth(candidate)) {
+            line = candidate
+          } else {
+            lines.push(line)
+            line = part
+          }
+        }
+      }
+
+      if (line) lines.push(line)
+      return lines
+    },
+  }
+}
+
+function splitWordAtPreferredBreaks(word: string) {
+  const segments = word.match(/[^_.\-/]+(?:[_.\-/]+)?/g)
+  return segments && segments.length > 0 ? segments : [word]
 }
 
 export function drawPdfText(

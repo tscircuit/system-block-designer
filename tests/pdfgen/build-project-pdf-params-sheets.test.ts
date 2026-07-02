@@ -1,12 +1,12 @@
 import { expect, test } from "bun:test"
-import { createSystemBlockDesginer01SystemJson } from "../../app/SystemBlockDesginer01/createSystemBlockDesginer01SystemJson"
+import { createSystemBlockDesigner01SystemJson } from "../../app/SystemBlockDesigner01/createSystemBlockDesigner01SystemJson"
 import { buildProjectPdfParams } from "../../components/OutputFiles/createProjectPdf"
 import { systemJsonToTsx } from "../../lib/system-blocks/systemJsonToTsx"
 import type { SystemBlock } from "../../lib/system-json/system-json"
 import { renderTsxToCircuitJson } from "../fixtures/render-tsx-to-circuit-json"
 
 test("buildProjectPdfParams renders one schematic page per sheet", async () => {
-  const systemJson = createSystemBlockDesginer01SystemJson()
+  const systemJson = createSystemBlockDesigner01SystemJson()
   const blockCount = systemJson.filter(
     (item): item is SystemBlock => item.type === "system_block",
   ).length

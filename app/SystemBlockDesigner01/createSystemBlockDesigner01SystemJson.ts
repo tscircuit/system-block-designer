@@ -9,7 +9,7 @@ import type {
 } from "../../lib/system-json/system-json"
 import { updateConnectionPaths } from "../../components/DesignCanvas/systemJsonCanvas"
 
-export function createSystemBlockDesginer01SystemJson(): SystemJson[] {
+export function createSystemBlockDesigner01SystemJson(): SystemJson[] {
   const systemDiagramId = "system_diagram_0"
   const controller = new Microcontroller_MSPM0G3507({
     systemDiagramId,
@@ -37,7 +37,7 @@ export function createSystemBlockDesginer01SystemJson(): SystemJson[] {
     {
       type: "system_diagram",
       system_diagram_id: systemDiagramId,
-      name: "System Block Desginer 01",
+      name: "System Block Designer 01",
     },
     ...controller.getSystemBlockJson(),
     ...controller.getSystemPortJson(["controller_pa0", "controller_pa1"]),
