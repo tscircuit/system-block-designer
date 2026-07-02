@@ -1,4 +1,5 @@
 import type { BomViewRow } from "../../lib/bom/types"
+import { formatPackageDisplayName } from "../../lib/bom/formatPackageDisplayName"
 import { FilterIcon, InfoIcon, SortIcon } from "./BomIcons"
 
 interface BomColumn {
@@ -130,7 +131,9 @@ export function BomTable({ rows }: BomTableProps) {
                   )}
                 </td>
                 <td className="bom-package-cell is-right">
-                  <div className="bom-package-value">{row.packageName}</div>
+                  <div className="bom-package-value">
+                    {formatPackageDisplayName(row.packageName)}
+                  </div>
                 </td>
                 <td className="is-right">{row.value}</td>
                 <td className="is-right">{row.quantity}</td>

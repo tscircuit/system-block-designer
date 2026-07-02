@@ -14,6 +14,7 @@ import type {
 import { formatSiUnit, parseAndConvertSiUnit } from "format-si-unit"
 import type { CircuitJson } from "../system-blocks/resolveSystemJsonToCircuitJson"
 import type { SystemBlock, SystemJson } from "../system-json/system-json"
+import { formatPackageDisplayName } from "./formatPackageDisplayName"
 import type { BomArtifacts, BomViewRow, SupplierPartDetails } from "./types"
 
 type CircuitElement = AnyCircuitElement
@@ -377,10 +378,11 @@ function createFallbackPartNumber(
   value: string,
   packageName: string,
 ) {
+  const displayPackageName = formatPackageDisplayName(packageName)
   const parts = [
     prettifyLabel(componentType).replace(/^simple\s+/i, ""),
     value !== "—" ? value : "",
-    packageName !== "—" ? packageName : "",
+    displayPackageName !== "—" ? displayPackageName : "",
   ].filter(Boolean)
   return parts.join(" ").trim()
 }
@@ -549,10 +551,11 @@ function resolvePartName(params: {
   const normalizedDescription = normalizeText(params.description)
   if (normalizedDescription) return normalizedDescription
 
+  const displayPackageName = formatPackageDisplayName(params.packageName)
   const partName = [
     params.mpn !== "—" ? params.mpn : "",
     params.value !== "—" && params.value !== "DNP" ? params.value : "",
-    params.packageName !== "—" ? params.packageName : "",
+    displayPackageName !== "—" ? displayPackageName : "",
   ]
     .filter(Boolean)
     .join(" ")
@@ -572,10 +575,11 @@ function resolveBomDescription(params: {
   const normalizedDescription = normalizeText(params.description)
   if (normalizedDescription) return normalizedDescription
 
+  const displayPackageName = formatPackageDisplayName(params.packageName)
   return [
     prettifyComponentType(params.componentType),
     params.value !== "—" && params.value !== "DNP" ? params.value : "",
-    params.packageName !== "—" ? params.packageName : "",
+    displayPackageName !== "—" ? displayPackageName : "",
   ]
     .filter(Boolean)
     .join(", ")
