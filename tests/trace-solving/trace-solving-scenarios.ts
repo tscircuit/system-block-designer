@@ -95,6 +95,46 @@ export const overlappingTopLaneSystem: SystemJson[] = [
   connection("i2c_sensor", "mcu_i2c", "sensor_i2c", "I2C"),
 ]
 
+export const nearCollinearLaneSystem: SystemJson[] = [
+  diagram("Trace Near Collinear Lane"),
+  block("controller", "Controller", 160, 220, 180, 90, "chip"),
+  block("peripheral", "Peripheral", 560, 220, 180, 90, "chip"),
+  port("controller_spare_top", "controller", "right", "NC"),
+  port("controller_i2c_a", "controller", "right", "I2C"),
+  port("controller_i2c_b", "controller", "right", "I2C"),
+  port("controller_spare_bottom", "controller", "right", "NC"),
+  port("peripheral_spare_top", "peripheral", "left", "NC"),
+  port("peripheral_i2c_a", "peripheral", "left", "I2C"),
+  port("peripheral_i2c_b", "peripheral", "left", "I2C"),
+  port("peripheral_spare_bottom", "peripheral", "left", "NC"),
+  connection("near_i2c_a", "controller_i2c_a", "peripheral_i2c_a", "I2C"),
+  connection("near_i2c_b", "controller_i2c_b", "peripheral_i2c_b", "I2C"),
+]
+
+export const behindBlockSystem: SystemJson[] = [
+  diagram("Trace Behind Block"),
+  block("microcontroller", "Microcontroller", 430, 230, 260, 150, "chip"),
+  block("power_monitor", "Power Monitor", 430, 515, 260, 142, "power"),
+  block(
+    "environmental_sensor",
+    "Environmental Sensor",
+    300,
+    845,
+    215,
+    108,
+    "chip",
+  ),
+  port("mcu_i2c_top", "microcontroller", "top", "I2C"),
+  port("mcu_i2c_right", "microcontroller", "right", "I2C"),
+  port("mcu_supply", "microcontroller", "bottom", "SUPPLY"),
+  port("monitor_i2c", "power_monitor", "left", "I2C"),
+  port("monitor_supply", "power_monitor", "top", "SUPPLY"),
+  port("sensor_i2c", "environmental_sensor", "left", "I2C"),
+  connection("i2c_monitor", "mcu_i2c_top", "monitor_i2c", "I2C"),
+  connection("i2c_sensor", "mcu_i2c_right", "sensor_i2c", "I2C"),
+  connection("supply_monitor", "mcu_supply", "monitor_supply", "SUPPLY"),
+]
+
 function diagram(name: string): SystemJson {
   return {
     type: "system_diagram",

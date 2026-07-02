@@ -42,9 +42,9 @@
 <text class="wlabel-t" x="362" y="356.5" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">GPIO</text>
 </g>
 <g data-system-connection-id="w_16">
-<path class="wire" d="M 188 382 L 532.3333333333334 382 Q 536 382 536 385.66666666666663 L 536 385.66666666666663 Q 536 389.3333333333333 539.6666666666666 389.3333333333333 L 560 389.3333333333333" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
-<rect class="wlabel-bg" x="341.8" y="373" width="40.4" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
-<text class="wlabel-t" x="362" y="382.5" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">GPIO</text>
+<path class="wire" d="M 188 382 L 208.33333333333334 382 Q 212 382 212 385.66666666666663 L 212 385.66666666666663 Q 212 389.3333333333333 215.66666666666666 389.3333333333333 L 560 389.3333333333333" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
+<rect class="wlabel-bg" x="365.8" y="380.333" width="40.4" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
+<text class="wlabel-t" x="386" y="389.833" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">GPIO</text>
 </g>
 <g data-system-connection-id="w_17">
 <path class="wire" d="M 688 354.6666666666667 L 907 354.6666666666667 Q 916 354.6666666666667 916 345.6666666666667 L 916 264 Q 916 255 925 255 L 940 255" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
