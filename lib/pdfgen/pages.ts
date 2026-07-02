@@ -1,4 +1,4 @@
-import { rgb, type PDFDocument, type PDFPage } from "pdf-lib"
+import { type PDFDocument, type PDFPage } from "pdf-lib"
 import { drawBomPage } from "./bomPage"
 import { COLORS, PAGE_MARGIN } from "./constants"
 import {
@@ -192,38 +192,24 @@ function drawStyledProjectDetailsPage(
   pageNumber: number,
 ) {
   const { width, height } = page.getSize()
-  const headerLabel = input.headerLabel ?? "System Block Designer"
   const title = (input.title ?? "Project Details").toUpperCase()
   const entries = getProjectDetailsEntries(input)
   const contentX = 96
   const contentWidth = width - contentX - 64
+  const titleY = height - 110
+  const firstEntryY = height - 152
 
-  drawProjectDetailsTopStrip(page, width, height)
-
-  drawPdfText(page, `${pageNumber} |`, {
-    x: 30,
-    y: height - 78,
-    size: 9,
-    font: fonts.regular,
-    color: COLORS.accent,
-  })
-  drawPdfText(page, headerLabel, {
-    x: 48,
-    y: height - 78,
-    size: 9,
-    font: fonts.regular,
-    color: COLORS.muted,
-  })
+  drawPageChrome(page, fonts, pageNumber)
 
   drawPdfText(page, title, {
     x: contentX,
-    y: height - 164,
+    y: titleY,
     size: 20,
     font: fonts.bold,
     color: COLORS.accent,
   })
 
-  let y = height - 206
+  let y = firstEntryY
   for (const entry of entries) {
     drawPdfText(page, `${entry.label}:`, {
       x: contentX,
@@ -301,51 +287,6 @@ function getLegacyDisclaimer(input: ProjectDetailsPageInput) {
     /disclaimer/i.test(section.title),
   )
   return disclaimerSection?.body
-}
-
-function drawProjectDetailsTopStrip(
-  page: PDFPage,
-  width: number,
-  height: number,
-) {
-  const bandHeight = 18
-  const y = height - bandHeight
-
-  page.drawRectangle({
-    x: 0,
-    y,
-    width,
-    height: bandHeight,
-    color: COLORS.white,
-  })
-  page.drawRectangle({
-    x: 0,
-    y,
-    width: 84,
-    height: bandHeight,
-    color: rgb(0.96, 0.91, 0.81),
-  })
-  page.drawSvgPath(`M 132 ${height} L 162 ${height} L 147 ${y} Z`, {
-    color: rgb(0.95, 0.87, 0.72),
-  })
-  page.drawSvgPath(`M 166 ${height} L 238 ${height} L 214 ${y} L 142 ${y} Z`, {
-    color: rgb(0.77, 0.88, 0.93),
-  })
-  page.drawSvgPath(`M 246 ${height} L 320 ${height} L 296 ${y} L 224 ${y} Z`, {
-    color: rgb(0.93, 0.94, 0.95),
-  })
-  page.drawSvgPath(`M 328 ${height} L 402 ${height} L 378 ${y} L 306 ${y} Z`, {
-    color: rgb(0.74, 0.87, 0.93),
-  })
-  page.drawSvgPath(`M 392 ${height} L 430 ${height} L 412 ${y} Z`, {
-    color: rgb(0.77, 0.88, 0.67),
-  })
-  page.drawLine({
-    start: { x: 0, y },
-    end: { x: width, y },
-    thickness: 0.9,
-    color: rgb(0.7, 0.73, 0.76),
-  })
 }
 
 function drawCoverWatermark(page: PDFPage, fonts: PdfFonts) {
