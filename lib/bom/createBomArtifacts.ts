@@ -1,31 +1,26 @@
 import { convertCircuitJsonToBomRows } from "circuit-json-to-bom-csv"
+import type {
+  AnyCircuitElement,
+  PcbComponent,
+  SourceGroup,
+  SourceSimpleCapacitor,
+  SourceSimpleCurrentSource,
+  SourceSimpleInductor,
+  SourceSimplePotentiometer,
+  SourceSimplePowerSource,
+  SourceSimpleResistor,
+  SourceSimpleVoltageSource,
+} from "circuit-json"
+import { formatSiUnit, parseAndConvertSiUnit } from "format-si-unit"
 import type { CircuitJson } from "../system-blocks/resolveSystemJsonToCircuitJson"
 import type { SystemBlock, SystemJson } from "../system-json/system-json"
 import type { BomArtifacts, BomViewRow, SupplierPartDetails } from "./types"
 
-type CircuitElement = Record<string, unknown>
-
-type SourceComponentElement = CircuitElement & {
-  type: "source_component"
-  source_component_id: string
-  source_group_id?: string
-  name?: string
-  ftype?: string
-  manufacturer_part_number?: string
-}
-
-type PcbComponentElement = CircuitElement & {
-  type: "pcb_component"
-  pcb_component_id: string
-  source_component_id?: string
-  do_not_place?: boolean
-}
-
-type SourceGroupElement = CircuitElement & {
-  type: "source_group"
-  source_group_id: string
-  name?: string
-}
+type CircuitElement = AnyCircuitElement
+type SourceComponentElement = Extract<
+  AnyCircuitElement,
+  { type: "source_component" }
+>
 
 type LibraryBomRow = {
   designator: string
@@ -39,6 +34,7 @@ interface PlacementMeta {
   componentType: string
   functionalBlock: string
   partNumber: string
+  formattedValue: string | null
 }
 
 interface BomRowGroup {
@@ -78,7 +74,11 @@ export async function createBomArtifacts(params: {
       "—",
     )
     const packageName = firstNonEmpty(row.footprint, "—")
-    const value = firstNonEmpty(row.value, row.comment, "—")
+    const libraryValue = firstNonEmpty(row.value, row.comment)
+    const value =
+      libraryValue === "DNP"
+        ? "DNP"
+        : firstNonEmpty(meta.formattedValue ?? undefined, libraryValue, "—")
     const isDoNotPlace = value === "DNP"
 
     const key = createGroupKey({
@@ -199,6 +199,7 @@ function createPlacementMetas(
   systemJson: SystemJson[],
   circuitJson: CircuitJson,
 ) {
+  const circuitElements = circuitJson
   const blockLabelById = new Map(
     systemJson
       .filter((item): item is SystemBlock => item.type === "system_block")
@@ -208,39 +209,124 @@ function createPlacementMetas(
       ]),
   )
   const sourceComponents = new Map(
-    circuitJson
+    circuitElements
       .filter(isSourceComponentElement)
       .map((element) => [element.source_component_id, element]),
   )
   const sourceGroups = new Map(
-    circuitJson
+    circuitElements
       .filter(isSourceGroupElement)
       .map((element) => [element.source_group_id, element]),
   )
 
-  return circuitJson.filter(isPcbComponentElement).flatMap((pcbComponent) => {
-    const sourceComponentId = asString(pcbComponent.source_component_id)
-    if (!sourceComponentId) return []
+  return circuitElements
+    .filter(isPcbComponentElement)
+    .flatMap((pcbComponent) => {
+      const sourceComponentId = pcbComponent.source_component_id
 
-    const sourceComponent = sourceComponents.get(sourceComponentId)
-    if (!sourceComponent) return []
+      const sourceComponent = sourceComponents.get(sourceComponentId)
+      if (!sourceComponent) return []
 
-    const sourceGroupId = asString(sourceComponent.source_group_id)
-    const sourceGroupName = sourceGroupId
-      ? sourceGroups.get(sourceGroupId)?.name
-      : undefined
+      const sourceGroupId = sourceComponent.source_group_id
+      const sourceGroupName = sourceGroupId
+        ? sourceGroups.get(sourceGroupId)?.name
+        : undefined
 
-    return [
-      {
-        componentType: asString(sourceComponent.ftype) ?? "part",
-        functionalBlock: resolveFunctionalBlockName(
-          sourceGroupName,
-          blockLabelById,
-        ),
-        partNumber: asString(sourceComponent.manufacturer_part_number) ?? "",
-      } satisfies PlacementMeta,
-    ]
-  })
+      return [
+        {
+          componentType: sourceComponent.ftype ?? "part",
+          functionalBlock: resolveFunctionalBlockName(
+            sourceGroupName,
+            blockLabelById,
+          ),
+          partNumber: sourceComponent.manufacturer_part_number ?? "",
+          formattedValue: formatSourceComponentValue(sourceComponent),
+        } satisfies PlacementMeta,
+      ]
+    })
+}
+
+function formatSourceComponentValue(sourceComponent: SourceComponentElement) {
+  if (isSourceSimpleResistor(sourceComponent)) {
+    return formatValueWithUnit(
+      sourceComponent.resistance,
+      "Ω",
+      "Ohm",
+      sourceComponent.display_resistance,
+    )
+  }
+
+  if (isSourceSimpleCapacitor(sourceComponent)) {
+    return formatValueWithUnit(
+      sourceComponent.capacitance,
+      "F",
+      "F",
+      sourceComponent.display_capacitance,
+    )
+  }
+
+  if (isSourceSimpleInductor(sourceComponent)) {
+    return formatValueWithUnit(
+      sourceComponent.inductance,
+      "H",
+      "H",
+      sourceComponent.display_inductance,
+    )
+  }
+
+  if (isSourceSimplePotentiometer(sourceComponent)) {
+    return formatValueWithUnit(
+      sourceComponent.max_resistance,
+      "Ω",
+      "Ohm",
+      sourceComponent.display_max_resistance,
+    )
+  }
+
+  if (
+    isSourceSimplePowerSource(sourceComponent) ||
+    isSourceSimpleVoltageSource(sourceComponent)
+  ) {
+    return formatValueWithUnit(sourceComponent.voltage, "V", "V")
+  }
+
+  if (isSourceSimpleCurrentSource(sourceComponent)) {
+    return formatValueWithUnit(sourceComponent.current, "A", "A")
+  }
+
+  return null
+}
+
+function formatValueWithUnit(
+  value: number | undefined,
+  unit: "Ω" | "F" | "H" | "V" | "A",
+  displayUnit: string,
+  fallbackDisplayValue?: string,
+) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return appendSiUnit(formatSiUnit(value), displayUnit)
+  }
+
+  const { value: parsedValue } = parseAndConvertSiUnit(
+    fallbackDisplayValue,
+    unit,
+  )
+  if (typeof parsedValue === "number" && Number.isFinite(parsedValue)) {
+    return appendSiUnit(formatSiUnit(parsedValue), displayUnit)
+  }
+
+  return normalizeText(fallbackDisplayValue)
+}
+
+function appendSiUnit(formattedValue: string, unit: string) {
+  const normalizedValue = formattedValue.replace(/µ/g, "u")
+  const match = normalizedValue.match(
+    /^([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)(.*)$/i,
+  )
+  if (!match) return `${normalizedValue} ${unit}`
+
+  const [, numericValue, prefix] = match
+  return prefix ? `${numericValue} ${prefix}${unit}` : `${numericValue} ${unit}`
 }
 
 function resolveFunctionalBlockName(
@@ -543,14 +629,54 @@ function isSourceComponentElement(
 
 function isPcbComponentElement(
   element: CircuitElement,
-): element is PcbComponentElement {
+): element is PcbComponent {
   return element.type === "pcb_component"
 }
 
-function isSourceGroupElement(
-  element: CircuitElement,
-): element is SourceGroupElement {
+function isSourceGroupElement(element: CircuitElement): element is SourceGroup {
   return element.type === "source_group"
+}
+
+function isSourceSimpleResistor(
+  sourceComponent: SourceComponentElement,
+): sourceComponent is SourceSimpleResistor {
+  return sourceComponent.ftype === "simple_resistor"
+}
+
+function isSourceSimpleCapacitor(
+  sourceComponent: SourceComponentElement,
+): sourceComponent is SourceSimpleCapacitor {
+  return sourceComponent.ftype === "simple_capacitor"
+}
+
+function isSourceSimpleInductor(
+  sourceComponent: SourceComponentElement,
+): sourceComponent is SourceSimpleInductor {
+  return sourceComponent.ftype === "simple_inductor"
+}
+
+function isSourceSimplePotentiometer(
+  sourceComponent: SourceComponentElement,
+): sourceComponent is SourceSimplePotentiometer {
+  return sourceComponent.ftype === "simple_potentiometer"
+}
+
+function isSourceSimplePowerSource(
+  sourceComponent: SourceComponentElement,
+): sourceComponent is SourceSimplePowerSource {
+  return sourceComponent.ftype === "simple_power_source"
+}
+
+function isSourceSimpleVoltageSource(
+  sourceComponent: SourceComponentElement,
+): sourceComponent is SourceSimpleVoltageSource {
+  return sourceComponent.ftype === "simple_voltage_source"
+}
+
+function isSourceSimpleCurrentSource(
+  sourceComponent: SourceComponentElement,
+): sourceComponent is SourceSimpleCurrentSource {
+  return sourceComponent.ftype === "simple_current_source"
 }
 
 function naturalCompare(left: string, right: string) {

@@ -161,7 +161,7 @@ test("createBomArtifacts consolidates BOM rows from resolved circuit json", asyn
       manufacturer: "Texas Instruments",
       mpn: "RC0402FR-074K7L",
       packageName: "res0402",
-      value: "4.7k",
+      value: "4.7 kOhm",
       quantity: "2",
       functionalBlock: "Environmental Sensor",
       partName: "4.7 kOhm resistor",
@@ -169,6 +169,15 @@ test("createBomArtifacts consolidates BOM rows from resolved circuit json", asyn
       lifecycle: "Active",
       unitPrice: "0.000486 USD",
       stock: "9,379,077",
+    }),
+  )
+  expect(artifacts.rows).toContainEqual(
+    expect.objectContaining({
+      referenceDesignators: "C1",
+      packageName: "0402",
+      value: "100 nF",
+      quantity: "1",
+      functionalBlock: "Microcontroller",
     }),
   )
   expect(artifacts.rows).toContainEqual(
