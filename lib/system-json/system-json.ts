@@ -13,10 +13,32 @@ export const Size = z.object({
 })
 export type Size = z.infer<typeof Size>
 
+export const SystemBlockInterfaceKind = z.enum(["i2c", "spi"])
+export type SystemBlockInterfaceKind = z.infer<typeof SystemBlockInterfaceKind>
+
+export const SystemBlockInterfacePinName = z.string()
+export type SystemBlockInterfacePinName = z.infer<
+  typeof SystemBlockInterfacePinName
+>
+
+export const SubcircuitLocalPinSelector = z.string()
+export type SubcircuitLocalPinSelector = z.infer<
+  typeof SubcircuitLocalPinSelector
+>
+
+export const SystemBlockInterfacePinMap = z.record(
+  SystemBlockInterfacePinName,
+  SubcircuitLocalPinSelector,
+)
+export type SystemBlockInterfacePinMap = z.infer<
+  typeof SystemBlockInterfacePinMap
+>
+
 export const SystemBlockInterface = z.object({
   name: z.string(),
-  kind: z.string(),
-  i2cPins: z.record(z.string()).optional(),
+  kind: SystemBlockInterfaceKind,
+  i2cPins: SystemBlockInterfacePinMap.optional(),
+  spiPins: SystemBlockInterfacePinMap.optional(),
 })
 export type SystemBlockInterface = z.infer<typeof SystemBlockInterface>
 
