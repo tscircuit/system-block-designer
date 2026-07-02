@@ -43,7 +43,15 @@ export interface ProjectDetailsPageInput {
   projectName?: string
   summary?: string
   details?: Record<string, string | number | undefined>
+  headerLabel?: string
+  entries?: ProjectDetailsEntry[]
+  disclaimer?: string
   sections?: PdfTextSection[]
+}
+
+export interface ProjectDetailsEntry {
+  label: string
+  value: string | number
 }
 
 export interface TechnicalSpecificationsPageInput {

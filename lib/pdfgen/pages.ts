@@ -1,4 +1,4 @@
-import type { PDFDocument, PDFPage } from "pdf-lib"
+import { rgb, type PDFDocument, type PDFPage } from "pdf-lib"
 import { drawBomPage } from "./bomPage"
 import { COLORS, PAGE_MARGIN } from "./constants"
 import {
@@ -78,6 +78,11 @@ export function drawProjectDetailsPage(
   input: ProjectDetailsPageInput,
   pageNumber: number,
 ) {
+  if (shouldUseStyledProjectDetailsLayout(input)) {
+    drawStyledProjectDetailsPage(page, fonts, input, pageNumber)
+    return
+  }
+
   drawPageChrome(page, fonts, pageNumber)
   let y = drawPageTitle(
     page,
@@ -172,9 +177,181 @@ export async function drawPdfPage(
     await drawSchematicSheetPage(pdfDoc, page, fonts, pageInput, context)
   }
 
-  if (pageInput.type !== "title") {
+  if (pageInput.type !== "title" && pageInput.type !== "project_details") {
     drawFooter(page, fonts)
   }
+}
+
+function shouldUseStyledProjectDetailsLayout(input: ProjectDetailsPageInput) {
+  return Boolean(
+    input.entries?.length ||
+      input.disclaimer ||
+      input.headerLabel ||
+      input.projectName,
+  )
+}
+
+function drawStyledProjectDetailsPage(
+  page: PDFPage,
+  fonts: PdfFonts,
+  input: ProjectDetailsPageInput,
+  pageNumber: number,
+) {
+  const { width, height } = page.getSize()
+  const headerLabel = input.headerLabel ?? "System Block Designer"
+  const title = (input.title ?? "Project Details").toUpperCase()
+  const entries = getProjectDetailsEntries(input)
+  const contentX = 96
+  const contentWidth = width - contentX - 64
+
+  drawProjectDetailsTopStrip(page, width, height)
+
+  drawPdfText(page, `${pageNumber} |`, {
+    x: 30,
+    y: height - 78,
+    size: 9,
+    font: fonts.regular,
+    color: COLORS.accent,
+  })
+  drawPdfText(page, headerLabel, {
+    x: 48,
+    y: height - 78,
+    size: 9,
+    font: fonts.regular,
+    color: COLORS.muted,
+  })
+
+  drawPdfText(page, title, {
+    x: contentX,
+    y: height - 164,
+    size: 20,
+    font: fonts.bold,
+    color: COLORS.accent,
+  })
+
+  let y = height - 206
+  for (const entry of entries) {
+    drawPdfText(page, `${entry.label}:`, {
+      x: contentX,
+      y,
+      size: 14,
+      font: fonts.bold,
+      color: COLORS.ink,
+    })
+    y -= 25
+    y =
+      drawText(page, String(entry.value), {
+        x: contentX,
+        y,
+        size: 15,
+        font: fonts.regular,
+        color: COLORS.muted,
+        maxWidth: contentWidth,
+        lineHeight: 18,
+      }) - 24
+  }
+
+  const disclaimer = input.disclaimer ?? getLegacyDisclaimer(input)
+  if (disclaimer) {
+    drawPdfText(page, "DISCLAIMER", {
+      x: contentX,
+      y,
+      size: 16,
+      font: fonts.bold,
+      color: COLORS.accent,
+    })
+    y -= 24
+    drawText(page, disclaimer, {
+      x: contentX,
+      y,
+      size: 10.5,
+      font: fonts.regular,
+      color: COLORS.muted,
+      maxWidth: contentWidth,
+      lineHeight: 14,
+    })
+  }
+}
+
+function getProjectDetailsEntries(input: ProjectDetailsPageInput) {
+  if (input.entries?.length) return input.entries
+
+  const entries: Array<{ label: string; value: string | number }> = []
+  const detailEntries = Object.entries(input.details ?? {}).filter(
+    (entry): entry is [string, string | number] => entry[1] != null,
+  )
+
+  if (
+    input.projectName &&
+    !detailEntries.some(([label]) => label.toLowerCase() === "project")
+  ) {
+    entries.push({ label: "Project name", value: input.projectName })
+  }
+
+  entries.push(
+    ...detailEntries.map(([label, value]) => ({
+      label,
+      value,
+    })),
+  )
+
+  if (!entries.length && input.summary) {
+    entries.push({ label: "Summary", value: input.summary })
+  }
+
+  return entries
+}
+
+function getLegacyDisclaimer(input: ProjectDetailsPageInput) {
+  const disclaimerSection = input.sections?.find((section) =>
+    /disclaimer/i.test(section.title),
+  )
+  return disclaimerSection?.body
+}
+
+function drawProjectDetailsTopStrip(
+  page: PDFPage,
+  width: number,
+  height: number,
+) {
+  const bandHeight = 18
+  const y = height - bandHeight
+
+  page.drawRectangle({
+    x: 0,
+    y,
+    width,
+    height: bandHeight,
+    color: COLORS.white,
+  })
+  page.drawRectangle({
+    x: 0,
+    y,
+    width: 84,
+    height: bandHeight,
+    color: rgb(0.96, 0.91, 0.81),
+  })
+  page.drawSvgPath(`M 132 ${height} L 162 ${height} L 147 ${y} Z`, {
+    color: rgb(0.95, 0.87, 0.72),
+  })
+  page.drawSvgPath(`M 166 ${height} L 238 ${height} L 214 ${y} L 142 ${y} Z`, {
+    color: rgb(0.77, 0.88, 0.93),
+  })
+  page.drawSvgPath(`M 246 ${height} L 320 ${height} L 296 ${y} L 224 ${y} Z`, {
+    color: rgb(0.93, 0.94, 0.95),
+  })
+  page.drawSvgPath(`M 328 ${height} L 402 ${height} L 378 ${y} L 306 ${y} Z`, {
+    color: rgb(0.74, 0.87, 0.93),
+  })
+  page.drawSvgPath(`M 392 ${height} L 430 ${height} L 412 ${y} Z`, {
+    color: rgb(0.77, 0.88, 0.67),
+  })
+  page.drawLine({
+    start: { x: 0, y },
+    end: { x: width, y },
+    thickness: 0.9,
+    color: rgb(0.7, 0.73, 0.76),
+  })
 }
 
 function drawCoverWatermark(page: PDFPage, fonts: PdfFonts) {

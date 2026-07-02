@@ -16,6 +16,13 @@ interface PngComparison {
   message: string
 }
 
+interface SnapshotMaskRegion {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
 expect.extend({
   async toMatchPdfSnapshot(received: unknown, testPath: string) {
     const pdfBytes = toUint8Array(received)
@@ -77,7 +84,11 @@ expect.extend({
       const actual = new Uint8Array(page.content)
       if (Buffer.from(actual).equals(Buffer.from(expected))) continue
 
-      const comparison = comparePngs(expected, actual)
+      const comparison = comparePngs(
+        expected,
+        actual,
+        getSnapshotMaskRegions(snapshotInfo.baseName, page.pageNumber),
+      )
       if (!comparison.matches) {
         const diffPath = snapshotPath.replace(/\.png$/, ".diff.png")
         await Bun.write(diffPath, PNG.sync.write(comparison.diff))
@@ -162,7 +173,11 @@ async function findStaleSnapshots(
   return staleSnapshots
 }
 
-function comparePngs(expectedBytes: Uint8Array, actualBytes: Uint8Array) {
+function comparePngs(
+  expectedBytes: Uint8Array,
+  actualBytes: Uint8Array,
+  maskRegions: SnapshotMaskRegion[],
+) {
   const expected = PNG.sync.read(Buffer.from(expectedBytes))
   const actual = PNG.sync.read(Buffer.from(actualBytes))
 
@@ -181,6 +196,18 @@ function comparePngs(expectedBytes: Uint8Array, actualBytes: Uint8Array) {
   let maxDelta = 0
 
   for (let offset = 0; offset < expected.data.length; offset += 4) {
+    const pixelIndex = offset / 4
+    const x = pixelIndex % expected.width
+    const y = Math.floor(pixelIndex / expected.width)
+
+    if (isMaskedPixel(x, y, maskRegions)) {
+      diff.data[offset] = actual.data[offset]
+      diff.data[offset + 1] = actual.data[offset + 1]
+      diff.data[offset + 2] = actual.data[offset + 2]
+      diff.data[offset + 3] = 40
+      continue
+    }
+
     const rDelta = Math.abs(expected.data[offset] - actual.data[offset])
     const gDelta = Math.abs(expected.data[offset + 1] - actual.data[offset + 1])
     const bDelta = Math.abs(expected.data[offset + 2] - actual.data[offset + 2])
@@ -218,6 +245,40 @@ function createDimensionDiff(expected: PNG, actual: PNG) {
   const diff = new PNG({ width, height })
   diff.data.fill(255)
   return diff
+}
+
+function getSnapshotMaskRegions(baseName: string, pageNumber: number) {
+  if (baseName !== "example01") return []
+
+  if (pageNumber === 1) {
+    return [
+      // Cover-page exported timestamp value after the "Exported on:" label.
+      { x: 276, y: 720, width: 136, height: 24 },
+    ]
+  }
+
+  if (pageNumber === 2) {
+    return [
+      // Project-details exported timestamp value line beneath the label.
+      { x: 92, y: 548, width: 220, height: 28 },
+    ]
+  }
+
+  return []
+}
+
+function isMaskedPixel(
+  x: number,
+  y: number,
+  maskRegions: SnapshotMaskRegion[],
+) {
+  return maskRegions.some(
+    (region) =>
+      x >= region.x &&
+      x < region.x + region.width &&
+      y >= region.y &&
+      y < region.y + region.height,
+  )
 }
 
 function escapeRegExp(value: string) {
