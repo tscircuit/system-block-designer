@@ -1,11 +1,11 @@
 import { expect, test } from "bun:test"
 import { convertCircuitJsonToStackedSchematicSheetsSvg } from "circuit-to-svg"
-import { createSystemBlockDesginer01SystemJson } from "../../../app/SystemBlockDesginer01/createSystemBlockDesginer01SystemJson"
+import { createSystemBlockDesigner01SystemJson } from "../../../app/SystemBlockDesigner01/createSystemBlockDesigner01SystemJson"
 import { systemJsonToTsx } from "../../../lib/system-blocks/systemJsonToTsx"
 import { renderTsxToCircuitJson } from "../../fixtures/render-tsx-to-circuit-json"
 
-test("system block desginer 01 circuit json renders to schematic snapshot", async () => {
-  const systemJson = createSystemBlockDesginer01SystemJson()
+test("system block designer 01 circuit json renders to schematic snapshot", async () => {
+  const systemJson = createSystemBlockDesigner01SystemJson()
   const i2cConnections = systemJson.filter(
     (item) => item.type === "system_connection" && item.label === "i2c",
   )
