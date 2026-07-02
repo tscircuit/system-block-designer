@@ -24,7 +24,7 @@ const drv8876SchematicSheetSvg = await Bun.file(
 const circuitToSvgSchematicSheetSvg = await Bun.file(
   join(import.meta.dir, "fixtures", "schematic-sheet.snap.svg"),
 ).text()
-const exampleExportedAt = new Date()
+const exampleExportedAt = new Date("2026-07-02T04:13:00.000Z")
 const exampleExportedOn = formatProjectPdfExportedOn(exampleExportedAt)
 
 const bomRows: BomViewRow[] = [
