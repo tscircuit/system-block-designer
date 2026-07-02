@@ -17,5 +17,7 @@ export function formatBomDescription(
     return normalizedDescription
   }
 
-  return normalizedDescription.split(normalizedPackageName).join(displayPackageName)
+  return normalizedDescription
+    .split(normalizedPackageName)
+    .join(displayPackageName)
 }

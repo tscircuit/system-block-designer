@@ -9,9 +9,9 @@ test("formatBomDescription replaces raw package slugs with the display package n
     ),
   ).toBe("2-pin female pin header using package PinHeader_1x02_P2.54_Female")
 
-  expect(
-    formatBomDescription("Resistor, 100k, 0402", "0402"),
-  ).toBe("Resistor, 100k, 0402")
+  expect(formatBomDescription("Resistor, 100k, 0402", "0402")).toBe(
+    "Resistor, 100k, 0402",
+  )
 
   expect(
     formatBomDescription(
@@ -19,6 +19,6 @@ test("formatBomDescription replaces raw package slugs with the display package n
       "pinrow6_rows2_p2.54mm_male",
     ),
   ).toBe(
-    "Package PinHeader_2x03_P2.54mm_Male matches PinHeader_2x03_P2.54mm_Male"
+    "Package PinHeader_2x03_P2.54mm_Male matches PinHeader_2x03_P2.54mm_Male",
   )
 })
