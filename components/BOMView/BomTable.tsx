@@ -23,7 +23,7 @@ const columns: BomColumn[] = [
   {
     key: "packageName",
     label: "Package",
-    width: 104,
+    width: 156,
     align: "right",
     sort: true,
   },
@@ -129,7 +129,9 @@ export function BomTable({ rows }: BomTableProps) {
                     row.mpn
                   )}
                 </td>
-                <td className="is-right">{row.packageName}</td>
+                <td className="bom-package-cell is-right">
+                  <div className="bom-package-value">{row.packageName}</div>
+                </td>
                 <td className="is-right">{row.value}</td>
                 <td className="is-right">{row.quantity}</td>
                 <td>
