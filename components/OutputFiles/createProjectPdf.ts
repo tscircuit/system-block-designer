@@ -10,12 +10,12 @@ import type {
   SystemDiagram,
   SystemJson,
 } from "../../lib/system-json/system-json"
+import { formatProjectPdfExportedOn } from "./formatProjectPdfExportedOn"
 
 const DEFAULT_PROJECT_NAME = "System Block Design"
 const DEFAULT_GENERATED_BY = "Unknown Author"
 const DEFAULT_CAD_TOOL = "System Block Designer"
 const DEFAULT_HEADER_LABEL = "System Block Designer"
-const DEFAULT_EXPORT_TIME_ZONE = "America/Los_Angeles"
 const DEFAULT_DISCLAIMER =
   "Project title, description, and block diagram content may be AI-generated. Schematics, BOM, and resolved components are derived from the current design export."
 const FUNCTIONALITY_CATEGORY_ORDER = LIBRARY.map((category) => category.name)
@@ -261,21 +261,6 @@ function deriveApplicationList(
   return "Embedded Systems"
 }
 
-export function formatProjectPdfExportedOn(date: Date) {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-    timeZoneName: "short",
-    timeZone: DEFAULT_EXPORT_TIME_ZONE,
-  }).formatToParts(date)
-
-  return `${getDateTimePart(parts, "day")} ${getDateTimePart(parts, "month")} ${getDateTimePart(parts, "year")}, ${getDateTimePart(parts, "hour")}:${getDateTimePart(parts, "minute")} ${getDateTimePart(parts, "timeZoneName")}`
-}
-
 function normalizeFunctionalityCategory(category?: string) {
   if (!category) return undefined
 
@@ -301,11 +286,4 @@ function toCategoryKey(value: string) {
     .replace(/&/g, " and ")
     .replace(/[^a-z0-9]+/g, " ")
     .trim()
-}
-
-function getDateTimePart(
-  parts: Intl.DateTimeFormatPart[],
-  type: Intl.DateTimeFormatPartTypes,
-) {
-  return parts.find((part) => part.type === type)?.value ?? ""
 }

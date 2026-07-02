@@ -1,10 +1,8 @@
 import { expect, test } from "bun:test"
 import { createSmartLockSystemJson } from "../../app/SmartLock/createSmartLockSystemJson"
 import type { BomViewRow } from "../../lib/bom/types"
-import {
-  buildProjectPdfParams,
-  formatProjectPdfExportedOn,
-} from "../../components/OutputFiles/createProjectPdf"
+import { buildProjectPdfParams } from "../../components/OutputFiles/createProjectPdf"
+import { formatProjectPdfExportedOn } from "../../components/OutputFiles/formatProjectPdfExportedOn"
 
 test("buildProjectPdfParams maps system json onto pdf pages", () => {
   const systemJson = createSmartLockSystemJson()

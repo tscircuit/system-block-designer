@@ -1,7 +1,7 @@
 import { join } from "node:path"
 import { expect, test } from "bun:test"
 import { createSmartLockSystemJson } from "../../app/SmartLock/createSmartLockSystemJson"
-import { formatProjectPdfExportedOn } from "../../components/OutputFiles/createProjectPdf"
+import { formatProjectPdfExportedOn } from "../../components/OutputFiles/formatProjectPdfExportedOn"
 import type { BomViewRow } from "../../lib/bom/types"
 import { createPdf, type CreatePdfParams } from "../../lib/pdfgen/createPdf"
 import { initResvgWasm } from "../../lib/pdfgen/svgRaster"
