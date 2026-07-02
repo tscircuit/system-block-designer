@@ -6,6 +6,7 @@ import type {
   SystemJson,
   SystemPort,
 } from "../system-json/system-json"
+import type { IconColor } from "../system-json/icon-colors"
 
 export type SystemBlockConnectionValue = string | string[]
 
@@ -40,9 +41,12 @@ export interface SystemBlockConfig {
   componentName: string
   tsxInstanceName?: string
   icon?: string
+  iconColor?: IconColor
   partNumber?: string
   description?: string
   subcircuitId?: string
+  /** Name of the `<schematicsheet>` this block's subcircuit is rendered on. */
+  schSheetName?: string
   interfaces?: SystemBlockInterface[]
   ports?: SystemBlockPortDefinition[]
   connectionPortExpansions?: Record<string, string[]>
@@ -59,9 +63,11 @@ export abstract class SystemBlock {
   protected readonly tsxInstanceName: string
   protected readonly hasExplicitTsxInstanceName: boolean
   protected readonly icon?: string
+  protected readonly iconColor?: IconColor
   protected readonly partNumber?: string
   protected readonly description?: string
   protected readonly subcircuitId?: string
+  protected readonly schSheetName?: string
   protected readonly interfaces: SystemBlockInterface[]
   protected readonly ports: SystemBlockPortDefinition[]
   protected readonly connectionPortExpansions: Record<string, string[]>
@@ -79,9 +85,11 @@ export abstract class SystemBlock {
     this.tsxInstanceName = config.tsxInstanceName ?? this.systemBlockId
     this.hasExplicitTsxInstanceName = config.tsxInstanceName !== undefined
     this.icon = config.icon
+    this.iconColor = config.iconColor
     this.partNumber = config.partNumber
     this.description = config.description
     this.subcircuitId = config.subcircuitId
+    this.schSheetName = config.schSheetName
     this.interfaces = config.interfaces ?? []
     this.ports = config.ports ?? []
     this.connectionPortExpansions = config.connectionPortExpansions ?? {}
@@ -97,6 +105,7 @@ export abstract class SystemBlock {
       label: this.label,
       category: [...this.category],
       ...(this.icon ? { icon: this.icon } : {}),
+      ...(this.iconColor ? { icon_color: this.iconColor } : {}),
       ...(this.partNumber ? { part_number: this.partNumber } : {}),
       ...(this.description ? { description: this.description } : {}),
       ...(this.subcircuitId ? { subcircuit_id: this.subcircuitId } : {}),
@@ -109,17 +118,22 @@ export abstract class SystemBlock {
         : {}),
     }
 
-    return [
-      block,
-      ...this.ports.map<SystemPort>((port) => ({
+    return [block]
+  }
+
+  getSystemPortJson(systemPortIds: string[] = []): SystemPort[] {
+    const portIdSet = new Set(systemPortIds)
+
+    return this.ports
+      .map<SystemPort>((port) => ({
         type: "system_port",
         system_diagram_id: this.systemDiagramId,
         system_block_id: this.systemBlockId,
         system_port_id: `${this.systemBlockId}_${this.createId(port.name)}`,
         label: port.name,
         side_of_block: port.sideOfBlock,
-      })),
-    ]
+      }))
+      .filter((port) => portIdSet.has(port.system_port_id))
   }
 
   setConnection(
@@ -167,6 +181,10 @@ export abstract class SystemBlock {
 
     if (this.hasExplicitTsxInstanceName) {
       props.push(`name=${JSON.stringify(this.tsxInstanceName)}`)
+    }
+
+    if (this.schSheetName) {
+      props.push(`schSheetName=${JSON.stringify(this.schSheetName)}`)
     }
 
     if (Object.keys(this.connections).length > 0) {

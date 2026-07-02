@@ -15,8 +15,12 @@ test("systemJsonToTsxProject emits one index file importing TI subcircuits", () 
   expect(files["index.circuit.tsx"]).toContain("export default () => (")
   expect(files["index.circuit.tsx"]).not.toContain("circuit.add(")
   expect(files["index.circuit.tsx"]).toContain("<board routingDisabled>")
+  // Each block declares its own schematic sheet and is pinned to it.
   expect(files["index.circuit.tsx"]).toContain(
-    '<Microcontroller_MSPM0G3507 name="controller" />',
+    '<schematicsheet name="controller" displayName="Microcontroller" sheetIndex={0} />',
+  )
+  expect(files["index.circuit.tsx"]).toContain(
+    '<Microcontroller_MSPM0G3507 name="controller" schSheetName="controller" />',
   )
   expect(files["index.circuit.tsx"]).not.toContain("connections={{")
 })

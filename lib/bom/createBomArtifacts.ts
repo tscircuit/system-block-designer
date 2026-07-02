@@ -135,6 +135,12 @@ export async function createBomArtifacts(params: {
         group.packageName,
       )
       const value = group.value
+      const description = resolveBomDescription({
+        description: details?.description ?? null,
+        componentType: group.componentType,
+        value,
+        packageName: group.packageName,
+      })
 
       if (unitPrice != null && value !== "DNP") {
         totalEstimatedPrice += unitPrice * group.quantity
@@ -142,6 +148,7 @@ export async function createBomArtifacts(params: {
       }
 
       return {
+        referenceDesignators: group.designators.sort(naturalCompare).join(", "),
         manufacturer: "Texas Instruments",
         mpn,
         packageName: group.packageName,
@@ -155,6 +162,7 @@ export async function createBomArtifacts(params: {
           value,
           packageName: group.packageName,
         }),
+        description,
         lifecycle: formatLifecycle(
           details?.lifecycle ?? null,
           Boolean(details),
@@ -467,6 +475,43 @@ function resolvePartName(params: {
   if (partName) return partName
 
   return params.designators.sort(naturalCompare).join(", ")
+}
+
+function resolveBomDescription(params: {
+  description: string | null
+  componentType: string
+  value: string
+  packageName: string
+}) {
+  const normalizedDescription = normalizeText(params.description)
+  if (normalizedDescription) return normalizedDescription
+
+  return [
+    prettifyComponentType(params.componentType),
+    params.value !== "—" && params.value !== "DNP" ? params.value : "",
+    params.packageName !== "—" ? params.packageName : "",
+  ]
+    .filter(Boolean)
+    .join(", ")
+}
+
+function prettifyComponentType(value: string) {
+  const normalized = value.replace(/^simple_/u, "").replace(/^source_/u, "")
+
+  switch (normalized) {
+    case "resistor":
+      return "Resistor"
+    case "capacitor":
+      return "Capacitor"
+    case "inductor":
+      return "Inductor"
+    case "chip":
+      return "Integrated circuit"
+    case "part":
+      return "Part"
+    default:
+      return prettifyLabel(normalized)
+  }
 }
 
 function normalizeText(value: string | null | undefined) {

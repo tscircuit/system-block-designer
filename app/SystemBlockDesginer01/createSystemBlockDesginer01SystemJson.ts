@@ -40,43 +40,45 @@ export function createSystemBlockDesginer01SystemJson(): SystemJson[] {
       name: "System Block Desginer 01",
     },
     ...controller.getSystemBlockJson(),
+    ...controller.getSystemPortJson(["controller_pa0", "controller_pa1"]),
     ...sensor.getSystemBlockJson(),
+    ...sensor.getSystemPortJson(["sensor_scl"]),
     ...powerMonitor.getSystemBlockJson(),
-    connection(
+    ...powerMonitor.getSystemPortJson(["power_monitor_scl"]),
+    connection({
       systemDiagramId,
-      "w_i2c_sensor",
-      "controller_pa0",
-      "sensor_scl",
-      "i2c",
-    ),
-    connection(
+      systemConnectionId: "w_i2c_sensor",
+      sourcePortId: "controller_pa0",
+      targetPortId: "sensor_scl",
+      label: "i2c",
+    }),
+    connection({
       systemDiagramId,
-      "w_i2c_power_monitor",
-      "controller_pa1",
-      "power_monitor_scl",
-      "i2c",
-    ),
-    connection(
-      systemDiagramId,
-      "w_monitor_vs",
-      "controller_vdd",
-      "power_monitor_vs",
-      "VDD",
-    ),
+      systemConnectionId: "w_i2c_power_monitor",
+      sourcePortId: "controller_pa1",
+      targetPortId: "power_monitor_scl",
+      label: "i2c",
+    }),
   ])
 }
 
-function connection(
-  systemDiagramId: string,
-  id: string,
-  sourcePortId: string,
-  targetPortId: string,
-  label: string,
-): SystemConnection {
+function connection({
+  systemDiagramId,
+  systemConnectionId,
+  sourcePortId,
+  targetPortId,
+  label,
+}: {
+  systemDiagramId: string
+  systemConnectionId: string
+  sourcePortId: string
+  targetPortId: string
+  label: string
+}): SystemConnection {
   return {
     type: "system_connection",
     system_diagram_id: systemDiagramId,
-    system_connection_id: id,
+    system_connection_id: systemConnectionId,
     source_system_port_id: sourcePortId,
     target_system_port_id: targetPortId,
     system_port_ids: [sourcePortId, targetPortId],

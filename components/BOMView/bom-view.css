@@ -199,6 +199,13 @@
   text-underline-offset: 2px;
 }
 
+.bom-table a.bom-mpn-link,
+.bom-table a.bom-mpn-link:visited,
+.bom-table a.bom-mpn-link:hover,
+.bom-table a.bom-mpn-link:active {
+  text-decoration: none;
+}
+
 .bom-table .is-right {
   text-align: right;
 }

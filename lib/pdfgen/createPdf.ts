@@ -1,7 +1,9 @@
 import { PDFDocument, StandardFonts } from "pdf-lib"
+import { paginateBomPages } from "./bomPage"
 import { PAGE_SIZES } from "./constants"
 import { drawPdfPage } from "./pages"
 import type {
+  BomPageInput,
   CreatePdfParams,
   PdfFonts,
   PdfPageInput,
@@ -10,6 +12,7 @@ import type {
 } from "./types"
 
 export type {
+  BomPageInput,
   CreatePdfParams,
   PdfPageInput,
   PdfTextSection,
@@ -27,7 +30,7 @@ export async function createPdf(params: CreatePdfParams): Promise<Uint8Array> {
     bold: await pdfDoc.embedFont(StandardFonts.HelveticaBold),
     mono: await pdfDoc.embedFont(StandardFonts.Courier),
   }
-  const pages = normalizePages(params)
+  const pages = normalizePages(params, fonts)
   const schematicSheetCount = pages.filter(
     (page) => page.type === "schematic_sheet",
   ).length
@@ -56,10 +59,11 @@ export async function createPdf(params: CreatePdfParams): Promise<Uint8Array> {
   return pdfDoc.save()
 }
 
-function normalizePages(params: CreatePdfParams): PdfPageInput[] {
-  if (params.pages) return params.pages
-
-  return [
+function normalizePages(
+  params: CreatePdfParams,
+  fonts: PdfFonts,
+): PdfPageInput[] {
+  const rawPages = params.pages ?? [
     params.titlePage,
     params.projectDetailsPage,
     params.technicalSpecificationsPage,
@@ -73,12 +77,22 @@ function normalizePages(params: CreatePdfParams): PdfPageInput[] {
           } satisfies SchematicSheetPageInput)
         : sheet,
     ),
-  ].filter((page): page is PdfPageInput => Boolean(page))
+    params.bomPage,
+  ]
+
+  return rawPages
+    .filter((page): page is PdfPageInput => Boolean(page))
+    .flatMap<PdfPageInput>((page): PdfPageInput[] =>
+      page.type === "bom"
+        ? paginateBomPages(page as BomPageInput, fonts)
+        : [page],
+    )
 }
 
 function getPageSize(pageInput: PdfPageInput) {
   return pageInput.type === "system_architecture" ||
-    pageInput.type === "schematic_sheet"
+    pageInput.type === "schematic_sheet" ||
+    pageInput.type === "bom"
     ? PAGE_SIZES.landscape
     : PAGE_SIZES.portrait
 }

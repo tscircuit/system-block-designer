@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { routeOrthogonalPath } from "../../lib/design-system/routeOrthogonalPath"
 import { LIBRARY } from "../../lib/design-system/library"
 import type { LibraryCategory } from "../../lib/design-system/types"
+import type { IconColor } from "../../lib/system-json/icon-colors"
 import {
   type CircuitJson,
   resolveSystemJsonToCircuitJson,
@@ -153,12 +154,12 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
       )
       const system_diagram_id = diagram?.system_diagram_id ?? "system_diagram_0"
       const id = nextId("b")
-      const blockSystemJson = createSystemJsonForLibraryBlock(
+      const blockSystemJson = createSystemJsonForLibraryBlock({
         system_diagram_id,
-        id,
+        blockId: id,
         type,
-        { x: cx, y: cy },
-      )
+        center: { x: cx, y: cy },
+      })
       if (!blockSystemJson) return
 
       mutate([...currentSystemJson, ...blockSystemJson])
@@ -562,6 +563,20 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
     [applySelection, mutate],
   )
 
+  const updateBlockIconColor = useCallback(
+    (blockId: string, iconColor: IconColor) => {
+      mutate(
+        systemJsonRef.current.map((item) =>
+          item.type === "system_block" && item.system_block_id === blockId
+            ? { ...item, icon_color: iconColor }
+            : item,
+        ),
+      )
+      applySelection({ kind: "block", id: blockId })
+    },
+    [applySelection, mutate],
+  )
+
   const deleteConnection = useCallback(
     (connectionId: string) => {
       mutate(
@@ -725,6 +740,7 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
     systemJson,
     tempPath,
     undo,
+    updateBlockIconColor,
     updateConnectionInterface,
     view,
     warnings,

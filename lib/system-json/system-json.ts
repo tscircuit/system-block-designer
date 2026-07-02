@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { ICON_COLOR_PALETTE } from "./icon-colors"
 
 export const Point = z.object({
   x: z.number(),
@@ -38,6 +39,7 @@ export const SystemBlock = z.object({
   label: z.string().optional(),
   category: z.array(z.string()),
   icon: z.string().optional(),
+  icon_color: z.enum(ICON_COLOR_PALETTE).optional(),
   part_number: z.string().optional(),
   description: z.string().optional(),
   subcircuit_id: z.string().optional(),

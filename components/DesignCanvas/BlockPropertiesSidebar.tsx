@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useState } from "react"
 import { BlockIcon } from "../../lib/design-system/icons"
+import {
+  ICON_COLOR_PALETTE,
+  type IconColor,
+  normalizeIconColor,
+} from "../../lib/system-json/icon-colors"
 import type {
   SystemBlock,
   SystemConnection,
@@ -22,6 +27,7 @@ interface BlockPropertiesSidebarProps {
   connection: SystemConnection | null
   onClose: () => void
   onApplySubcircuit: (blockId: string, subcircuitId: string) => void
+  onUpdateBlockIconColor: (blockId: string, iconColor: IconColor) => void
   onUpdateConnectionInterface: (
     connectionId: string,
     nextInterface: string,
@@ -33,9 +39,11 @@ export function BlockPropertiesSidebar({
   connection,
   onClose,
   onApplySubcircuit,
+  onUpdateBlockIconColor,
   onUpdateConnectionInterface,
 }: BlockPropertiesSidebarProps) {
   const [selectedSubcircuitId, setSelectedSubcircuitId] = useState("")
+  const [iconColorPickerOpen, setIconColorPickerOpen] = useState(false)
 
   const subcircuitOptions = useMemo(() => {
     if (!block) return []
@@ -56,6 +64,7 @@ export function BlockPropertiesSidebar({
       subcircuitOptions[0]?.componentName ??
       ""
     setSelectedSubcircuitId(currentSubcircuit)
+    setIconColorPickerOpen(false)
   }, [block, subcircuitOptions])
 
   if (connection) {
@@ -133,6 +142,7 @@ export function BlockPropertiesSidebar({
     Boolean(selectedSubcircuitId) &&
     (selectedSubcircuitId !== block.subcircuit_id ||
       selectedDefinition?.partNumber !== block.part_number)
+  const iconColor = normalizeIconColor(block.icon_color)
 
   return (
     <aside
@@ -162,7 +172,11 @@ export function BlockPropertiesSidebar({
           </svg>
         </button>
         <div className="selected-block-summary">
-          <div className="selected-block-icon" aria-hidden="true">
+          <div
+            className="selected-block-icon"
+            style={{ color: iconColor }}
+            aria-hidden="true"
+          >
             <BlockIcon name={block.icon ?? "chip"} size={22} />
           </div>
           <div className="selected-block-copy">
@@ -266,31 +280,62 @@ export function BlockPropertiesSidebar({
             </label>
             <label className="settings-field icon-color-field">
               <span>Icon Color</span>
-              <button
-                className="icon-color-select"
-                type="button"
-                data-testid="block-color-select"
-              >
-                <span className="icon-color-preview">
-                  <span className="icon-color-swatch" />
-                  <span className="icon-color-icon">
-                    <BlockIcon name={block.icon ?? "chip"} size={20} />
-                  </span>
-                </span>
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
+              <div className="icon-color-control">
+                <button
+                  className="icon-color-select"
+                  type="button"
+                  aria-expanded={iconColorPickerOpen}
+                  data-testid="block-color-select"
+                  onClick={() => setIconColorPickerOpen((current) => !current)}
                 >
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </button>
+                  <span className="icon-color-preview">
+                    <span
+                      className="icon-color-swatch"
+                      style={{ background: iconColor }}
+                    />
+                    <span
+                      className="icon-color-icon"
+                      style={{ color: iconColor }}
+                    >
+                      <BlockIcon name={block.icon ?? "chip"} size={20} />
+                    </span>
+                  </span>
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </button>
+                <div
+                  className="icon-color-palette"
+                  data-open={iconColorPickerOpen ? "true" : "false"}
+                >
+                  {ICON_COLOR_PALETTE.map((color) => (
+                    <button
+                      key={color}
+                      className="icon-color-option"
+                      type="button"
+                      title={color}
+                      aria-label={`Set icon color to ${color}`}
+                      aria-pressed={color === iconColor}
+                      data-testid={`block-color-option-${color.slice(1)}`}
+                      style={{ background: color }}
+                      onClick={() => {
+                        onUpdateBlockIconColor(block.system_block_id, color)
+                        setIconColorPickerOpen(false)
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
             </label>
           </div>
         </section>

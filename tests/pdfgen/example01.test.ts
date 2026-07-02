@@ -1,6 +1,7 @@
 import { join } from "node:path"
 import { expect, test } from "bun:test"
 import { createSmartLockSystemJson } from "../../app/SmartLock/createSmartLockSystemJson"
+import type { BomViewRow } from "../../lib/bom/types"
 import { createPdf, type CreatePdfParams } from "../../lib/pdfgen/createPdf"
 import { initResvgWasm } from "../../lib/pdfgen/svgRaster"
 
@@ -23,11 +24,56 @@ const circuitToSvgSchematicSheetSvg = await Bun.file(
   join(import.meta.dir, "fixtures", "schematic-sheet.snap.svg"),
 ).text()
 
+const bomRows: BomViewRow[] = [
+  {
+    referenceDesignators: "U1",
+    manufacturer: "Texas Instruments",
+    mpn: "CC2340R5",
+    packageName: "QFN-32",
+    value: "2.4 GHz MCU",
+    quantity: "1",
+    functionalBlock: "BLE Module",
+    partName: "Wireless MCU",
+    description: "Wireless MCU, 2.4 GHz, BLE",
+    lifecycle: "Active",
+    unitPrice: "2.84 USD",
+    stock: "18,500",
+  },
+  {
+    referenceDesignators: "U2",
+    manufacturer: "Texas Instruments",
+    mpn: "BQ25155",
+    packageName: "WCSP-25",
+    value: "PMIC",
+    quantity: "1",
+    functionalBlock: "PMIC",
+    partName: "Battery charger and power path controller",
+    description: "Battery charger, power-path controller, PMIC",
+    lifecycle: "Active",
+    unitPrice: "1.67 USD",
+    stock: "6,200",
+  },
+  {
+    referenceDesignators: "U3, U4",
+    manufacturer: "Texas Instruments",
+    mpn: "TCA39306",
+    packageName: "WQFN-16",
+    value: "Level translator",
+    quantity: "2",
+    functionalBlock: "Signal-level Shift, Radio Transceiver",
+    partName: "Dual-supply voltage-level translator",
+    description: "Dual-supply, voltage-level translator, low-voltage logic",
+    lifecycle: "Active",
+    unitPrice: "0.48 USD",
+    stock: "24,100",
+  },
+]
+
 const examplePdf: CreatePdfParams = {
   titlePage: {
     type: "title",
     projectName: "Smart Lock (UWB Smart Lock)",
-    subtitle: "System design package",
+    subtitle: "Project document",
     description:
       "Reference package generated from the system block designer PDF generator.",
     preparedFor: "Product Engineering",
@@ -86,6 +132,10 @@ const examplePdf: CreatePdfParams = {
       },
     ],
   },
+  bomPage: {
+    type: "bom",
+    rows: bomRows,
+  },
   systemArchitecturePage: {
     type: "system_architecture",
     subtitle: "Generated from the smart-lock system JSON fixture.",
@@ -108,4 +158,31 @@ const examplePdf: CreatePdfParams = {
 test("snapshots each page of example01 as png", async () => {
   const pdfBytes = await createPdf(examplePdf)
   await expect(pdfBytes).toMatchPdfSnapshot(import.meta.path)
+}, 15_000)
+
+test("createPdf sanitizes unsupported BOM glyphs instead of throwing", async () => {
+  const pdfBytes = await createPdf({
+    bomPage: {
+      type: "bom",
+      rows: [
+        {
+          referenceDesignators: "U1",
+          manufacturer: "Texas Instruments",
+          mpn: "ABC123",
+          packageName: "QFN-32",
+          value: "母板",
+          quantity: "1",
+          functionalBlock: "Control",
+          partName: "母 board controller",
+          description: "母 board controller, custom control logic",
+          lifecycle: "Active",
+          unitPrice: "1.00 USD",
+          stock: "100",
+        },
+      ],
+    },
+  })
+
+  expect(pdfBytes).toBeInstanceOf(Uint8Array)
+  expect(pdfBytes.byteLength).toBeGreaterThan(0)
 })

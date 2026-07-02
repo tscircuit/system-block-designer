@@ -32,25 +32,67 @@ export function createTiBlocksCircuitJsonSystemJson(): SystemJson[] {
       name: "TI I2C Sensor System",
     },
     ...controller.getSystemBlockJson(),
+    ...controller.getSystemPortJson([
+      "controller_pa0",
+      "controller_pa1",
+      "controller_vdd",
+      "controller_gnd",
+    ]),
     ...sensor.getSystemBlockJson(),
-    connection(systemDiagramId, "w_scl", "controller_pa0", "sensor_scl", "SCL"),
-    connection(systemDiagramId, "w_sda", "controller_pa1", "sensor_sda", "SDA"),
-    connection(systemDiagramId, "w_vdd", "controller_vdd", "sensor_vdd", "VDD"),
-    connection(systemDiagramId, "w_gnd", "controller_gnd", "sensor_gnd", "GND"),
+    ...sensor.getSystemPortJson([
+      "sensor_scl",
+      "sensor_sda",
+      "sensor_vdd",
+      "sensor_gnd",
+    ]),
+    connection({
+      systemDiagramId,
+      systemConnectionId: "w_scl",
+      sourcePortId: "controller_pa0",
+      targetPortId: "sensor_scl",
+      label: "SCL",
+    }),
+    connection({
+      systemDiagramId,
+      systemConnectionId: "w_sda",
+      sourcePortId: "controller_pa1",
+      targetPortId: "sensor_sda",
+      label: "SDA",
+    }),
+    connection({
+      systemDiagramId,
+      systemConnectionId: "w_vdd",
+      sourcePortId: "controller_vdd",
+      targetPortId: "sensor_vdd",
+      label: "VDD",
+    }),
+    connection({
+      systemDiagramId,
+      systemConnectionId: "w_gnd",
+      sourcePortId: "controller_gnd",
+      targetPortId: "sensor_gnd",
+      label: "GND",
+    }),
   ])
 }
 
-function connection(
-  systemDiagramId: string,
-  id: string,
-  sourcePortId: string,
-  targetPortId: string,
-  label: string,
-): SystemConnection {
+function connection({
+  systemDiagramId,
+  systemConnectionId,
+  sourcePortId,
+  targetPortId,
+  label,
+}: {
+  systemDiagramId: string
+  systemConnectionId: string
+  sourcePortId: string
+  targetPortId: string
+  label: string
+}): SystemConnection {
   return {
     type: "system_connection",
     system_diagram_id: systemDiagramId,
-    system_connection_id: id,
+    system_connection_id: systemConnectionId,
     source_system_port_id: sourcePortId,
     target_system_port_id: targetPortId,
     system_port_ids: [sourcePortId, targetPortId],

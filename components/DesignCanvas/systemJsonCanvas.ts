@@ -162,12 +162,17 @@ export function routeSystemConnection(
   )
 }
 
-export function createSystemJsonForLibraryBlock(
-  system_diagram_id: string,
-  blockId: string,
-  type: string,
-  center: Point,
-): SystemJson[] | null {
+export function createSystemJsonForLibraryBlock({
+  system_diagram_id,
+  blockId,
+  type,
+  center,
+}: {
+  system_diagram_id: string
+  blockId: string
+  type: string
+  center: Point
+}): SystemJson[] | null {
   const item = findLibraryItem(type)
   if (!item || item.count === 0) return null
 
@@ -182,9 +187,7 @@ export function createSystemJsonForLibraryBlock(
       tsxInstanceName: blockId,
       subcircuitId: item.subcircuitId,
     })
-    return block
-      .getSystemBlockJson()
-      .filter((item): item is SystemBlock => item.type === "system_block")
+    return block.getSystemBlockJson()
   }
 
   const width = item.w ?? 128

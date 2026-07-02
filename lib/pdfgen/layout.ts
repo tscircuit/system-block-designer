@@ -1,10 +1,38 @@
 import type { PDFPage, PDFFont } from "pdf-lib"
+import { rgb } from "pdf-lib"
 import { COLORS, PAGE_MARGIN } from "./constants"
 import type { PdfFonts, PdfTextOptions, PdfTextSection } from "./types"
 
-export function drawPageChrome(page: PDFPage, fonts: PdfFonts, label: string) {
+const PDF_TEXT_FALLBACKS: Record<string, string> = {
+  "\u00A0": " ",
+  "\u2010": "-",
+  "\u2011": "-",
+  "\u2012": "-",
+  "\u2013": "-",
+  "\u2014": "-",
+  "\u2015": "-",
+  "\u2018": "'",
+  "\u2019": "'",
+  "\u201A": "'",
+  "\u201B": "'",
+  "\u201C": '"',
+  "\u201D": '"',
+  "\u201E": '"',
+  "\u2022": "-",
+  "\u2026": "...",
+  "\u2212": "-",
+}
+
+const combiningMarkPattern = /\p{Mark}+/gu
+const fontCharacterSetCache = new WeakMap<PDFFont, Set<number>>()
+
+export function drawPageChrome(
+  page: PDFPage,
+  fonts: PdfFonts,
+  pageNumber: number,
+) {
   const { width, height } = page.getSize()
-  page.drawText(label.toUpperCase(), {
+  drawPdfText(page, `${pageNumber} | tscircuit`, {
     x: PAGE_MARGIN,
     y: height - 32,
     size: 7.5,
@@ -19,6 +47,61 @@ export function drawPageChrome(page: PDFPage, fonts: PdfFonts, label: string) {
   })
 }
 
+// Shared page footer drawn on every page: faded "TS" monogram + copyright on
+// the left, the centered "tscircuit" wordmark, and a "Powered by tscircuit"
+// badge on the right.
+export function drawFooter(page: PDFPage, fonts: PdfFonts) {
+  const { width } = page.getSize()
+  const y = 24
+
+  drawPdfText(page, "T", {
+    x: 8,
+    y: y + 4,
+    size: 76,
+    font: fonts.bold,
+    color: COLORS.tscircuitBlue,
+    opacity: 0.14,
+  })
+  drawPdfText(page, "S", {
+    x: 58,
+    y: y + 4,
+    size: 76,
+    font: fonts.bold,
+    color: COLORS.tscircuitBlue,
+    opacity: 0.14,
+  })
+  drawPdfText(page, "tscircuit Inc. (c) 2026", {
+    x: 34,
+    y,
+    size: 9,
+    font: fonts.regular,
+    color: rgb(0.45, 0.52, 0.6),
+  })
+
+  drawPdfText(page, "tscircuit", {
+    x: width / 2 - 42,
+    y: y - 6,
+    size: 24,
+    font: fonts.bold,
+    color: COLORS.tscircuitBlue,
+  })
+
+  drawPdfText(page, "Powered by", {
+    x: width - 96,
+    y: y + 10,
+    size: 8,
+    font: fonts.regular,
+    color: COLORS.soft,
+  })
+  drawPdfText(page, "tscircuit", {
+    x: width - 96,
+    y: y - 5,
+    size: 15,
+    font: fonts.bold,
+    color: COLORS.tscircuitBlue,
+  })
+}
+
 export function drawPageTitle(
   page: PDFPage,
   fonts: PdfFonts,
@@ -26,7 +109,7 @@ export function drawPageTitle(
   subtitle?: string,
 ) {
   const { width, height } = page.getSize()
-  page.drawText(title, {
+  drawPdfText(page, title, {
     x: PAGE_MARGIN,
     y: height - 84,
     size: 24,
@@ -77,7 +160,7 @@ export function drawKeyValueGrid(
       borderColor: COLORS.line,
       borderWidth: 1,
     })
-    page.drawText(label.toUpperCase(), {
+    drawPdfText(page, label.toUpperCase(), {
       x: cellX + 14,
       y: cellY + cellHeight - 20,
       size: 7.2,
@@ -107,8 +190,15 @@ export function drawSpecTable(
 ) {
   const { width: pageWidth } = page.getSize()
   const width = pageWidth - PAGE_MARGIN * 2
-  const rowHeight = 34
   const headerHeight = 26
+  const notesColumnX = x + 414
+  const notesFontSize = 8.5
+  const notesTextWidth = width - 428
+  const notesLineHeight = 11
+  // Vertical metrics chosen so a single-line row keeps the original 34px height
+  // (21 + 13 = 34); extra note lines simply grow the row downward.
+  const firstBaselineOffset = 21
+  const rowBottomPadding = 13
 
   page.drawRectangle({
     x,
@@ -117,22 +207,22 @@ export function drawSpecTable(
     height: headerHeight,
     color: COLORS.accent,
   })
-  page.drawText("Parameter", {
+  drawPdfText(page, "Parameter", {
     x: x + 14,
     y: y - 17,
     size: 9,
     font: fonts.bold,
     color: COLORS.white,
   })
-  page.drawText("Value", {
+  drawPdfText(page, "Value", {
     x: x + 248,
     y: y - 17,
     size: 9,
     font: fonts.bold,
     color: COLORS.white,
   })
-  page.drawText("Notes", {
-    x: x + 414,
+  drawPdfText(page, "Notes", {
+    x: notesColumnX,
     y: y - 17,
     size: 9,
     font: fonts.bold,
@@ -141,7 +231,19 @@ export function drawSpecTable(
 
   let cursor = y - headerHeight
   for (const [index, row] of rows.entries()) {
+    const wrappedNotes = wrapText(
+      row.notes ?? "",
+      fonts.regular,
+      notesFontSize,
+      notesTextWidth,
+    )
+    // Grow the row so it always contains every wrapped note line.
+    const rowHeight =
+      firstBaselineOffset +
+      Math.max(0, wrappedNotes.length - 1) * notesLineHeight +
+      rowBottomPadding
     cursor -= rowHeight
+    const rowBaseline = cursor + rowHeight - firstBaselineOffset
     page.drawRectangle({
       x,
       y: cursor,
@@ -151,30 +253,30 @@ export function drawSpecTable(
       borderColor: COLORS.line,
       borderWidth: 0.5,
     })
-    page.drawText(row.name, {
+    drawPdfText(page, row.name, {
       x: x + 14,
-      y: cursor + 13,
+      y: rowBaseline,
       size: 9.5,
       font: fonts.bold,
       color: COLORS.ink,
     })
-    page.drawText(String(row.value), {
+    drawPdfText(page, String(row.value), {
       x: x + 248,
-      y: cursor + 13,
+      y: rowBaseline,
       size: 9.5,
       font: fonts.regular,
       color: COLORS.ink,
     })
-    if (row.notes) {
-      drawText(page, row.notes, {
-        x: x + 414,
-        y: cursor + 13,
-        size: 8.5,
+    let noteLineY = rowBaseline
+    for (const line of wrappedNotes) {
+      drawPdfText(page, line, {
+        x: notesColumnX,
+        y: noteLineY,
+        size: notesFontSize,
         font: fonts.regular,
         color: COLORS.muted,
-        maxWidth: width - 428,
-        lineHeight: 11,
       })
+      noteLineY -= notesLineHeight
     }
   }
 
@@ -191,7 +293,7 @@ export function drawSections(
   let y = startY
   for (const section of sections) {
     if (y < 90) return
-    page.drawText(section.title, {
+    drawPdfText(page, section.title, {
       x: PAGE_MARGIN,
       y,
       size: 13,
@@ -214,7 +316,7 @@ export function drawSections(
     for (const item of section.items ?? []) {
       const line =
         typeof item === "string" ? item : `${item.label}: ${String(item.value)}`
-      page.drawText("-", {
+      drawPdfText(page, "-", {
         x: PAGE_MARGIN,
         y,
         size: 9,
@@ -244,7 +346,7 @@ export function drawText(page: PDFPage, text: string, options: PdfTextOptions) {
     options.size,
     options.maxWidth,
   )) {
-    page.drawText(line, {
+    drawPdfText(page, line, {
       x: options.x,
       y,
       size: options.size,
@@ -262,13 +364,14 @@ export function wrapText(
   size: number,
   maxWidth: number,
 ) {
+  const safeText = sanitizePdfText(text, font)
   const lines: string[] = []
-  for (const paragraph of text.split(/\n+/)) {
+  for (const paragraph of safeText.split(/\n+/)) {
     const words = paragraph.trim().split(/\s+/).filter(Boolean)
     let line = ""
     for (const word of words) {
       const candidate = line ? `${line} ${word}` : word
-      if (font.widthOfTextAtSize(candidate, size) <= maxWidth || !line) {
+      if (measureTextWidth(font, candidate, size) <= maxWidth || !line) {
         line = candidate
       } else {
         lines.push(line)
@@ -278,6 +381,71 @@ export function wrapText(
     if (line) lines.push(line)
   }
   return lines
+}
+
+export function drawPdfText(
+  page: PDFPage,
+  text: string,
+  options: Omit<NonNullable<Parameters<PDFPage["drawText"]>[1]>, "font"> & {
+    font: PDFFont
+  },
+) {
+  const safeText = sanitizePdfText(text, options.font)
+  page.drawText(safeText, options)
+}
+
+export function measureTextWidth(font: PDFFont, text: string, size: number) {
+  return font.widthOfTextAtSize(sanitizePdfText(text, font), size)
+}
+
+export function sanitizePdfText(text: string, font: PDFFont) {
+  const normalizedText = text.replace(/\r\n?/g, "\n")
+  const supportedCharacters = getSupportedCharacters(font)
+  let result = ""
+
+  for (const character of normalizedText) {
+    if (character === "\n") {
+      result += "\n"
+      continue
+    }
+
+    if (character === "\t") {
+      result += "  "
+      continue
+    }
+
+    if (supportedCharacters.has(character.codePointAt(0)!)) {
+      result += character
+      continue
+    }
+
+    const fallback = PDF_TEXT_FALLBACKS[character]
+    if (fallback) {
+      result += sanitizePdfText(fallback, font)
+      continue
+    }
+
+    const decomposed = character
+      .normalize("NFKD")
+      .replace(combiningMarkPattern, "")
+    if (decomposed && decomposed !== character) {
+      result += sanitizePdfText(decomposed, font)
+      continue
+    }
+
+    result += "?"
+  }
+
+  return result
+}
+
+function getSupportedCharacters(font: PDFFont) {
+  let characters = fontCharacterSetCache.get(font)
+  if (!characters) {
+    characters = new Set(font.getCharacterSet())
+    fontCharacterSetCache.set(font, characters)
+  }
+  return characters
 }
 
 export function contain(

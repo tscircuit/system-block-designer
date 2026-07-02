@@ -6,6 +6,7 @@ export interface BomSummaryItem {
 export type BomExportMode = "Consolidated" | "Flat list"
 
 export interface BomViewRow {
+  referenceDesignators?: string
   manufacturer: string
   mpn: string
   packageName: string
@@ -13,6 +14,7 @@ export interface BomViewRow {
   quantity: string
   functionalBlock: string
   partName: string
+  description?: string
   lifecycle: string
   unitPrice: string
   stock: string
