@@ -31,6 +31,11 @@ interface TiRuntimeBlock {
   instance: SystemBlockTsx
 }
 
+interface TiRuntimeBlockInput {
+  json: SystemBlockJson
+  componentName: TiSystemBlockName
+}
+
 interface InterfaceTrace {
   from: string
   to: string
@@ -83,9 +88,18 @@ function createConnectedRuntimeBlocks(systemJson: SystemJson[]) {
   const connections = systemJson.filter(
     (item): item is SystemConnection => item.type === "system_connection",
   )
-  const runtimeBlocks = blocks
-    .map(createRuntimeBlock)
-    .filter((block): block is TiRuntimeBlock => block !== null)
+  const runtimeBlockInputs = blocks
+    .map(createRuntimeBlockInput)
+    .filter((block): block is TiRuntimeBlockInput => block !== null)
+  const instanceNameByBlockId = createInstanceNameByBlockId(runtimeBlockInputs)
+  const runtimeBlocks = runtimeBlockInputs.map((runtimeBlockInput) =>
+    createRuntimeBlock(
+      runtimeBlockInput.json,
+      runtimeBlockInput.componentName,
+      instanceNameByBlockId.get(runtimeBlockInput.json.system_block_id) ??
+        toTsxIdentifier(runtimeBlockInput.json.system_block_id),
+    ),
+  )
 
   if (runtimeBlocks.length === 0) {
     throw new Error("No TI subcircuit blocks were found in the system JSON")
@@ -136,12 +150,24 @@ ${children}
 </board>`
 }
 
-function createRuntimeBlock(block: SystemBlockJson): TiRuntimeBlock | null {
+function createRuntimeBlockInput(
+  block: SystemBlockJson,
+): TiRuntimeBlockInput | null {
   const componentName = getTiComponentName(block)
   if (!componentName) return null
 
+  return {
+    json: block,
+    componentName,
+  }
+}
+
+function createRuntimeBlock(
+  block: SystemBlockJson,
+  componentName: TiSystemBlockName,
+  instanceName: string,
+): TiRuntimeBlock {
   const BlockClass = TiSystemBlockClasses[componentName] as TiBlockConstructor
-  const instanceName = toTsxIdentifier(block.system_block_id)
   const instance = new BlockClass({
     systemBlockId: block.system_block_id,
     center: block.center,
@@ -158,6 +184,90 @@ function createRuntimeBlock(block: SystemBlockJson): TiRuntimeBlock | null {
     instanceName,
     instance,
   }
+}
+
+function createInstanceNameByBlockId(runtimeBlocks: TiRuntimeBlockInput[]) {
+  const instanceNameByBlockId = new Map<string, string>()
+  const usedNames = new Set<string>()
+
+  for (const runtimeBlock of runtimeBlocks) {
+    if (isCanvasGeneratedBlockId(runtimeBlock.json.system_block_id)) continue
+    const instanceName = getUniqueIdentifier(
+      toTsxIdentifier(runtimeBlock.json.system_block_id),
+      usedNames,
+    )
+    instanceNameByBlockId.set(runtimeBlock.json.system_block_id, instanceName)
+    usedNames.add(instanceName)
+  }
+
+  for (const runtimeBlock of runtimeBlocks) {
+    if (!isCanvasGeneratedBlockId(runtimeBlock.json.system_block_id)) continue
+    const [candidate] = getSemanticInstanceNameCandidates(
+      runtimeBlock.json,
+      runtimeBlock.componentName,
+    )
+    const instanceName = getUniqueIdentifier(
+      candidate ?? toTsxIdentifier(runtimeBlock.json.system_block_id),
+      usedNames,
+    )
+    instanceNameByBlockId.set(runtimeBlock.json.system_block_id, instanceName)
+    usedNames.add(instanceName)
+  }
+
+  return instanceNameByBlockId
+}
+
+const BROAD_CATEGORY_NAMES = new Set([
+  "Communication",
+  "Memory",
+  "Power",
+  "Processing & Security",
+])
+
+function getSemanticInstanceNameCandidates(
+  block: SystemBlockJson,
+  componentName: TiSystemBlockName,
+) {
+  const definition = TI_DEFINITIONS.find(
+    (candidate) => candidate.componentName === componentName,
+  )
+  const candidates = [
+    block.label && block.label !== definition?.label ? block.label : undefined,
+    block.category[0] && !BROAD_CATEGORY_NAMES.has(block.category[0])
+      ? block.category[0]
+      : undefined,
+    getComponentFamilyName(componentName),
+    block.label,
+    block.category[block.category.length - 1],
+    block.system_block_id,
+  ]
+
+  return uniqueStrings(
+    candidates
+      .filter((candidate): candidate is string => Boolean(candidate))
+      .map(toSnakeCaseIdentifier)
+      .map(toTsxIdentifier)
+      .filter((candidate) => candidate.length > 0),
+  )
+}
+
+function getComponentFamilyName(componentName: TiSystemBlockName) {
+  return componentName.replace(/_[^_]+$/, "")
+}
+
+function isCanvasGeneratedBlockId(value: string) {
+  return /^b_\d+$/.test(value)
+}
+
+function getUniqueIdentifier(base: string, usedNames: Set<string>) {
+  const normalizedBase = toTsxIdentifier(base) || "block"
+  if (!usedNames.has(normalizedBase)) return normalizedBase
+
+  let index = 2
+  while (usedNames.has(`${normalizedBase}_${index}`)) {
+    index++
+  }
+  return `${normalizedBase}_${index}`
 }
 
 function createInterfaceTraces(
@@ -328,6 +438,20 @@ function toTsxIdentifier(value: string) {
     .replace(/^[^A-Za-z_$]+/, "")
 
   return identifier || "block"
+}
+
+function toSnakeCaseIdentifier(value: string) {
+  return value
+    .trim()
+    .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
+    .replace(/[^A-Za-z0-9]+/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_|_$/g, "")
+    .toLowerCase()
+}
+
+function uniqueStrings(values: string[]) {
+  return Array.from(new Set(values))
 }
 
 function indent(value: string, spaces: number) {
