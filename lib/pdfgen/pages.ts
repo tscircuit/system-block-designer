@@ -218,9 +218,21 @@ export async function drawPdfPage(
     await drawSchematicSheetPage(pdfDoc, page, fonts, pageInput, context)
   }
 
-  if (pageInput.type !== "title" && pageInput.type !== "project_details") {
+  if (shouldDrawSharedFooter(pageInput)) {
     drawFooter(page, fonts)
   }
+}
+
+export function shouldDrawSharedFooter(
+  pageInput:
+    | TitlePageInput
+    | ProjectDetailsPageInput
+    | TechnicalSpecificationsPageInput
+    | BomPageInput
+    | SystemArchitecturePageInput
+    | SchematicSheetPageInput,
+) {
+  return pageInput.type !== "title"
 }
 
 function getProjectDetailsEntries(input: ProjectDetailsPageInput) {

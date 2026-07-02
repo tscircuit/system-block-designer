@@ -116,7 +116,7 @@ const examplePdf: CreatePdfParams = {
       },
     ],
     disclaimer:
-      "Project title, description, and block diagram content may be AI-generated. Schematics, BOM, and resolved components are derived from the current design export.",
+      "Project Title, Project Description, and Block Diagram may be AI-Generated. Schematics, BOM, and Components are not AI-Generated.",
   },
   technicalSpecificationsPage: {
     type: "technical_specifications",
