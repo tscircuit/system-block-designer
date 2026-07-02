@@ -365,12 +365,13 @@ export function wrapText(
   maxWidth: number,
 ) {
   const safeText = sanitizePdfText(text, font)
+  const wordWrapper = createWordWrapper({ font, size, maxWidth })
   const lines: string[] = []
   for (const paragraph of safeText.split(/\n+/)) {
     const words = paragraph.trim().split(/\s+/).filter(Boolean)
     let line = ""
     for (const word of words) {
-      const wrappedWord = wrapLongToken(word, font, size, maxWidth)
+      const wrappedWord = wordWrapper.wrapLongWord(word)
       if (wrappedWord.length > 1) {
         if (line) {
           lines.push(line)
@@ -386,7 +387,7 @@ export function wrapText(
         line = candidate
       } else {
         lines.push(line)
-        const nextWordLines = wrapLongToken(word, font, size, maxWidth)
+        const nextWordLines = wordWrapper.wrapLongWord(word)
         if (nextWordLines.length > 1) {
           lines.push(...nextWordLines.slice(0, -1))
           line = nextWordLines[nextWordLines.length - 1]
@@ -400,62 +401,61 @@ export function wrapText(
   return lines
 }
 
-function wrapLongToken(
-  token: string,
-  font: PDFFont,
-  size: number,
-  maxWidth: number,
-) {
-  if (!token || measureTextWidth(font, token, size) <= maxWidth) return [token]
+type WordWrapMetrics = Pick<PdfTextOptions, "font" | "size" | "maxWidth">
 
-  const coarseSegments = splitTokenAtPreferredBreaks(token)
-  const lines: string[] = []
-  let line = ""
+function createWordWrapper(metrics: WordWrapMetrics) {
+  const fitsWithinWidth = (text: string) =>
+    measureTextWidth(metrics.font, text, metrics.size) <= metrics.maxWidth
 
-  for (const segment of coarseSegments) {
-    const parts = breakOversizedSegment(segment, font, size, maxWidth)
-    for (const part of parts) {
-      const candidate = `${line}${part}`
-      if (!line || measureTextWidth(font, candidate, size) <= maxWidth) {
-        line = candidate
-      } else {
-        lines.push(line)
-        line = part
+  const breakOversizedWordSegment = (segment: string) => {
+    if (fitsWithinWidth(segment)) return [segment]
+
+    const parts: string[] = []
+    let current = ""
+    for (const character of segment) {
+      const candidate = `${current}${character}`
+      if (!current || fitsWithinWidth(candidate)) {
+        current = candidate
+        continue
       }
+      parts.push(current)
+      current = character
     }
+
+    if (current) parts.push(current)
+    return parts
   }
 
-  if (line) lines.push(line)
-  return lines
-}
+  return {
+    wrapLongWord(word: string) {
+      if (!word || fitsWithinWidth(word)) return [word]
 
-function splitTokenAtPreferredBreaks(token: string) {
-  const segments = token.match(/[^_.\-/]+(?:[_.\-/]+)?/g)
-  return segments && segments.length > 0 ? segments : [token]
-}
+      const coarseSegments = splitWordAtPreferredBreaks(word)
+      const lines: string[] = []
+      let line = ""
 
-function breakOversizedSegment(
-  segment: string,
-  font: PDFFont,
-  size: number,
-  maxWidth: number,
-) {
-  if (measureTextWidth(font, segment, size) <= maxWidth) return [segment]
+      for (const segment of coarseSegments) {
+        const parts = breakOversizedWordSegment(segment)
+        for (const part of parts) {
+          const candidate = `${line}${part}`
+          if (!line || fitsWithinWidth(candidate)) {
+            line = candidate
+          } else {
+            lines.push(line)
+            line = part
+          }
+        }
+      }
 
-  const parts: string[] = []
-  let current = ""
-  for (const character of segment) {
-    const candidate = `${current}${character}`
-    if (!current || measureTextWidth(font, candidate, size) <= maxWidth) {
-      current = candidate
-      continue
-    }
-    parts.push(current)
-    current = character
+      if (line) lines.push(line)
+      return lines
+    },
   }
+}
 
-  if (current) parts.push(current)
-  return parts
+function splitWordAtPreferredBreaks(word: string) {
+  const segments = word.match(/[^_.\-/]+(?:[_.\-/]+)?/g)
+  return segments && segments.length > 0 ? segments : [word]
 }
 
 export function drawPdfText(
