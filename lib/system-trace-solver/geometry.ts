@@ -50,6 +50,7 @@ export function removeCollinearPoints(points: Point[]) {
       const vertical = a.x === b.x && b.x === c.x
       const horizontal = a.y === b.y && b.y === c.y
       if (!vertical && !horizontal) break
+      if (!pointIsBetweenCollinearPoints(a, b, c)) break
       result.splice(result.length - 2, 1)
     }
   }
@@ -186,6 +187,41 @@ export function countParallelCrowding(
   return crowded
 }
 
+export function getCollinearOverlapLength(
+  points: Point[],
+  occupiedPaths: Point[][],
+) {
+  let overlapLength = 0
+  const segments = getPathSegments(points)
+  const occupiedSegments = occupiedPaths.flatMap(getPathSegments)
+
+  for (const segment of segments) {
+    for (const occupied of occupiedSegments) {
+      if (segment.a.y === segment.b.y && occupied.a.y === occupied.b.y) {
+        if (segment.a.y !== occupied.a.y) continue
+        overlapLength += rangeOverlapLength(
+          segment.a.x,
+          segment.b.x,
+          occupied.a.x,
+          occupied.b.x,
+        )
+      }
+
+      if (segment.a.x === segment.b.x && occupied.a.x === occupied.b.x) {
+        if (segment.a.x !== occupied.a.x) continue
+        overlapLength += rangeOverlapLength(
+          segment.a.y,
+          segment.b.y,
+          occupied.a.y,
+          occupied.b.y,
+        )
+      }
+    }
+  }
+
+  return overlapLength
+}
+
 export function pathKey(points: Point[]) {
   return points.map((point) => `${point.x},${point.y}`).join("|")
 }
@@ -240,4 +276,24 @@ function rangesOverlap(a1: number, a2: number, b1: number, b2: number) {
   const bMin = Math.min(b1, b2)
   const bMax = Math.max(b1, b2)
   return Math.max(aMin, bMin) < Math.min(aMax, bMax)
+}
+
+function rangeOverlapLength(a1: number, a2: number, b1: number, b2: number) {
+  const aMin = Math.min(a1, a2)
+  const aMax = Math.max(a1, a2)
+  const bMin = Math.min(b1, b2)
+  const bMax = Math.max(b1, b2)
+  return Math.max(0, Math.min(aMax, bMax) - Math.max(aMin, bMin))
+}
+
+function pointIsBetweenCollinearPoints(a: Point, b: Point, c: Point) {
+  if (a.x === b.x && b.x === c.x) {
+    return b.y >= Math.min(a.y, c.y) && b.y <= Math.max(a.y, c.y)
+  }
+
+  if (a.y === b.y && b.y === c.y) {
+    return b.x >= Math.min(a.x, c.x) && b.x <= Math.max(a.x, c.x)
+  }
+
+  return false
 }
