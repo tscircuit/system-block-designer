@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react"
+import { formatPackageDisplayName } from "../../lib/bom/formatPackageDisplayName"
 import type { BomSummaryItem, BomViewRow } from "../../lib/bom/types"
 import { bomRows as demoRows, bomSummary as demoSummary } from "./bomData"
 import { BomSummary } from "./BomSummary"
@@ -33,6 +34,7 @@ export function BomView({
         row.manufacturer,
         row.mpn,
         row.packageName,
+        formatPackageDisplayName(row.packageName),
         row.value,
         row.quantity,
         row.functionalBlock,
