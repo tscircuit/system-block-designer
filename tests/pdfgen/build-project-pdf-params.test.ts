@@ -2,6 +2,7 @@ import { expect, test } from "bun:test"
 import { createSmartLockSystemJson } from "../../app/SmartLock/createSmartLockSystemJson"
 import type { BomViewRow } from "../../lib/bom/types"
 import { buildProjectPdfParams } from "../../components/OutputFiles/createProjectPdf"
+import { formatProjectPdfExportedOn } from "../../components/OutputFiles/formatProjectPdfExportedOn"
 
 test("buildProjectPdfParams maps system json onto pdf pages", () => {
   const systemJson = createSmartLockSystemJson()
@@ -21,11 +22,26 @@ test("buildProjectPdfParams maps system json onto pdf pages", () => {
       stock: "18,500",
     },
   ]
-  const params = buildProjectPdfParams(systemJson, null, bomRows)
+  const exportedAt = new Date("2026-06-25T21:06:00.000Z")
+  const expectedExportedOn = formatProjectPdfExportedOn(exportedAt)
+  const params = buildProjectPdfParams(systemJson, null, bomRows, {
+    exportedAt,
+  })
 
   expect(params.titlePage?.type).toBe("title")
-  expect(params.projectDetailsPage?.details?.Blocks).toBeGreaterThan(0)
-  expect(params.projectDetailsPage?.details?.["BOM Rows"]).toBe(1)
+  expect(params.titlePage?.date).toBe(expectedExportedOn)
+  expect(params.projectDetailsPage?.entries?.[0]).toEqual({
+    label: "Project name",
+    value: "Smart Lock (UWB Smart Lock)",
+  })
+  expect(params.projectDetailsPage?.entries?.[1]?.value).toBe(
+    "Communication, Memory, Processing & Security, Power",
+  )
+  expect(params.projectDetailsPage?.entries?.[2]?.value).toBe("Security")
+  expect(params.projectDetailsPage?.entries?.[5]?.value).toBe(
+    expectedExportedOn,
+  )
+  expect(params.projectDetailsPage?.disclaimer).toContain("AI-generated")
   expect(params.systemArchitecturePage?.systemJson).toBe(systemJson)
   expect(params.technicalSpecificationsPage?.rows?.length).toBeGreaterThan(0)
   expect(params.bomPage?.rows).toEqual(bomRows)

@@ -1,6 +1,6 @@
 import { rgb } from "pdf-lib"
 
-export const PAGE_MARGIN = 44
+export const PAGE_MARGIN = 32
 
 export const PAGE_SIZES = {
   portrait: {

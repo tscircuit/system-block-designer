@@ -1,4 +1,4 @@
-import type { PDFDocument, PDFPage } from "pdf-lib"
+import { type PDFDocument, type PDFPage } from "pdf-lib"
 import { drawBomPage } from "./bomPage"
 import { COLORS, PAGE_MARGIN } from "./constants"
 import {
@@ -79,18 +79,70 @@ export function drawProjectDetailsPage(
   pageNumber: number,
 ) {
   drawPageChrome(page, fonts, pageNumber)
-  let y = drawPageTitle(
-    page,
-    fonts,
-    input.title ?? "Project Details",
-    input.summary ?? input.projectName,
-  )
+  const { width, height } = page.getSize()
+  const title = (input.title ?? "Project Details").toUpperCase()
+  const entries = getProjectDetailsEntries(input)
+  const disclaimer = input.disclaimer ?? getLegacyDisclaimer(input)
+  const sections = disclaimer
+    ? (input.sections ?? []).filter(
+        (section) => !/disclaimer/i.test(section.title),
+      )
+    : (input.sections ?? [])
+  const contentX = PAGE_MARGIN
+  const contentWidth = width - PAGE_MARGIN * 2
 
-  if (input.details) {
-    y = drawKeyValueGrid(page, fonts, input.details, PAGE_MARGIN, y, 2)
+  drawPdfText(page, title, {
+    x: contentX,
+    y: height - 92,
+    size: 20,
+    font: fonts.bold,
+    color: COLORS.accent,
+  })
+
+  let y = height - 136
+  for (const entry of entries) {
+    drawPdfText(page, `${entry.label}:`, {
+      x: contentX,
+      y,
+      size: 14,
+      font: fonts.bold,
+      color: COLORS.ink,
+    })
+    y -= 25
+    y =
+      drawText(page, String(entry.value), {
+        x: contentX,
+        y,
+        size: 15,
+        font: fonts.regular,
+        color: COLORS.muted,
+        maxWidth: contentWidth,
+        lineHeight: 18,
+      }) - 24
   }
 
-  drawSections(page, fonts, input.sections ?? [], y)
+  if (disclaimer) {
+    drawPdfText(page, "DISCLAIMER", {
+      x: contentX,
+      y,
+      size: 16,
+      font: fonts.bold,
+      color: COLORS.accent,
+    })
+    y -= 24
+    y =
+      drawText(page, disclaimer, {
+        x: contentX,
+        y,
+        size: 10.5,
+        font: fonts.regular,
+        color: COLORS.muted,
+        maxWidth: contentWidth,
+        lineHeight: 14,
+      }) - 10
+  }
+
+  drawSections(page, fonts, sections, y)
 }
 
 export function drawTechnicalSpecificationsPage(
@@ -166,9 +218,45 @@ export async function drawPdfPage(
     await drawSchematicSheetPage(pdfDoc, page, fonts, pageInput, context)
   }
 
-  if (pageInput.type !== "title") {
+  if (pageInput.type !== "title" && pageInput.type !== "project_details") {
     drawFooter(page, fonts)
   }
+}
+
+function getProjectDetailsEntries(input: ProjectDetailsPageInput) {
+  if (input.entries?.length) return input.entries
+
+  const entries: Array<{ label: string; value: string | number }> = []
+  const detailEntries = Object.entries(input.details ?? {}).filter(
+    (entry): entry is [string, string | number] => entry[1] != null,
+  )
+
+  if (
+    input.projectName &&
+    !detailEntries.some(([label]) => label.toLowerCase() === "project")
+  ) {
+    entries.push({ label: "Project name", value: input.projectName })
+  }
+
+  entries.push(
+    ...detailEntries.map(([label, value]) => ({
+      label,
+      value,
+    })),
+  )
+
+  if (!entries.length && input.summary) {
+    entries.push({ label: "Summary", value: input.summary })
+  }
+
+  return entries
+}
+
+function getLegacyDisclaimer(input: ProjectDetailsPageInput) {
+  const disclaimerSection = input.sections?.find((section) =>
+    /disclaimer/i.test(section.title),
+  )
+  return disclaimerSection?.body
 }
 
 function drawCoverWatermark(page: PDFPage, fonts: PdfFonts) {
