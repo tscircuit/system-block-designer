@@ -72,6 +72,29 @@ export const mixedSidePortsSystem: SystemJson[] = [
   connection("power_vertical", "battery_vbat", "hub_vbat", "VBAT"),
 ]
 
+export const overlappingTopLaneSystem: SystemJson[] = [
+  diagram("Trace Overlapping Top Lane"),
+  block("microcontroller", "Microcontroller", 250, 260, 260, 150, "chip"),
+  block(
+    "environmental_sensor",
+    "Environmental Sensor",
+    900,
+    575,
+    215,
+    108,
+    "chip",
+  ),
+  block("power_monitor", "Power Monitor", 660, 220, 260, 142, "power"),
+  port("mcu_supply", "microcontroller", "top", "SUPPLY"),
+  port("mcu_i2c", "microcontroller", "right", "I2C"),
+  port("sensor_i2c", "environmental_sensor", "left", "I2C"),
+  port("monitor_supply", "power_monitor", "top", "SUPPLY"),
+  port("monitor_i2c", "power_monitor", "left", "I2C"),
+  connection("supply_top_lane", "mcu_supply", "monitor_supply", "SUPPLY"),
+  connection("i2c_monitor", "mcu_i2c", "monitor_i2c", "I2C"),
+  connection("i2c_sensor", "mcu_i2c", "sensor_i2c", "I2C"),
+]
+
 function diagram(name: string): SystemJson {
   return {
     type: "system_diagram",
