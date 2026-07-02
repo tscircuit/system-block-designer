@@ -18,13 +18,13 @@ export function formatPackageDisplayName(packageName: string) {
 
   return normalizedPackageName
     .split(/[_-]+/u)
-    .map(formatPackageSegment)
+    .map(formatPackageElement)
     .join("_")
 }
 
 function formatPinHeaderDisplayName(packageName: string) {
-  const [baseToken, ...suffixTokens] = packageName.split("_")
-  const baseMatch = baseToken.match(PINROW_PATTERN)
+  const [baseElement, ...suffixElements] = packageName.split("_")
+  const baseMatch = baseElement.match(PINROW_PATTERN)
   if (!baseMatch?.groups?.pinCount) return null
 
   const pinCount = Number.parseInt(baseMatch.groups.pinCount, 10)
@@ -37,8 +37,8 @@ function formatPinHeaderDisplayName(packageName: string) {
   let gender = "Male"
   let smd = false
 
-  for (const token of suffixTokens) {
-    const rowMatch = token.match(PINROW_ROWS_PATTERN)
+  for (const element of suffixElements) {
+    const rowMatch = element.match(PINROW_ROWS_PATTERN)
     if (rowMatch?.groups?.value) {
       const parsedRowCount = Number.parseInt(rowMatch.groups.value, 10)
       if (Number.isFinite(parsedRowCount) && parsedRowCount > 0) {
@@ -47,32 +47,32 @@ function formatPinHeaderDisplayName(packageName: string) {
       continue
     }
 
-    const pitchMatch = token.match(PINROW_PITCH_PATTERN)
+    const pitchMatch = element.match(PINROW_PITCH_PATTERN)
     if (pitchMatch?.groups?.value) {
-      pitch = formatPitch(
-        pitchMatch.groups.value,
-        pitchMatch.groups.unit ?? "mm",
-      )
+      pitch = formatPitch({
+        value: pitchMatch.groups.value,
+        unit: pitchMatch.groups.unit ?? "mm",
+      })
       continue
     }
 
-    if (token === "female" || token === "unpopulated") {
-      gender = formatPackageSegment(token)
+    if (element === "female" || element === "unpopulated") {
+      gender = formatPackageElement(element)
       includeGender = true
       continue
     }
 
-    if (token === "male") {
+    if (element === "male") {
       gender = "Male"
       continue
     }
 
-    if (token === "rightangle") {
+    if (element === "rightangle") {
       orientation = "Horizontal"
       continue
     }
 
-    if (token === "smd") {
+    if (element === "smd") {
       smd = true
     }
   }
@@ -89,8 +89,8 @@ function formatPinHeaderDisplayName(packageName: string) {
   return parts.join("_")
 }
 
-function formatPitch(value: string, unit: string) {
-  return `P${trimTrailingZeros(value)}${unit}`
+function formatPitch(params: { value: string; unit: string }) {
+  return `P${trimTrailingZeros(params.value)}${params.unit}`
 }
 
 function trimTrailingZeros(value: string) {
@@ -105,8 +105,8 @@ function shouldPreservePackageName(packageName: string) {
   )
 }
 
-function formatPackageSegment(segment: string) {
-  return segment.replace(
+function formatPackageElement(element: string) {
+  return element.replace(
     /^[a-z]+/u,
     (prefix) => prefix.charAt(0).toUpperCase() + prefix.slice(1),
   )
