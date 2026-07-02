@@ -7,14 +7,14 @@
 <rect class="grid-bg" x="0" y="0" width="836" height="500" fill="url(#dots)" />
 <g transform="translate(58,-204)">
 <g data-system-connection-id="w_i2c_sensor">
-<path class="wire" d="M 210 304 L 225 304 Q 234 304 243 304 L 326 304 Q 335 304 335 313 L 335 591 Q 335 600 344 600 L 427 600 Q 436 600 445 600 L 460 600" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
-<rect class="wlabel-bg" x="318.1" y="443" width="33.8" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
-<text class="wlabel-t" x="335" y="452.5" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">i2c</text>
+<path class="wire" d="M 210 304 L 225 304 Q 234 304 234 313 L 234 591 Q 234 600 243 600 L 460 600" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
+<rect class="wlabel-bg" x="217.1" y="443" width="33.8" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
+<text class="wlabel-t" x="234" y="452.5" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">i2c</text>
 </g>
 <g data-system-connection-id="w_i2c_power_monitor">
-<path class="wire" d="M 210 356 L 225 356 Q 234 356 243 356 L 352 356 Q 360 356 360 348 L 360 348 Q 360 340 368 340 L 477 340 Q 486 340 495 340 L 510 340" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
-<rect class="wlabel-bg" x="343.1" y="339" width="33.8" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
-<text class="wlabel-t" x="360" y="348.5" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">i2c</text>
+<path class="wire" d="M 210 356 L 478 356 Q 486 356 486 348 L 486 348 Q 486 340 494 340 L 510 340" fill="none" stroke="#9aa4b0" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
+<rect class="wlabel-bg" x="331.1" y="347" width="33.8" height="18" rx="5" fill="#fff" stroke="#e3e8ee" stroke-width="1" />
+<text class="wlabel-t" x="348" y="356.5" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#5a6573" text-anchor="middle" dominant-baseline="middle">i2c</text>
 </g>
 <g class="block" data-system-block-id="controller" transform="translate(-10,252)">
 <rect class="block-rect" width="220" height="156" rx="14" fill="#fff" stroke="#2b3543" stroke-width="1.6" />
