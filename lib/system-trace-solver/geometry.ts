@@ -30,6 +30,19 @@ export function obstacleToRect(
   }
 }
 
+export function obstacleToBodyRect(
+  obstacle: SystemTraceBlockObstacle,
+): TraceRect {
+  return {
+    id: obstacle.id,
+    label: obstacle.label,
+    minX: obstacle.center.x - obstacle.width / 2,
+    minY: obstacle.center.y - obstacle.height / 2,
+    maxX: obstacle.center.x + obstacle.width / 2,
+    maxY: obstacle.center.y + obstacle.height / 2,
+  }
+}
+
 export function dedupePoints(points: Point[]) {
   const deduped: Point[] = []
   for (const point of points) {
@@ -117,6 +130,21 @@ export function countObstacleHits(points: Point[], rects: TraceRect[]) {
       rects.filter((rect) => segmentIntersectsRect(segment, rect)).length,
     0,
   )
+}
+
+export function getObstacleIntersectionLength(
+  points: Point[],
+  rects: TraceRect[],
+) {
+  let intersectionLength = 0
+
+  for (const segment of getPathSegments(points)) {
+    for (const rect of rects) {
+      intersectionLength += getSegmentRectIntersectionLength(segment, rect)
+    }
+  }
+
+  return intersectionLength
 }
 
 export function segmentsCross(a: TraceSegment, b: TraceSegment) {
@@ -222,6 +250,48 @@ export function getCollinearOverlapLength(
   return overlapLength
 }
 
+export function getParallelProximity(
+  points: Point[],
+  occupiedPaths: Point[][],
+  minGap: number,
+) {
+  let proximity = 0
+  const segments = getPathSegments(points)
+  const occupiedSegments = occupiedPaths.flatMap(getPathSegments)
+
+  for (const segment of segments) {
+    for (const occupied of occupiedSegments) {
+      if (segment.a.y === segment.b.y && occupied.a.y === occupied.b.y) {
+        const gap = Math.abs(segment.a.y - occupied.a.y)
+        if (gap <= 0 || gap >= minGap) continue
+        proximity +=
+          rangeOverlapLength(
+            segment.a.x,
+            segment.b.x,
+            occupied.a.x,
+            occupied.b.x,
+          ) *
+          ((minGap - gap) / minGap)
+      }
+
+      if (segment.a.x === segment.b.x && occupied.a.x === occupied.b.x) {
+        const gap = Math.abs(segment.a.x - occupied.a.x)
+        if (gap <= 0 || gap >= minGap) continue
+        proximity +=
+          rangeOverlapLength(
+            segment.a.y,
+            segment.b.y,
+            occupied.a.y,
+            occupied.b.y,
+          ) *
+          ((minGap - gap) / minGap)
+      }
+    }
+  }
+
+  return proximity
+}
+
 export function pathKey(points: Point[]) {
   return points.map((point) => `${point.x},${point.y}`).join("|")
 }
@@ -268,6 +338,25 @@ function segmentLength(segment: TraceSegment) {
   return (
     Math.abs(segment.a.x - segment.b.x) + Math.abs(segment.a.y - segment.b.y)
   )
+}
+
+function getSegmentRectIntersectionLength(
+  segment: TraceSegment,
+  rect: TraceRect,
+) {
+  if (segment.a.y === segment.b.y) {
+    const y = segment.a.y
+    if (y < rect.minY || y > rect.maxY) return 0
+    return rangeOverlapLength(segment.a.x, segment.b.x, rect.minX, rect.maxX)
+  }
+
+  if (segment.a.x === segment.b.x) {
+    const x = segment.a.x
+    if (x < rect.minX || x > rect.maxX) return 0
+    return rangeOverlapLength(segment.a.y, segment.b.y, rect.minY, rect.maxY)
+  }
+
+  return 0
 }
 
 function rangesOverlap(a1: number, a2: number, b1: number, b2: number) {

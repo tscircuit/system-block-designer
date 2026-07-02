@@ -13,8 +13,11 @@ import {
   dedupePoints,
   getBendCount,
   getCollinearOverlapLength,
+  getObstacleIntersectionLength,
+  getParallelProximity,
   getPathLength,
   midpointOfLongestSegment,
+  obstacleToBodyRect,
   obstacleToRect,
   pathKey,
   pointInRect,
@@ -40,6 +43,7 @@ const DEFAULT_OPTIONS: Required<SystemTraceSolverOptions> = {
 export class SystemTraceEndpointSolver extends BaseSolver {
   endpoints: SystemTraceRouteEndpoint[] = []
   rects: TraceRect[] = []
+  bodyRects: TraceRect[] = []
   private nextRouteIndex = 0
   private rectsCreated = false
   private options: Required<SystemTraceSolverOptions>
@@ -55,6 +59,7 @@ export class SystemTraceEndpointSolver extends BaseSolver {
       this.rects = this.input.obstacles.map((obstacle) =>
         obstacleToRect(obstacle, this.options.obstaclePadding),
       )
+      this.bodyRects = this.input.obstacles.map(obstacleToBodyRect)
       this.rectsCreated = true
       this.stats = {
         operation: "created-obstacle-rects",
@@ -87,7 +92,11 @@ export class SystemTraceEndpointSolver extends BaseSolver {
   }
 
   override getOutput() {
-    return { endpoints: this.endpoints, rects: this.rects }
+    return {
+      endpoints: this.endpoints,
+      rects: this.rects,
+      bodyRects: this.bodyRects,
+    }
   }
 
   override visualize(): GraphicsObject {
@@ -115,6 +124,7 @@ export class SingleSystemTraceSolver extends BaseSolver {
     private input: {
       route: SystemTraceRouteEndpoint
       rects: TraceRect[]
+      bodyRects: TraceRect[]
       occupiedPaths: Point[][]
       options?: SystemTraceSolverOptions
     },
@@ -161,6 +171,7 @@ export class SingleSystemTraceSolver extends BaseSolver {
       `${this.input.route.connectionId}:${this.nextCandidateIndex}`,
       points,
       this.input.rects,
+      this.input.bodyRects,
       this.input.occupiedPaths,
       this.options.laneGap,
       this.input.route,
@@ -232,6 +243,7 @@ export class SystemTraceRouteSolver extends BaseSolver {
     private input: {
       endpoints: SystemTraceRouteEndpoint[]
       rects: TraceRect[]
+      bodyRects: TraceRect[]
       options?: SystemTraceSolverOptions
     },
   ) {
@@ -256,6 +268,7 @@ export class SystemTraceRouteSolver extends BaseSolver {
       this.activeSubSolver = new SingleSystemTraceSolver({
         route,
         rects: this.input.rects,
+        bodyRects: this.input.bodyRects,
         occupiedPaths: this.solvedLines.map((line) => line.points),
         options: this.options,
       })
@@ -423,11 +436,13 @@ export class SystemTraceSolver extends BasePipelineSolver<SystemTraceSolverInput
         const endpointOutput = instance.getStageOutput<{
           endpoints: SystemTraceRouteEndpoint[]
           rects: TraceRect[]
+          bodyRects: TraceRect[]
         }>("endpointSolver")
         return [
           {
             endpoints: endpointOutput?.endpoints ?? [],
             rects: endpointOutput?.rects ?? [],
+            bodyRects: endpointOutput?.bodyRects ?? [],
             options: instance.inputProblem.options,
           },
         ]
@@ -579,6 +594,7 @@ function scoreCandidate(
   id: string,
   points: Point[],
   rects: TraceRect[],
+  bodyRects: TraceRect[],
   occupiedPaths: Point[][],
   laneGap: number,
   route: SystemTraceRouteEndpoint,
@@ -586,17 +602,28 @@ function scoreCandidate(
   const length = getPathLength(points)
   const bends = getBendCount(points)
   const obstacleHits = countObstacleHits(points, rects)
+  const obstacleIntersectionLength = getObstacleIntersectionLength(
+    points,
+    bodyRects,
+  )
   const crossingCount = countCrossings(points, occupiedPaths)
   const parallelCrowding = countParallelCrowding(points, occupiedPaths, laneGap)
   const overlapLength = getCollinearOverlapLength(points, occupiedPaths)
+  const parallelProximity = getParallelProximity(
+    points,
+    occupiedPaths,
+    laneGap * 1.6,
+  )
   const endpointReversals = countEndpointReversals(points, route)
   const score =
     length +
     bends * 12 +
     obstacleHits * 10_000 +
+    obstacleIntersectionLength * 2_000 +
     crossingCount * 700 +
     parallelCrowding * 250 +
     overlapLength * 100 +
+    parallelProximity * 80 +
     endpointReversals * 6_000
 
   return {
@@ -605,9 +632,11 @@ function scoreCandidate(
     length,
     bends,
     obstacleHits,
+    obstacleIntersectionLength,
     crossingCount,
     parallelCrowding,
     overlapLength,
+    parallelProximity,
     endpointReversals,
     score,
   }
