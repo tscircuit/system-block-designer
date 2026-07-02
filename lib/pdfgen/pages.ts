@@ -78,24 +78,71 @@ export function drawProjectDetailsPage(
   input: ProjectDetailsPageInput,
   pageNumber: number,
 ) {
-  if (shouldUseStyledProjectDetailsLayout(input)) {
-    drawStyledProjectDetailsPage(page, fonts, input, pageNumber)
-    return
-  }
-
   drawPageChrome(page, fonts, pageNumber)
-  let y = drawPageTitle(
-    page,
-    fonts,
-    input.title ?? "Project Details",
-    input.summary ?? input.projectName,
-  )
+  const { width, height } = page.getSize()
+  const title = (input.title ?? "Project Details").toUpperCase()
+  const entries = getProjectDetailsEntries(input)
+  const disclaimer = input.disclaimer ?? getLegacyDisclaimer(input)
+  const sections = disclaimer
+    ? (input.sections ?? []).filter(
+        (section) => !/disclaimer/i.test(section.title),
+      )
+    : (input.sections ?? [])
+  const contentX = PAGE_MARGIN
+  const contentWidth = width - PAGE_MARGIN * 2
 
-  if (input.details) {
-    y = drawKeyValueGrid(page, fonts, input.details, PAGE_MARGIN, y, 2)
+  drawPdfText(page, title, {
+    x: contentX,
+    y: height - 92,
+    size: 20,
+    font: fonts.bold,
+    color: COLORS.accent,
+  })
+
+  let y = height - 136
+  for (const entry of entries) {
+    drawPdfText(page, `${entry.label}:`, {
+      x: contentX,
+      y,
+      size: 14,
+      font: fonts.bold,
+      color: COLORS.ink,
+    })
+    y -= 25
+    y =
+      drawText(page, String(entry.value), {
+        x: contentX,
+        y,
+        size: 15,
+        font: fonts.regular,
+        color: COLORS.muted,
+        maxWidth: contentWidth,
+        lineHeight: 18,
+      }) - 24
   }
 
-  drawSections(page, fonts, input.sections ?? [], y)
+  if (disclaimer) {
+    drawPdfText(page, "DISCLAIMER", {
+      x: contentX,
+      y,
+      size: 16,
+      font: fonts.bold,
+      color: COLORS.accent,
+    })
+    y -= 24
+    y =
+      drawText(page, disclaimer, {
+        x: contentX,
+        y,
+        size: 10.5,
+        font: fonts.regular,
+        color: COLORS.muted,
+        maxWidth: contentWidth,
+        lineHeight: 14,
+      }) - 10
+  }
+
+  drawSections(page, fonts, sections, y)
 }
 
 export function drawTechnicalSpecificationsPage(
@@ -173,83 +220,6 @@ export async function drawPdfPage(
 
   if (pageInput.type !== "title" && pageInput.type !== "project_details") {
     drawFooter(page, fonts)
-  }
-}
-
-function shouldUseStyledProjectDetailsLayout(input: ProjectDetailsPageInput) {
-  return Boolean(
-    input.entries?.length ||
-      input.disclaimer ||
-      input.headerLabel ||
-      input.projectName,
-  )
-}
-
-function drawStyledProjectDetailsPage(
-  page: PDFPage,
-  fonts: PdfFonts,
-  input: ProjectDetailsPageInput,
-  pageNumber: number,
-) {
-  const { width, height } = page.getSize()
-  const title = (input.title ?? "Project Details").toUpperCase()
-  const entries = getProjectDetailsEntries(input)
-  const contentX = 96
-  const contentWidth = width - contentX - 64
-  const titleY = height - 110
-  const firstEntryY = height - 152
-
-  drawPageChrome(page, fonts, pageNumber)
-
-  drawPdfText(page, title, {
-    x: contentX,
-    y: titleY,
-    size: 20,
-    font: fonts.bold,
-    color: COLORS.accent,
-  })
-
-  let y = firstEntryY
-  for (const entry of entries) {
-    drawPdfText(page, `${entry.label}:`, {
-      x: contentX,
-      y,
-      size: 14,
-      font: fonts.bold,
-      color: COLORS.ink,
-    })
-    y -= 25
-    y =
-      drawText(page, String(entry.value), {
-        x: contentX,
-        y,
-        size: 15,
-        font: fonts.regular,
-        color: COLORS.muted,
-        maxWidth: contentWidth,
-        lineHeight: 18,
-      }) - 24
-  }
-
-  const disclaimer = input.disclaimer ?? getLegacyDisclaimer(input)
-  if (disclaimer) {
-    drawPdfText(page, "DISCLAIMER", {
-      x: contentX,
-      y,
-      size: 16,
-      font: fonts.bold,
-      color: COLORS.accent,
-    })
-    y -= 24
-    drawText(page, disclaimer, {
-      x: contentX,
-      y,
-      size: 10.5,
-      font: fonts.regular,
-      color: COLORS.muted,
-      maxWidth: contentWidth,
-      lineHeight: 14,
-    })
   }
 }
 
