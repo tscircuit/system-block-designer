@@ -1,6 +1,9 @@
 import type {
   SystemBlock as SystemBlockJson,
   SystemBlockInterface,
+  SystemBlockInterfaceKind,
+  SystemBlockInterfacePinMap,
+  SystemBlockInterfacePinName,
   SystemConnection,
   SystemJson,
   SystemPort,
@@ -33,10 +36,8 @@ interface InterfaceTrace {
   to: string
 }
 
-type InterfacePinMap = Record<string, string>
-
 type MatchedInterface = SystemBlockInterface & {
-  pinMap: InterfacePinMap
+  subcircuitPinSelectorsByInterfacePinName: SystemBlockInterfacePinMap
 }
 
 export interface SystemJsonToTsxProject {
@@ -186,11 +187,11 @@ function createInterfaceTraces(
   return match.pinNames.map((pinName) => ({
     from: createSubcircuitPinSelector(
       sourceBlock.instanceName,
-      match.sourceInterface.pinMap[pinName],
+      match.sourceInterface.subcircuitPinSelectorsByInterfacePinName[pinName],
     ),
     to: createSubcircuitPinSelector(
       targetBlock.instanceName,
-      match.targetInterface.pinMap[pinName],
+      match.targetInterface.subcircuitPinSelectorsByInterfacePinName[pinName],
     ),
   }))
 }
@@ -211,31 +212,35 @@ function findMatchingInterface(
   const targetInterfaces = targetBlock.interfaces ?? []
 
   for (const sourceInterface of sourceInterfaces) {
-    const sourcePinMap = getInterfacePinMap(sourceInterface)
-    if (!sourcePinMap) continue
+    const sourceSubcircuitPinSelectors =
+      getSubcircuitPinSelectorsByInterfacePinName(sourceInterface)
+    if (!sourceSubcircuitPinSelectors) continue
 
     if (
-      sourceInterface.kind.toLowerCase() !== normalizedLabel &&
+      sourceInterface.kind !== normalizedLabel &&
       sourceInterface.name.toLowerCase() !== normalizedLabel
     ) {
       continue
     }
 
     const targetInterface = targetInterfaces.find((candidate) => {
-      if (!getInterfacePinMap(candidate)) return false
+      if (!getSubcircuitPinSelectorsByInterfacePinName(candidate)) return false
       return (
-        candidate.kind.toLowerCase() === sourceInterface.kind.toLowerCase() &&
+        candidate.kind === sourceInterface.kind &&
         (candidate.name.toLowerCase() === sourceInterface.name.toLowerCase() ||
-          candidate.kind.toLowerCase() === normalizedLabel)
+          candidate.kind === normalizedLabel)
       )
     })
     if (!targetInterface) continue
 
-    const targetPinMap = getInterfacePinMap(targetInterface)
-    if (!targetPinMap) continue
+    const targetSubcircuitPinSelectors =
+      getSubcircuitPinSelectorsByInterfacePinName(targetInterface)
+    if (!targetSubcircuitPinSelectors) continue
 
-    const sourcePinNames = Object.keys(sourcePinMap)
-    const pinNames = sourcePinNames.filter((pinName) => pinName in targetPinMap)
+    const sourcePinNames = Object.keys(sourceSubcircuitPinSelectors)
+    const pinNames = sourcePinNames.filter(
+      (pinName) => pinName in targetSubcircuitPinSelectors,
+    )
     const requiredPinNames = getRequiredPinNames(sourceInterface.kind)
     const hasRequiredPins =
       requiredPinNames.length > 0
@@ -246,11 +251,13 @@ function findMatchingInterface(
       return {
         sourceInterface: {
           ...sourceInterface,
-          pinMap: sourcePinMap,
+          subcircuitPinSelectorsByInterfacePinName:
+            sourceSubcircuitPinSelectors,
         },
         targetInterface: {
           ...targetInterface,
-          pinMap: targetPinMap,
+          subcircuitPinSelectorsByInterfacePinName:
+            targetSubcircuitPinSelectors,
         },
         pinNames,
       }
@@ -260,17 +267,18 @@ function findMatchingInterface(
   return null
 }
 
-function getInterfacePinMap(
+function getSubcircuitPinSelectorsByInterfacePinName(
   interfaceDefinition: SystemBlockInterface,
-): InterfacePinMap | undefined {
-  const kind = interfaceDefinition.kind.toLowerCase()
-  if (kind === "i2c") return interfaceDefinition.i2cPins
-  if (kind === "spi") return interfaceDefinition.spiPins
+): SystemBlockInterfacePinMap | undefined {
+  if (interfaceDefinition.kind === "i2c") return interfaceDefinition.i2cPins
+  if (interfaceDefinition.kind === "spi") return interfaceDefinition.spiPins
   return interfaceDefinition.i2cPins ?? interfaceDefinition.spiPins
 }
 
-function getRequiredPinNames(interfaceKind: string) {
-  if (interfaceKind.toLowerCase() === "i2c") return ["SDA", "SCL"]
+function getRequiredPinNames(
+  interfaceKind: SystemBlockInterfaceKind,
+): SystemBlockInterfacePinName[] {
+  if (interfaceKind === "i2c") return ["SDA", "SCL"]
   return []
 }
 

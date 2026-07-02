@@ -29,38 +29,6 @@ export interface TiSubcircuitDefinition {
   connectionPortExpansions?: Record<string, string[]>
 }
 
-function createI2cPins(pins: {
-  SDA: string
-  SCL: string
-  VCC?: string
-  GND?: string
-}): Record<string, string> {
-  return {
-    SDA: pins.SDA,
-    SCL: pins.SCL,
-    ...(pins.VCC ? { VCC: pins.VCC } : {}),
-    ...(pins.GND ? { GND: pins.GND } : {}),
-  }
-}
-
-function createSpiPins(pins: {
-  SCLK: string
-  MOSI: string
-  CS: string
-  MISO?: string
-  VCC?: string
-  GND?: string
-}): Record<string, string> {
-  return {
-    SCLK: pins.SCLK,
-    MOSI: pins.MOSI,
-    CS: pins.CS,
-    ...(pins.MISO ? { MISO: pins.MISO } : {}),
-    ...(pins.VCC ? { VCC: pins.VCC } : {}),
-    ...(pins.GND ? { GND: pins.GND } : {}),
-  }
-}
-
 function createTiSubcircuitConfig(
   definition: TiSubcircuitDefinition,
   config: TiSystemBlockConfig,
@@ -129,11 +97,11 @@ export const TiSubcircuitDefinitions = {
       {
         name: "I2C1",
         kind: "i2c",
-        i2cPins: createI2cPins({
+        i2cPins: {
           SDA: "U1.SDA",
           SCL: "U1.SCL",
           GND: "U1.GND",
-        }),
+        },
       },
     ],
     ports: {
@@ -155,11 +123,11 @@ export const TiSubcircuitDefinitions = {
       {
         name: "I2C1",
         kind: "i2c",
-        i2cPins: createI2cPins({
+        i2cPins: {
           SDA: "U1.SDA",
           SCL: "U1.SCL",
           GND: "U1.PGND",
-        }),
+        },
       },
     ],
     ports: {
@@ -210,12 +178,12 @@ export const TiSubcircuitDefinitions = {
       {
         name: "SPI_FLASH",
         kind: "spi",
-        spiPins: createSpiPins({
+        spiPins: {
           CS: "U2.FLASH_SPI_CS",
           SCLK: "U2.FLASH_SPI_CLK",
           MOSI: "U2.FLASH_SPI_DOUT",
           MISO: "U2.FLASH_SPI_DIN",
-        }),
+        },
       },
     ],
     ports: {
@@ -328,12 +296,12 @@ export const TiSubcircuitDefinitions = {
       {
         name: "I2C1",
         kind: "i2c",
-        i2cPins: createI2cPins({
+        i2cPins: {
           SDA: "U1.SDA",
           SCL: "U1.SCL",
           VCC: "U1.VDD",
           GND: "U1.GND",
-        }),
+        },
       },
     ],
     ports: {
@@ -359,12 +327,12 @@ export const TiSubcircuitDefinitions = {
       {
         name: "I2C1",
         kind: "i2c",
-        i2cPins: createI2cPins({
+        i2cPins: {
           SDA: "U1.SDA",
           SCL: "U1.SCL",
           VCC: "U1.VDD",
           GND: "U1.GND",
-        }),
+        },
       },
     ],
     ports: {
@@ -390,12 +358,12 @@ export const TiSubcircuitDefinitions = {
       {
         name: "I2C1",
         kind: "i2c",
-        i2cPins: createI2cPins({
+        i2cPins: {
           SDA: "U1.SDA",
           SCL: "U1.SCL",
           VCC: "U1.VDD",
           GND: "U1.GND",
-        }),
+        },
       },
     ],
     ports: {
@@ -421,12 +389,12 @@ export const TiSubcircuitDefinitions = {
       {
         name: "I2C1",
         kind: "i2c",
-        i2cPins: createI2cPins({
+        i2cPins: {
           SDA: "U1.SDA",
           SCL: "U1.SCL",
           VCC: "U1.VS",
           GND: "U1.GND",
-        }),
+        },
       },
     ],
     ports: {
@@ -451,12 +419,12 @@ export const TiSubcircuitDefinitions = {
       {
         name: "I2C1",
         kind: "i2c",
-        i2cPins: createI2cPins({
+        i2cPins: {
           SDA: "U1.PA1",
           SCL: "U1.PA0",
           VCC: "U1.VDD",
           GND: "U1.GND",
-        }),
+        },
       },
     ],
     ports: {
@@ -482,12 +450,12 @@ export const TiSubcircuitDefinitions = {
       {
         name: "I2C1",
         kind: "i2c",
-        i2cPins: createI2cPins({
+        i2cPins: {
           SDA: "U1.SDA",
           SCL: "U1.SCL",
           VCC: "U1.VDD",
           GND: "U1.GND",
-        }),
+        },
       },
     ],
     ports: {
