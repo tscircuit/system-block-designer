@@ -21,10 +21,18 @@ test("buildProjectPdfParams renders one schematic page per sheet", async () => {
 
   const params = buildProjectPdfParams(systemJson, circuitJson)
   // One schematic page per sheet, each carrying a distinct rendered SVG.
-  expect(params.schematicSheetSvgs).toHaveLength(sheets.length)
-  for (const sheet of params.schematicSheetSvgs ?? []) {
-    const page =
-      typeof sheet === "string" ? { svg: sheet, title: undefined } : sheet
+  const schematicPages = (params.schematicSheetSvgs ?? []).map((sheet) =>
+    typeof sheet === "string" ? { svg: sheet, title: undefined } : sheet,
+  )
+
+  expect(schematicPages).toHaveLength(sheets.length)
+  expect(schematicPages.map((page) => page.title)).toEqual([
+    "Schematics - Block 1 - MSPM0G3507",
+    "Schematics - Block 2 - HDC3020",
+    "Schematics - Block 3 - INA237",
+  ])
+
+  for (const page of schematicPages) {
     expect(page.svg).toContain('class="schematic-sheet"')
   }
 }, 90_000)

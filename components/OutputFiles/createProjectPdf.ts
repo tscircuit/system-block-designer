@@ -60,6 +60,57 @@ export function getProjectFileName(systemJson: SystemJson[]): string {
   return slug || "system-block-design"
 }
 
+function buildSchematicSheetBlockLookup(blocks: SystemBlock[]) {
+  const lookup = new Map<string, SystemBlock>()
+
+  for (const block of blocks) {
+    const keys = [
+      block.system_block_id,
+      toTsxInstanceName(block.system_block_id),
+      block.label?.trim(),
+    ].filter((key): key is string => Boolean(key))
+
+    for (const key of keys) {
+      if (!lookup.has(key)) {
+        lookup.set(key, block)
+      }
+    }
+  }
+
+  return lookup
+}
+
+function getSchematicSheetTitle(
+  sheet: SchematicSheet & { display_name?: string },
+  sheetIndex: number,
+  projectName: string,
+  blocksBySheetKey: Map<string, SystemBlock>,
+) {
+  const headerPrefix = `Schematics - Block ${sheetIndex + 1}`
+  const block =
+    blocksBySheetKey.get(sheet.name?.trim() ?? "") ??
+    blocksBySheetKey.get(sheet.display_name?.trim() ?? "")
+  const chipPart = block?.part_number?.trim()
+
+  if (chipPart) return `${headerPrefix} - ${chipPart}`
+
+  const fallbackTitle =
+    sheet.display_name?.trim() ??
+    block?.label?.trim() ??
+    sheet.name?.trim() ??
+    projectName
+
+  return `${headerPrefix} - ${fallbackTitle}`
+}
+
+function toTsxInstanceName(value: string) {
+  const identifier = value
+    .replace(/[^A-Za-z0-9_$]+/g, "_")
+    .replace(/^[^A-Za-z_$]+/, "")
+
+  return identifier || "block"
+}
+
 /**
  * Maps the designer's system JSON (and optionally resolved circuit JSON) onto
  * the pdfgen page inputs. The schematic sheet is only included when circuit
@@ -160,20 +211,20 @@ export function buildProjectPdfParams(
       typeof convertCircuitJsonToSchematicSvg
     >[0]
     const sheets = getSchematicSheets(circuitJson)
+    const blocksBySheetKey = buildSchematicSheetBlockLookup(blocks)
 
     if (sheets.length > 0) {
       // One PDF page per schematic sheet, rendered with circuit-to-svg's native
       // sheet frame (no hand-drawn frame). Cross-sheet connections appear as net
       // labels on each sheet.
-      params.schematicSheetSvgs = sheets.map((sheet) => ({
+      params.schematicSheetSvgs = sheets.map((sheet, sheetIndex) => ({
         type: "schematic_sheet",
-        // core sets display_name (from the block label) but it is missing from
-        // circuit-json's exported SchematicSheet type, so read it the same way
-        // circuit-to-svg's own stacked-sheet renderer does.
-        title:
-          (sheet as { display_name?: string }).display_name ??
-          sheet.name ??
-          `Schematics - ${projectName}`,
+        title: getSchematicSheetTitle(
+          sheet as SchematicSheet & { display_name?: string },
+          sheetIndex,
+          projectName,
+          blocksBySheetKey,
+        ),
         svg: convertCircuitJsonToSchematicSvg(circuit, {
           schematicSheetId: sheet.schematic_sheet_id,
           width: SHEET_SVG_WIDTH,

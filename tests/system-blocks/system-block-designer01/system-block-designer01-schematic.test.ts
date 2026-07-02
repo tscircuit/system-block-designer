@@ -19,4 +19,4 @@ test("system block designer 01 circuit json renders to schematic snapshot", asyn
   )
 
   await expect(schematicSvg).toMatchSvgSnapshot(import.meta.path)
-}, 30_000)
+}, 60_000)

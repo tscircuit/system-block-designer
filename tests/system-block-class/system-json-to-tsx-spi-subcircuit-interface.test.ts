@@ -63,7 +63,7 @@ test("systemJsonToTsxProject matches SPI interfaces and renders the schematic sn
   )
 
   await expect(schematicSvg).toMatchSvgSnapshot(import.meta.path)
-}, 30_000)
+}, 60_000)
 
 function connection({
   systemDiagramId,

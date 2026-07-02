@@ -14,6 +14,7 @@ import type {
 import { formatSiUnit, parseAndConvertSiUnit } from "format-si-unit"
 import type { CircuitJson } from "../system-blocks/resolveSystemJsonToCircuitJson"
 import type { SystemBlock, SystemJson } from "../system-json/system-json"
+import { formatBomDescription } from "./formatBomDescription"
 import { formatPackageDisplayName } from "./formatPackageDisplayName"
 import type { BomArtifacts, BomViewRow, SupplierPartDetails } from "./types"
 
@@ -131,9 +132,6 @@ export async function createBomArtifacts(params: {
         group.partNumber,
         details?.mpn ?? null,
         group.supplierPartNumber,
-        group.componentType,
-        group.value,
-        group.packageName,
       )
       const value = group.value
       const description = resolveBomDescription({
@@ -360,31 +358,13 @@ function resolveDisplayPartNumber(
   partNumber: string,
   secondaryPartNumber: string | null | undefined,
   supplierPartNumber: string,
-  componentType: string,
-  value: string,
-  packageName: string,
 ) {
   return firstNonEmpty(
     partNumber,
     normalizeText(secondaryPartNumber) ?? undefined,
     supplierPartNumber !== "—" ? supplierPartNumber : undefined,
-    createFallbackPartNumber(componentType, value, packageName),
     "—",
   )
-}
-
-function createFallbackPartNumber(
-  componentType: string,
-  value: string,
-  packageName: string,
-) {
-  const displayPackageName = formatPackageDisplayName(packageName)
-  const parts = [
-    prettifyLabel(componentType).replace(/^simple\s+/i, ""),
-    value !== "—" ? value : "",
-    displayPackageName !== "—" ? displayPackageName : "",
-  ].filter(Boolean)
-  return parts.join(" ").trim()
 }
 
 async function createSupplierPartDetailsMap(
@@ -572,7 +552,10 @@ function resolveBomDescription(params: {
   value: string
   packageName: string
 }) {
-  const normalizedDescription = normalizeText(params.description)
+  const normalizedDescription = formatBomDescription(
+    params.description,
+    params.packageName,
+  )
   if (normalizedDescription) return normalizedDescription
 
   const displayPackageName = formatPackageDisplayName(params.packageName)

@@ -1,7 +1,5 @@
-const DEFAULT_PIN_HEADER_PITCH = "P2.54mm"
 const PINROW_PATTERN = /^pinrow(?<pinCount>\d+)$/u
 const PINROW_ROWS_PATTERN = /^rows(?<value>\d+)$/u
-const PINROW_PITCH_PATTERN = /^p(?<value>\d+(?:\.\d+)?)(?<unit>mm|in)?$/u
 
 export function formatPackageDisplayName(packageName: string) {
   const normalizedPackageName = packageName.trim()
@@ -9,12 +7,12 @@ export function formatPackageDisplayName(packageName: string) {
     return packageName
   }
 
-  const pinHeaderDisplayName = formatPinHeaderDisplayName(normalizedPackageName)
-  if (pinHeaderDisplayName) return pinHeaderDisplayName
-
   if (shouldPreservePackageName(normalizedPackageName)) {
     return normalizedPackageName
   }
+
+  const pinrowDisplayName = formatPinrowDisplayName(normalizedPackageName)
+  if (pinrowDisplayName) return pinrowDisplayName
 
   return normalizedPackageName
     .split(/[_-]+/u)
@@ -22,7 +20,7 @@ export function formatPackageDisplayName(packageName: string) {
     .join("_")
 }
 
-function formatPinHeaderDisplayName(packageName: string) {
+function formatPinrowDisplayName(packageName: string) {
   const [baseElement, ...suffixElements] = packageName.split("_")
   const baseMatch = baseElement.match(PINROW_PATTERN)
   if (!baseMatch?.groups?.pinCount) return null
@@ -31,11 +29,7 @@ function formatPinHeaderDisplayName(packageName: string) {
   if (!Number.isFinite(pinCount) || pinCount < 1) return null
 
   let rowCount = 1
-  let pitch = DEFAULT_PIN_HEADER_PITCH
-  let orientation = "Vertical"
-  let includeGender = false
-  let gender = "Male"
-  let smd = false
+  const displayParts = ["PinHeader"]
 
   for (const element of suffixElements) {
     const rowMatch = element.match(PINROW_ROWS_PATTERN)
@@ -47,54 +41,16 @@ function formatPinHeaderDisplayName(packageName: string) {
       continue
     }
 
-    const pitchMatch = element.match(PINROW_PITCH_PATTERN)
-    if (pitchMatch?.groups?.value) {
-      pitch = formatPitch({
-        value: pitchMatch.groups.value,
-        unit: pitchMatch.groups.unit ?? "mm",
-      })
-      continue
-    }
-
-    if (element === "female" || element === "unpopulated") {
-      gender = formatPackageElement(element)
-      includeGender = true
-      continue
-    }
-
-    if (element === "male") {
-      gender = "Male"
-      continue
-    }
-
-    if (element === "rightangle") {
-      orientation = "Horizontal"
-      continue
-    }
-
-    if (element === "smd") {
-      smd = true
-    }
+    displayParts.push(formatPackageElement(element))
   }
 
   const pinsPerRow = pinCount / rowCount
   const matrixLabel = Number.isInteger(pinsPerRow)
     ? `${rowCount}x${String(pinsPerRow).padStart(2, "0")}`
     : `${rowCount}x${pinCount}`
-  const parts = ["PinHeader", matrixLabel, pitch, orientation]
+  displayParts.splice(1, 0, matrixLabel)
 
-  if (smd) parts.push("SMD")
-  if (includeGender) parts.push(gender)
-
-  return parts.join("_")
-}
-
-function formatPitch(params: { value: string; unit: string }) {
-  return `P${trimTrailingZeros(params.value)}${params.unit}`
-}
-
-function trimTrailingZeros(value: string) {
-  return value.replace(/(\.\d*?[1-9])0+$/u, "$1").replace(/\.0+$/u, "")
+  return displayParts.join("_")
 }
 
 function shouldPreservePackageName(packageName: string) {

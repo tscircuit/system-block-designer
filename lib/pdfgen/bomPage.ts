@@ -1,4 +1,5 @@
 import type { PDFPage } from "pdf-lib"
+import { formatBomDescription } from "../bom/formatBomDescription"
 import { formatPackageDisplayName } from "../bom/formatPackageDisplayName"
 import type { BomViewRow } from "../bom/types"
 import { COLORS, PAGE_SIZES } from "./constants"
@@ -262,7 +263,13 @@ function expandReferenceDesignatorRows(rows: BomViewRow[]) {
 }
 
 function getColumnValue(row: BomViewRow, key: BomColumn["key"]) {
-  if (key === "description") return row.description || row.partName || "—"
+  if (key === "description") {
+    return (
+      formatBomDescription(row.description, row.packageName) ||
+      row.partName ||
+      "—"
+    )
+  }
   if (key === "packageName") {
     return formatPackageDisplayName(row.packageName || "—")
   }
