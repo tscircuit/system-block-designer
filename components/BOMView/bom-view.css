@@ -206,6 +206,14 @@
   text-decoration: none;
 }
 
+.bom-table a.bom-mpn-link {
+  display: inline-block;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .bom-table .is-right {
   text-align: right;
 }
@@ -274,6 +282,9 @@
 .bom-cell-strong {
   color: #172635;
   font-weight: 700;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .bom-cell-wrap {

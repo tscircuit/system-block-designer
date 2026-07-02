@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" class="tscircuit-stacked-schematic" width="1000" height="1486" viewBox="0 0 1000 1486" style="background-color: rgb(245, 241, 237)"><rect class="boundary" x="0" y="0" width="1000" height="1486" fill="rgb(245, 241, 237)"/><text class="stacked-sheet-label" x="39.407863" y="20.16" font-family="sans-serif" font-size="15.4px" fill="rgb(0, 100, 100)" data-schematic-sheet-id="schematic_sheet_0">Wi-Fi Wireless MCU</text><svg class="tscircuit-schematic" width="1000" height="707" style="background-color: rgb(245, 241, 237)" data-real-to-screen-transform="matrix(28.6477876668,0,0,-28.6477876668,500,367.0048979467)" data-software-used-string="@tscircuit/core@0.0.1380" x="0" y="28"><style>
+<svg xmlns="http://www.w3.org/2000/svg" class="tscircuit-stacked-schematic" width="1000" height="1486" viewBox="0 0 1000 1486" style="background-color: rgb(245, 241, 237)"><rect class="boundary" x="0" y="0" width="1000" height="1486" fill="rgb(245, 241, 237)"/><text class="stacked-sheet-label" x="39.407863" y="20.16" font-family="sans-serif" font-size="15.4px" fill="rgb(0, 100, 100)" data-schematic-sheet-id="schematic_sheet_0">Wi-Fi Wireless MCU</text><svg class="tscircuit-schematic" width="1000" height="707" style="background-color: rgb(245, 241, 237)" data-real-to-screen-transform="matrix(28.6477876668,0,0,-28.6477876668,500,367.0048979467)" data-software-used-string="@tscircuit/core@0.0.1376" x="0" y="28"><style>
               .boundary { fill: rgb(245, 241, 237); }
               .schematic-boundary { fill: none; stroke: #fff; }
               .component { fill: none; stroke: rgb(132, 0, 0); }
@@ -528,7 +528,7 @@ svg:has(:is(g.trace[data-subcircuit-connectivity-map-key="wifi_a_connectivity_ne
     L 933.0857948316157,464.6365583151544
     L 907.1996538958952,464.6365583151544
     Z
-  " fill="rgba(255, 255, 255, 0.6)" stroke="rgb(132, 0, 0)" stroke-width="0.572955753336px"/><text class="net-label-text sch-net-label-text" x="908.2309742519" y="461.54259724714" fill="rgb(132, 0, 0)" text-anchor="start" dominant-baseline="central" font-family="sans-serif" font-variant-numeric="tabular-nums" font-size="5.156601780023999px" transform="">RTCN_Y1</text></svg><text class="stacked-sheet-label" x="39.407863" y="771.16" font-family="sans-serif" font-size="15.4px" fill="rgb(0, 100, 100)" data-schematic-sheet-id="schematic_sheet_1">Wi-Fi Wireless MCU</text><svg class="tscircuit-schematic" width="1000" height="707" style="background-color: rgb(245, 241, 237)" data-real-to-screen-transform="matrix(28.6477876668,0,0,-28.6477876668,500,367.0048979467)" data-software-used-string="@tscircuit/core@0.0.1380" x="0" y="779"><style>
+  " fill="rgba(255, 255, 255, 0.6)" stroke="rgb(132, 0, 0)" stroke-width="0.572955753336px"/><text class="net-label-text sch-net-label-text" x="908.2309742519" y="461.54259724714" fill="rgb(132, 0, 0)" text-anchor="start" dominant-baseline="central" font-family="sans-serif" font-variant-numeric="tabular-nums" font-size="5.156601780023999px" transform="">RTCN_Y1</text></svg><text class="stacked-sheet-label" x="39.407863" y="771.16" font-family="sans-serif" font-size="15.4px" fill="rgb(0, 100, 100)" data-schematic-sheet-id="schematic_sheet_1">Wi-Fi Wireless MCU</text><svg class="tscircuit-schematic" width="1000" height="707" style="background-color: rgb(245, 241, 237)" data-real-to-screen-transform="matrix(28.6477876668,0,0,-28.6477876668,500,367.0048979467)" data-software-used-string="@tscircuit/core@0.0.1376" x="0" y="779"><style>
               .boundary { fill: rgb(245, 241, 237); }
               .schematic-boundary { fill: none; stroke: #fff; }
               .component { fill: none; stroke: rgb(132, 0, 0); }
@@ -1024,34 +1024,6 @@ svg:has(:is(g.trace[data-subcircuit-connectivity-map-key="wifi_b_connectivity_ne
     L 180.69175866584717,612.1726647991744
     Z
   " fill="rgba(255, 255, 255, 0.6)" stroke="rgb(132, 0, 0)" stroke-width="0.572955753336px"/><text class="net-label-text sch-net-label-text" x="181.723079021852" y="609.07870373116" fill="rgb(132, 0, 0)" text-anchor="start" dominant-baseline="central" font-family="sans-serif" font-variant-numeric="tabular-nums" font-size="5.156601780023999px" transform="">J1_pin1/R6_pin2</text><path class="net-label sch-net-label" d="
-    M 561.59274348362,293.95303939636
-    L 563.1397240176271,290.8590783283456
-    L 615.3016158013367,290.8590783283456
-    L 615.3016158013367,297.0470004643744
-    L 563.1397240176271,297.0470004643744
-    Z
-  " fill="rgba(255, 255, 255, 0.6)" stroke="rgb(132, 0, 0)" stroke-width="0.572955753336px"/><text class="net-label-text sch-net-label-text" x="564.171044373632" y="293.95303939636" fill="rgb(132, 0, 0)" text-anchor="start" dominant-baseline="central" font-family="sans-serif" font-variant-numeric="tabular-nums" font-size="5.156601780023999px" transform="">U2_FLASH_SPI_CLK</text><path class="net-label sch-net-label" d="
-    M 561.59274348362,288.22348186299996
-    L 563.1397240176271,285.1295207949856
-    L 619.812687432602,285.1295207949856
-    L 619.812687432602,291.31744293101434
-    L 563.1397240176271,291.31744293101434
-    Z
-  " fill="rgba(255, 255, 255, 0.6)" stroke="rgb(132, 0, 0)" stroke-width="0.572955753336px"/><text class="net-label-text sch-net-label-text" x="564.171044373632" y="288.22348186299996" fill="rgb(132, 0, 0)" text-anchor="start" dominant-baseline="central" font-family="sans-serif" font-variant-numeric="tabular-nums" font-size="5.156601780023999px" transform="">U2_FLASH_SPI_DOUT</text><path class="net-label sch-net-label" d="
-    M 561.59274348362,282.49392432964
-    L 563.1397240176271,279.3999632616256
-    L 614.3466895457766,279.3999632616256
-    L 614.3466895457766,285.58788539765436
-    L 563.1397240176271,285.58788539765436
-    Z
-  " fill="rgba(255, 255, 255, 0.6)" stroke="rgb(132, 0, 0)" stroke-width="0.572955753336px"/><text class="net-label-text sch-net-label-text" x="564.171044373632" y="282.49392432964" fill="rgb(132, 0, 0)" text-anchor="start" dominant-baseline="central" font-family="sans-serif" font-variant-numeric="tabular-nums" font-size="5.156601780023999px" transform="">U2_FLASH_SPI_DIN</text><path class="net-label sch-net-label" d="
-    M 561.59274348362,276.76436679627994
-    L 563.1397240176271,273.67040572826556
-    L 612.5094114300791,273.67040572826556
-    L 612.5094114300791,279.8583278642943
-    L 563.1397240176271,279.8583278642943
-    Z
-  " fill="rgba(255, 255, 255, 0.6)" stroke="rgb(132, 0, 0)" stroke-width="0.572955753336px"/><text class="net-label-text sch-net-label-text" x="564.171044373632" y="276.76436679627994" fill="rgb(132, 0, 0)" text-anchor="start" dominant-baseline="central" font-family="sans-serif" font-variant-numeric="tabular-nums" font-size="5.156601780023999px" transform="">U2_FLASH_SPI_CS</text><path class="net-label sch-net-label" d="
     M 905.652673361888,461.54259724714
     L 907.1996538958952,458.44863617912563
     L 933.0857948316157,458.44863617912563
