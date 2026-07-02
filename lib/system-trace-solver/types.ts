@@ -46,6 +46,7 @@ export interface SystemTraceCandidate {
   obstacleHits: number
   crossingCount: number
   parallelCrowding: number
+  overlapLength: number
   endpointReversals: number
   score: number
 }

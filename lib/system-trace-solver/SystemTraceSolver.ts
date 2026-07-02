@@ -12,6 +12,7 @@ import {
   countParallelCrowding,
   dedupePoints,
   getBendCount,
+  getCollinearOverlapLength,
   getPathLength,
   midpointOfLongestSegment,
   obstacleToRect,
@@ -587,6 +588,7 @@ function scoreCandidate(
   const obstacleHits = countObstacleHits(points, rects)
   const crossingCount = countCrossings(points, occupiedPaths)
   const parallelCrowding = countParallelCrowding(points, occupiedPaths, laneGap)
+  const overlapLength = getCollinearOverlapLength(points, occupiedPaths)
   const endpointReversals = countEndpointReversals(points, route)
   const score =
     length +
@@ -594,6 +596,7 @@ function scoreCandidate(
     obstacleHits * 10_000 +
     crossingCount * 700 +
     parallelCrowding * 250 +
+    overlapLength * 100 +
     endpointReversals * 6_000
 
   return {
@@ -604,6 +607,7 @@ function scoreCandidate(
     obstacleHits,
     crossingCount,
     parallelCrowding,
+    overlapLength,
     endpointReversals,
     score,
   }
