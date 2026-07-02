@@ -128,19 +128,13 @@ export async function drawSystemArchitecturePage(
   input: SystemArchitecturePageInput,
   pageNumber: number,
 ) {
-  const { width } = page.getSize()
-  drawPageChrome(page, fonts, pageNumber)
-  const y = drawPageTitle(
-    page,
-    fonts,
-    input.title ?? "System Architecture",
-    input.subtitle,
-  )
+  const { width, height } = page.getSize()
+  drawSystemArchitectureHeader(page, fonts, input, pageNumber)
   await drawSystemDiagram(pdfDoc, page, input.systemJson, {
     x: PAGE_MARGIN,
-    y: 64,
+    y: 72,
     width: width - PAGE_MARGIN * 2,
-    height: y - 92,
+    height: height - 140,
   })
 }
 
@@ -362,6 +356,38 @@ function drawCoverWatermark(page: PDFPage, fonts: PdfFonts) {
     font: fonts.bold,
     color: COLORS.tscircuitBlue,
     opacity: 0.09,
+  })
+}
+
+function drawSystemArchitectureHeader(
+  page: PDFPage,
+  fonts: PdfFonts,
+  input: SystemArchitecturePageInput,
+  pageNumber: number,
+) {
+  const { width, height } = page.getSize()
+  const y = height - 32
+  const headerTitle = input.title
+    ? input.title.startsWith("Schematics - ")
+      ? input.title
+      : `Schematics - ${input.title}`
+    : "Schematics - System Architecture"
+  const headerSize = 9
+  const titleWidth = measureTextWidth(fonts.regular, headerTitle, headerSize)
+
+  drawPdfText(page, `${pageNumber} | tscircuit`, {
+    x: PAGE_MARGIN,
+    y,
+    size: headerSize,
+    font: fonts.regular,
+    color: COLORS.muted,
+  })
+  drawPdfText(page, headerTitle, {
+    x: (width - titleWidth) / 2,
+    y,
+    size: headerSize,
+    font: fonts.regular,
+    color: COLORS.muted,
   })
 }
 

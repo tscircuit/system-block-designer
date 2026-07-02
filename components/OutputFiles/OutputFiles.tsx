@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { convertCircuitJsonToSchematicSvg } from "circuit-to-svg"
+import { convertCircuitJsonToStackedSchematicSheetsSvg } from "circuit-to-svg"
 import { createBomCsv } from "../../lib/bom/createBomCsv"
 import type { BomExportMode, BomViewRow } from "../../lib/bom/types"
 import type { CircuitJson } from "../../lib/system-blocks/resolveSystemJsonToCircuitJson"
@@ -224,8 +224,10 @@ export function OutputFiles({
 
   const schematicSvg =
     schematicPreviewOpen && circuitJson
-      ? convertCircuitJsonToSchematicSvg(
-          circuitJson as Parameters<typeof convertCircuitJsonToSchematicSvg>[0],
+      ? convertCircuitJsonToStackedSchematicSheetsSvg(
+          circuitJson as Parameters<
+            typeof convertCircuitJsonToStackedSchematicSheetsSvg
+          >[0],
         )
       : null
 

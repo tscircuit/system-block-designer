@@ -89,6 +89,7 @@ export function DesignCanvasContent({
           block={selectedBlock}
           connection={selectedConnection}
           onApplySubcircuit={canvas.applyBlockSubcircuit}
+          onUpdateBlockIconColor={canvas.updateBlockIconColor}
           onUpdateConnectionInterface={canvas.updateConnectionInterface}
           onClose={canvas.clearSelection}
         />

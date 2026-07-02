@@ -18,7 +18,7 @@
 	"dependencies": {
 		"@resvg/resvg-wasm": "^2.6.2",
 		"@tsci/tscircuit.ti": "^1.0.56",
-		"@tscircuit/eval": "^0.0.955",
+		"@tscircuit/eval": "^0.0.965",
 		"@tscircuit/krt-wasm": "^0.1.6",
 		"@vitejs/plugin-react": "5",
 		"circuit-json-to-bom-csv": "^0.0.9",
@@ -38,7 +38,8 @@
 		"@types/react": "^19.1.0",
 		"@types/react-dom": "^19.1.0",
 		"bun-match-svg": "^0.0.15",
-		"circuit-to-svg": "^0.0.367",
+		"circuit-json": "^0.0.442",
+		"circuit-to-svg": "^0.0.370",
 		"pdf-to-png-converter": "^4.1.1",
 		"pngjs": "^7.0.0",
 		"react-cosmos": "^6.2.1",

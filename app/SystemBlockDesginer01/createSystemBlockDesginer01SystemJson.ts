@@ -40,18 +40,11 @@ export function createSystemBlockDesginer01SystemJson(): SystemJson[] {
       name: "System Block Desginer 01",
     },
     ...controller.getSystemBlockJson(),
-    ...controller.getSystemPortJson([
-      "controller_pa0",
-      "controller_pa1",
-      "controller_vdd",
-    ]),
+    ...controller.getSystemPortJson(["controller_pa0", "controller_pa1"]),
     ...sensor.getSystemBlockJson(),
     ...sensor.getSystemPortJson(["sensor_scl"]),
     ...powerMonitor.getSystemBlockJson(),
-    ...powerMonitor.getSystemPortJson([
-      "power_monitor_scl",
-      "power_monitor_vs",
-    ]),
+    ...powerMonitor.getSystemPortJson(["power_monitor_scl"]),
     connection({
       systemDiagramId,
       systemConnectionId: "w_i2c_sensor",
@@ -65,13 +58,6 @@ export function createSystemBlockDesginer01SystemJson(): SystemJson[] {
       sourcePortId: "controller_pa1",
       targetPortId: "power_monitor_scl",
       label: "i2c",
-    }),
-    connection({
-      systemDiagramId,
-      systemConnectionId: "w_monitor_vs",
-      sourcePortId: "controller_vdd",
-      targetPortId: "power_monitor_vs",
-      label: "VDD",
     }),
   ])
 }

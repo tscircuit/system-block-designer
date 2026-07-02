@@ -1,3 +1,4 @@
+import type { AnyCircuitElement, SchematicSheet } from "circuit-json"
 import { convertCircuitJsonToSchematicSvg } from "circuit-to-svg"
 import type { BomViewRow } from "../../lib/bom/types"
 import { LIBRARY } from "../../lib/design-system/library"
@@ -27,6 +28,21 @@ const FUNCTIONALITY_CATEGORY_LOOKUP = new Map(
 
 interface BuildProjectPdfOptions {
   exportedAt?: Date
+}
+
+// Render each schematic sheet SVG at an A4-landscape aspect ratio (297:210) so the
+// sheet frame circuit-to-svg draws fills the page instead of being letterboxed.
+const SHEET_SVG_WIDTH = 1400
+const SHEET_SVG_HEIGHT = Math.round((SHEET_SVG_WIDTH * 210) / 297)
+
+function getSchematicSheets(circuitJson: CircuitJson): SchematicSheet[] {
+  return (circuitJson as AnyCircuitElement[])
+    .filter(
+      (element): element is SchematicSheet =>
+        element.type === "schematic_sheet",
+    )
+    .slice()
+    .sort((a, b) => (a.sheet_index ?? 0) - (b.sheet_index ?? 0))
 }
 
 function getProjectName(systemJson: SystemJson[]): string {
@@ -140,16 +156,40 @@ export function buildProjectPdfParams(
   }
 
   if (circuitJson && circuitJson.length > 0) {
-    const schematicSvg = convertCircuitJsonToSchematicSvg(
-      circuitJson as Parameters<typeof convertCircuitJsonToSchematicSvg>[0],
-    )
-    params.schematicSheetSvgs = [
-      {
+    const circuit = circuitJson as Parameters<
+      typeof convertCircuitJsonToSchematicSvg
+    >[0]
+    const sheets = getSchematicSheets(circuitJson)
+
+    if (sheets.length > 0) {
+      // One PDF page per schematic sheet, rendered with circuit-to-svg's native
+      // sheet frame (no hand-drawn frame). Cross-sheet connections appear as net
+      // labels on each sheet.
+      params.schematicSheetSvgs = sheets.map((sheet) => ({
         type: "schematic_sheet",
-        title: `Schematics - ${projectName}`,
-        svg: schematicSvg,
-      },
-    ]
+        // core sets display_name (from the block label) but it is missing from
+        // circuit-json's exported SchematicSheet type, so read it the same way
+        // circuit-to-svg's own stacked-sheet renderer does.
+        title:
+          (sheet as { display_name?: string }).display_name ??
+          sheet.name ??
+          `Schematics - ${projectName}`,
+        svg: convertCircuitJsonToSchematicSvg(circuit, {
+          schematicSheetId: sheet.schematic_sheet_id,
+          width: SHEET_SVG_WIDTH,
+          height: SHEET_SVG_HEIGHT,
+        }),
+      }))
+    } else {
+      // No explicit sheets: fall back to a single schematic page.
+      params.schematicSheetSvgs = [
+        {
+          type: "schematic_sheet",
+          title: `Schematics - ${projectName}`,
+          svg: convertCircuitJsonToSchematicSvg(circuit),
+        },
+      ]
+    }
   }
 
   return params
