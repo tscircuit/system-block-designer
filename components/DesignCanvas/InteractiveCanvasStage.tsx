@@ -15,23 +15,39 @@ import type {
 } from "./DesignCanvas.types"
 import { ConnectionEl } from "./ConnectionEl"
 
-interface CanvasStageProps {
+interface InteractiveCanvasStageProps {
+  diagram: InteractiveCanvasStageDiagram
+  viewport: InteractiveCanvasStageViewport
+  ui: InteractiveCanvasStageUi
+  handlers: InteractiveCanvasStageHandlers
+}
+
+interface InteractiveCanvasStageDiagram {
   blocks: SystemBlock[]
   ports: SystemPort[]
   connections: SystemConnection[]
-  view: CanvasView
-  selection: Selection
   blockMap: Map<string, SystemBlock>
   portMap: Map<string, SystemPort>
   connected: Set<string>
+}
+
+interface InteractiveCanvasStageViewport {
+  view: CanvasView
+  svgRef: RefObject<SVGSVGElement | null>
+  stageRef: RefObject<HTMLElement | null>
+}
+
+interface InteractiveCanvasStageUi {
+  selection: Selection
   collapsed: boolean
   dropActive: boolean
   tempPath: string | null
   editing: Editing
   contextMenu: CanvasContextMenu
   editWrapper: { x: number; y: number } | null
-  svgRef: RefObject<SVGSVGElement | null>
-  stageRef: RefObject<HTMLElement | null>
+}
+
+interface InteractiveCanvasStageHandlers {
   onToggleLibrary: () => void
   onDragOver: (event: React.DragEvent<HTMLElement>) => void
   onDragLeave: (event: React.DragEvent<HTMLElement>) => void
@@ -47,37 +63,39 @@ interface CanvasStageProps {
   onCancelEdit: () => void
 }
 
-export function CanvasStage({
-  blocks,
-  ports,
-  connections,
-  view,
-  selection,
-  blockMap,
-  portMap,
-  connected,
-  collapsed,
-  dropActive,
-  tempPath,
-  editing,
-  contextMenu,
-  editWrapper,
-  svgRef,
-  stageRef,
-  onToggleLibrary,
-  onDragOver,
-  onDragLeave,
-  onDrop,
-  onSvgPointerDown,
-  onSvgContextMenu,
-  onSvgDoubleClick,
-  onDuplicateBlock,
-  onDeleteBlock,
-  onDeleteConnection,
-  onEditChange,
-  onCommitEdit,
-  onCancelEdit,
-}: CanvasStageProps) {
+export function InteractiveCanvasStage({
+  diagram,
+  viewport,
+  ui,
+  handlers,
+}: InteractiveCanvasStageProps) {
+  const { blocks, ports, connections, blockMap, portMap, connected } = diagram
+  const { view, svgRef, stageRef } = viewport
+  const {
+    selection,
+    collapsed,
+    dropActive,
+    tempPath,
+    editing,
+    contextMenu,
+    editWrapper,
+  } = ui
+  const {
+    onToggleLibrary,
+    onDragOver,
+    onDragLeave,
+    onDrop,
+    onSvgPointerDown,
+    onSvgContextMenu,
+    onSvgDoubleClick,
+    onDuplicateBlock,
+    onDeleteBlock,
+    onDeleteConnection,
+    onEditChange,
+    onCommitEdit,
+    onCancelEdit,
+  } = handlers
+
   const solvedTraceLines = useMemo(
     () =>
       solveSystemJsonTraceLines({

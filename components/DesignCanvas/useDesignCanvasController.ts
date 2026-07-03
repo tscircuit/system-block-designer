@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { routeOrthogonalPath } from "../../lib/design-system/routeOrthogonalPath"
 import { LIBRARY } from "../../lib/design-system/library"
 import type { LibraryCategory } from "../../lib/design-system/types"
-import type { IconColor } from "../../lib/system-json/icon-colors"
+import type { IconColor } from "../../lib/utils/icon-colors"
 import {
   type CircuitJson,
   resolveSystemJsonToCircuitJson,

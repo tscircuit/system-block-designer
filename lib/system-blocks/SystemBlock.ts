@@ -6,7 +6,7 @@ import type {
   SystemJson,
   SystemPort,
 } from "../system-json/system-json"
-import type { IconColor } from "../system-json/icon-colors"
+import type { IconColor } from "../utils/icon-colors"
 
 export type SystemBlockConnectionValue = string | string[]
 

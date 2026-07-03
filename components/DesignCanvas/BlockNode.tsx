@@ -1,5 +1,5 @@
 import { BlockIcon } from "../../lib/design-system/icons"
-import { normalizeIconColor } from "../../lib/system-json/icon-colors"
+import { normalizeIconColor } from "../../lib/utils/icon-colors"
 import type { SystemBlock, SystemPort } from "../../lib/system-json/system-json"
 import { getSystemPortPosition } from "./systemJsonCanvas"
 

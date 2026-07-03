@@ -1,8 +1,8 @@
 import { BlockPropertiesSidebar } from "./BlockPropertiesSidebar"
-import { CanvasStage } from "./CanvasStage"
 import { DesignCanvasFooter } from "./DesignCanvasFooter"
 import type { DesignCanvasProps } from "./DesignCanvas.types"
 import { DesignLibrary } from "./DesignLibrary"
+import { InteractiveCanvasStage } from "./InteractiveCanvasStage"
 import { TopBar } from "./TopBar"
 import "./design-canvas.css"
 import { useDesignCanvasController } from "./useDesignCanvasController"
@@ -38,52 +38,60 @@ export function DesignCanvasContent({
           onDragItem={canvas.onDragItem}
           onClickItem={canvas.addBlockCentered}
         />
-        <CanvasStage
-          blocks={canvas.blocks}
-          ports={canvas.ports}
-          connections={canvas.connections}
-          view={canvas.view}
-          selection={canvas.selection}
-          blockMap={canvas.blockMap}
-          portMap={canvas.portMap}
-          connected={canvas.connected}
-          collapsed={canvas.collapsed}
-          dropActive={canvas.dropActive}
-          tempPath={canvas.tempPath}
-          editing={canvas.editing}
-          contextMenu={canvas.contextMenu}
-          editWrapper={canvas.editWrapper}
-          svgRef={canvas.svgRef}
-          stageRef={canvas.stageRef}
-          onToggleLibrary={() => canvas.setCollapsed((current) => !current)}
-          onDragOver={(event) => {
-            event.preventDefault()
-            event.dataTransfer.dropEffect = "copy"
-            canvas.setDropActive(true)
+        <InteractiveCanvasStage
+          diagram={{
+            blocks: canvas.blocks,
+            ports: canvas.ports,
+            connections: canvas.connections,
+            blockMap: canvas.blockMap,
+            portMap: canvas.portMap,
+            connected: canvas.connected,
           }}
-          onDragLeave={(event) => {
-            if (event.target === canvas.stageRef.current)
+          viewport={{
+            view: canvas.view,
+            svgRef: canvas.svgRef,
+            stageRef: canvas.stageRef,
+          }}
+          ui={{
+            selection: canvas.selection,
+            collapsed: canvas.collapsed,
+            dropActive: canvas.dropActive,
+            tempPath: canvas.tempPath,
+            editing: canvas.editing,
+            contextMenu: canvas.contextMenu,
+            editWrapper: canvas.editWrapper,
+          }}
+          handlers={{
+            onToggleLibrary: () => canvas.setCollapsed((current) => !current),
+            onDragOver: (event) => {
+              event.preventDefault()
+              event.dataTransfer.dropEffect = "copy"
+              canvas.setDropActive(true)
+            },
+            onDragLeave: (event) => {
+              if (event.target === canvas.stageRef.current)
+                canvas.setDropActive(false)
+            },
+            onDrop: (event) => {
+              event.preventDefault()
               canvas.setDropActive(false)
+              const type =
+                event.dataTransfer.getData("text/plain") ||
+                canvas.dragTypeRef.current
+              if (!type) return
+              const point = canvas.clientToCanvas(event.clientX, event.clientY)
+              canvas.addBlockAt(type, point.x, point.y)
+            },
+            onSvgPointerDown: canvas.onSvgPointerDown,
+            onSvgContextMenu: canvas.onSvgContextMenu,
+            onSvgDoubleClick: canvas.onSvgDoubleClick,
+            onDuplicateBlock: canvas.duplicateBlock,
+            onDeleteBlock: canvas.deleteBlock,
+            onDeleteConnection: canvas.deleteConnection,
+            onEditChange: canvas.setEditing,
+            onCommitEdit: canvas.commitEdit,
+            onCancelEdit: () => canvas.setEditing(null),
           }}
-          onDrop={(event) => {
-            event.preventDefault()
-            canvas.setDropActive(false)
-            const type =
-              event.dataTransfer.getData("text/plain") ||
-              canvas.dragTypeRef.current
-            if (!type) return
-            const point = canvas.clientToCanvas(event.clientX, event.clientY)
-            canvas.addBlockAt(type, point.x, point.y)
-          }}
-          onSvgPointerDown={canvas.onSvgPointerDown}
-          onSvgContextMenu={canvas.onSvgContextMenu}
-          onSvgDoubleClick={canvas.onSvgDoubleClick}
-          onDuplicateBlock={canvas.duplicateBlock}
-          onDeleteBlock={canvas.deleteBlock}
-          onDeleteConnection={canvas.deleteConnection}
-          onEditChange={canvas.setEditing}
-          onCommitEdit={canvas.commitEdit}
-          onCancelEdit={() => canvas.setEditing(null)}
         />
         <BlockPropertiesSidebar
           block={selectedBlock}
