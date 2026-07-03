@@ -4,7 +4,7 @@ import {
   ICON_COLOR_PALETTE,
   type IconColor,
   normalizeIconColor,
-} from "../../lib/system-json/icon-colors"
+} from "../../lib/utils/icon-colors"
 import type {
   SystemBlock,
   SystemConnection,

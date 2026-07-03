@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { ICON_COLOR_PALETTE } from "./icon-colors"
+import { ICON_COLOR_PALETTE } from "../utils/icon-colors"
 
 export const Point = z.object({
   x: z.number(),

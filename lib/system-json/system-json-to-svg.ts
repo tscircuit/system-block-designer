@@ -1,7 +1,7 @@
 import { midpointOfPath } from "../design-system/midpointOfPath"
 import { ICON_PATHS } from "../design-system/iconPaths"
 import { pathPointsToSvgPath } from "../design-system/pathPointsToSvgPath"
-import { normalizeIconColor } from "./icon-colors"
+import { normalizeIconColor } from "../utils/icon-colors"
 import {
   solveSystemJsonTraceLines,
   type SolvedSystemTraceLine,
