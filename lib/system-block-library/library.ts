@@ -1,7 +1,27 @@
-import type { BlockPorts, LibraryCategory, LibraryItem } from "./types"
+import { ICON_PATHS, type IconName } from "../utils/iconPaths"
 import { TiSubcircuitDefinitions } from "../system-blocks/TiSubcircuits"
+import {
+  LIBRARY_CATEGORIES,
+  type LibraryCategory,
+  type LibraryCategoryName,
+  type LibraryItem,
+} from "./types"
 
 const TI_DEFINITIONS = Object.values(TiSubcircuitDefinitions)
+const LIBRARY_CATEGORY_NAMES = new Set<string>(LIBRARY_CATEGORIES)
+
+function toLibraryCategoryName(value: string): LibraryCategoryName {
+  if (!LIBRARY_CATEGORY_NAMES.has(value)) {
+    throw new Error(`Unknown library category: ${value}`)
+  }
+  return value as LibraryCategoryName
+}
+
+function toLibraryIconName(value: string | undefined): IconName {
+  if (!value) return "chip"
+  if (value in ICON_PATHS) return value as IconName
+  throw new Error(`Unknown library icon: ${value}`)
+}
 
 function withTiDefinitionMetadata(
   item: LibraryItem,
@@ -76,12 +96,13 @@ const BASE_LIBRARY: LibraryCategory[] = [
 ]
 
 const tiByCategory = TI_DEFINITIONS.reduce((byCategory, definition) => {
-  const [categoryName, itemType = categoryName] = definition.category
+  const [rawCategoryName, itemType = rawCategoryName] = definition.category
+  const categoryName = toLibraryCategoryName(rawCategoryName)
   const byItemType = byCategory.get(categoryName) ?? new Map()
   byItemType.set(itemType, [...(byItemType.get(itemType) ?? []), definition])
   byCategory.set(categoryName, byItemType)
   return byCategory
-}, new Map<string, Map<string, typeof TI_DEFINITIONS>>())
+}, new Map<LibraryCategoryName, Map<string, typeof TI_DEFINITIONS>>())
 
 const BASE_CATEGORY_NAMES = new Set(
   BASE_LIBRARY.map((category) => category.name),
@@ -99,7 +120,7 @@ export const LIBRARY: LibraryCategory[] = [
         withTiDefinitionMetadata(
           {
             type: itemType,
-            icon: definitions[0]?.icon ?? "chip",
+            icon: toLibraryIconName(definitions[0]?.icon),
             count: definitions.length,
             category: [category.name, itemType],
           },
@@ -143,7 +164,7 @@ export const LIBRARY: LibraryCategory[] = [
             withTiDefinitionMetadata(
               {
                 type: itemType,
-                icon: definitions[0]?.icon ?? "chip",
+                icon: toLibraryIconName(definitions[0]?.icon),
                 count: definitions.length,
                 category: [categoryName, itemType],
               },
@@ -158,42 +179,4 @@ const ALL_ITEMS = LIBRARY.flatMap((category) => category.items)
 
 export function findLibraryItem(type: string) {
   return ALL_ITEMS.find((item) => item.type === type)
-}
-
-export function defaultPorts(type: string): BlockPorts {
-  const ports: BlockPorts = { L: [], R: [], T: [], B: [] }
-
-  if (/Transceiver|UWB/.test(type)) {
-    ports.R.push("SPI", "GPIO")
-    ports.B.push("SUPPLY")
-  } else if (/Level Shift|Shifter/.test(type)) {
-    ports.L.push("GPIO", "GPIO")
-    ports.R.push("SPI", "GPIO")
-    ports.B.push("SUPPLY")
-  } else if (/BLE|MCU/.test(type)) {
-    ports.L.push("GPIO", "GPIO", "GPIO")
-    ports.R.push("SPI", "GPIO")
-    ports.B.push("SUPPLY")
-  } else if (/Flash|EEPROM|SRAM|Memory/.test(type)) {
-    ports.L.push("SPI", "GPIO")
-    ports.B.push("SUPPLY")
-  } else if (/NFC/.test(type)) {
-    ports.L.push("I2C")
-    ports.R.push("GPIO", "GPIO", "GPIO")
-    ports.B.push("SUPPLY")
-  } else if (/Authenticat|Secure/.test(type)) {
-    ports.L.push("I2C")
-    ports.R.push("I2C")
-    ports.B.push("SUPPLY")
-  } else if (/PMIC|LDO|Buck/.test(type)) {
-    ports.L.push("EN")
-    ports.R.push("SUPPLY")
-  } else if (/Batter|Cell|Balanc|Monitor/.test(type)) {
-    ports.R.push("V+", "V-")
-  } else {
-    ports.L.push("IN")
-    ports.R.push("OUT")
-  }
-
-  return ports
 }

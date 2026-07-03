@@ -1,5 +1,6 @@
-import { ICON_PATHS } from "../design-system/iconPaths"
-import { pathPointsToSvgPath } from "../design-system/pathPointsToSvgPath"
+import { ICON_PATHS } from "../utils/iconPaths"
+import type { IconName } from "../utils/iconPaths"
+import { pathPointsToSvgPath } from "../utils/pathPointsToSvgPath"
 import { normalizeIconColor } from "../utils/icon-colors"
 import { midpointOfLongestSegment } from "../system-trace-solver/geometry"
 import {
@@ -183,7 +184,8 @@ function renderBlockIcon(
 ) {
   const iconName = icon ?? "chip"
   const color = normalizeIconColor(iconColor)
-  const path = ICON_PATHS[iconName] ?? ICON_PATHS.chip
+  const path =
+    iconName in ICON_PATHS ? ICON_PATHS[iconName as IconName] : ICON_PATHS.chip
 
   return `<g transform="translate(${round(x)},${round(y)}) scale(${round(size / 24)})" fill="none" stroke="${escapeAttribute(color)}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${path}</g>`
 }

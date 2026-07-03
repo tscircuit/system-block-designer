@@ -1,4 +1,4 @@
-export const ICON_PATHS: Record<string, string> = {
+export const ICON_PATHS = {
   chip: '<rect x="6" y="6" width="12" height="12" rx="1.5"/><rect x="9.5" y="9.5" width="5" height="5" rx=".6"/><path d="M9 6V3M15 6V3M9 21v-3M15 21v-3M6 9H3M6 15H3M21 9h-3M21 15h-3"/>',
   antenna:
     '<circle cx="12" cy="9" r="2"/><path d="M12 11v9M7.5 4.5a6.4 6.4 0 0 1 9 0M5 7a9.9 9.9 0 0 1 14 0"/>',
@@ -23,4 +23,6 @@ export const ICON_PATHS: Record<string, string> = {
     '<rect x="5" y="9" width="12" height="7" rx="1.5"/><path d="M17 11h2v3h-2"/><path d="M9 12h4M11 10v4"/>',
   uwb: '<circle cx="12" cy="12" r="2"/><path d="M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7M6 6a9 9 0 0 0 0 12M18 6a9 9 0 0 1 0 12"/>',
   shifter: '<path d="M5 6 12 11 5 16z"/><path d="M19 8 12 13 19 18z"/>',
-}
+} as const satisfies Record<string, string>
+
+export type IconName = keyof typeof ICON_PATHS

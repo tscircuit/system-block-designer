@@ -1,4 +1,4 @@
-import type { Point } from "./types"
+import type { Point } from "../system-json/system-json"
 
 const DEFAULT_CORNER_RADIUS = 9
 const SAME_POINT_TOLERANCE = 0.5

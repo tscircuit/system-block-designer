@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { LIBRARY } from "../../lib/design-system/library"
-import type { LibraryCategory } from "../../lib/design-system/types"
+import { LIBRARY } from "../../lib/system-block-library/library"
+import type { LibraryCategory } from "../../lib/system-block-library/types"
 import type { IconColor } from "../../lib/utils/icon-colors"
 import {
   type CircuitJson,

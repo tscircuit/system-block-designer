@@ -1,6 +1,6 @@
 import { useMemo } from "react"
-import { Icon } from "../../lib/design-system/icons"
-import type { LibraryCategory } from "../../lib/design-system/types"
+import { Icon } from "../../lib/utils/icons"
+import type { LibraryCategory } from "../../lib/system-block-library/types"
 
 interface DesignLibraryProps {
   categories: LibraryCategory[]
