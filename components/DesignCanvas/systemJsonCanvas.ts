@@ -1,6 +1,6 @@
 import { pathPointsToSvgPath } from "../../lib/design-system/pathPointsToSvgPath"
-import { routeOrthogonalPath } from "../../lib/design-system/routeOrthogonalPath"
 import { findLibraryItem } from "../../lib/design-system/library"
+import { midpointOfLongestSegment } from "../../lib/system-trace-solver/geometry"
 import { solveSystemJsonTraceLines } from "../../lib/system-trace-solver"
 import {
   TiSystemBlockClasses,
@@ -152,14 +152,18 @@ export function routeSystemConnection(
   targetPort: SystemPort,
   ports: SystemPort[],
 ) {
-  const source = getSystemPortPosition(sourceBlock, sourcePort, ports)
-  const target = getSystemPortPosition(targetBlock, targetPort, ports)
-  return routeOrthogonalPath(
-    source,
-    SYSTEM_DIR[sourcePort.side_of_block],
-    target,
-    SYSTEM_DIR[targetPort.side_of_block],
+  const points = routeSystemPathPoints(
+    sourceBlock,
+    sourcePort,
+    targetBlock,
+    targetPort,
+    ports,
   )
+
+  return {
+    d: pathPointsToSvgPath(points),
+    mid: midpointOfLongestSegment(points),
+  }
 }
 
 export function createSystemJsonForLibraryBlock({
@@ -234,8 +238,33 @@ export function routeSystemPathPoints(
 ) {
   const source = getSystemPortPosition(sourceBlock, sourcePort, ports)
   const target = getSystemPortPosition(targetBlock, targetPort, ports)
-  const sourceDir = SYSTEM_DIR[sourcePort.side_of_block]
-  const targetDir = SYSTEM_DIR[targetPort.side_of_block]
+  return createConnectionPathPoints(
+    source,
+    SYSTEM_DIR[sourcePort.side_of_block],
+    target,
+    SYSTEM_DIR[targetPort.side_of_block],
+  )
+}
+
+export function routeTemporaryConnectionPath(
+  source: Point,
+  sourceDirection: Point,
+  target: Point,
+) {
+  return pathPointsToSvgPath(
+    createConnectionPathPoints(source, sourceDirection, target, {
+      x: -sourceDirection.x || 1,
+      y: 0,
+    }),
+  )
+}
+
+function createConnectionPathPoints(
+  source: Point,
+  sourceDir: Point,
+  target: Point,
+  targetDir: Point,
+) {
   const step = 24
   const sourceLead = {
     x: source.x + sourceDir.x * step,

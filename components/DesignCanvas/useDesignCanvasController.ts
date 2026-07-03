@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { routeOrthogonalPath } from "../../lib/design-system/routeOrthogonalPath"
 import { LIBRARY } from "../../lib/design-system/library"
 import type { LibraryCategory } from "../../lib/design-system/types"
 import type { IconColor } from "../../lib/utils/icon-colors"
@@ -30,6 +29,7 @@ import {
   getSystemPortPosition,
   inferConnectionInterface,
   normalizeSystemJson,
+  routeTemporaryConnectionPath,
   routeSystemPathPoints,
   SYSTEM_DIR,
   updateConnectionPaths,
@@ -683,10 +683,7 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
     if (!port || !block) return null
     const point = getSystemPortPosition(block, port, normalized.ports)
     const direction = SYSTEM_DIR[port.side_of_block]
-    return routeOrthogonalPath(point, direction, tempConnection.to, {
-      x: -direction.x || 1,
-      y: 0,
-    }).d
+    return routeTemporaryConnectionPath(point, direction, tempConnection.to)
   }, [tempConnection, blockMap, normalized.ports, portMap])
 
   const editWrapper = editing ? canvasToWrapper(editing.cx, editing.cy) : null

@@ -1,7 +1,7 @@
-import { midpointOfPath } from "../design-system/midpointOfPath"
 import { ICON_PATHS } from "../design-system/iconPaths"
 import { pathPointsToSvgPath } from "../design-system/pathPointsToSvgPath"
 import { normalizeIconColor } from "../utils/icon-colors"
+import { midpointOfLongestSegment } from "../system-trace-solver/geometry"
 import {
   solveSystemJsonTraceLines,
   type SolvedSystemTraceLine,
@@ -126,7 +126,7 @@ function renderConnection(
   if (points.length < 2) return ""
 
   const path = pathPointsToSvgPath(points)
-  const mid = solvedLine?.labelPosition ?? midpointOfPath(points)
+  const mid = solvedLine?.labelPosition ?? midpointOfLongestSegment(points)
   const label = connection.label ?? ""
   const labelWidth = label.length * 6.6 + 14
 
