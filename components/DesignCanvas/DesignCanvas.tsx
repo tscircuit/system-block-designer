@@ -88,6 +88,9 @@ export function DesignCanvasContent({
         <BlockPropertiesSidebar
           block={selectedBlock}
           connection={selectedConnection}
+          blocks={canvas.blocks}
+          connections={canvas.connections}
+          ports={canvas.ports}
           onApplySubcircuit={canvas.applyBlockSubcircuit}
           onUpdateBlockIconColor={canvas.updateBlockIconColor}
           onUpdateConnectionInterface={canvas.updateConnectionInterface}
