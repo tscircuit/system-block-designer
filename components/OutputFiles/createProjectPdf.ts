@@ -1,7 +1,7 @@
 import type { AnyCircuitElement, SchematicSheet } from "circuit-json"
 import { convertCircuitJsonToSchematicSvg } from "circuit-to-svg"
 import type { BomViewRow } from "../../lib/bom/types"
-import { LIBRARY } from "../../lib/design-system/library"
+import { LIBRARY } from "../../lib/system-block-library/library"
 import { type CreatePdfParams, createPdf } from "../../lib/pdfgen/createPdf"
 import type { CircuitJson } from "../../lib/system-blocks/resolveSystemJsonToCircuitJson"
 import type {

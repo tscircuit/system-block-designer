@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { BlockIcon } from "../../lib/design-system/icons"
+import { BlockIcon } from "../../lib/utils/icons"
 import {
   ICON_COLOR_PALETTE,
   type IconColor,

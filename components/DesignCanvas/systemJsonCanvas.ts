@@ -1,5 +1,5 @@
-import { pathPointsToSvgPath } from "../../lib/design-system/pathPointsToSvgPath"
-import { findLibraryItem } from "../../lib/design-system/library"
+import { findLibraryItem } from "../../lib/system-block-library/library"
+import { pathPointsToSvgPath } from "../../lib/utils/pathPointsToSvgPath"
 import { midpointOfLongestSegment } from "../../lib/system-trace-solver/geometry"
 import { solveSystemJsonTraceLines } from "../../lib/system-trace-solver"
 import {
@@ -203,8 +203,8 @@ export function createSystemJsonForLibraryBlock({
     center,
     size: { width, height },
     label: type,
-    category: item.category ?? [type],
-    icon: item.icon ?? "chip",
+    category: [...(item.category ?? [type])],
+    icon: item.icon,
   }
 
   return [block]

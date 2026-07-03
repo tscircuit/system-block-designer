@@ -4,7 +4,7 @@ import type {
   SystemPort,
 } from "../../lib/system-json/system-json"
 import type { SolvedSystemTraceLine } from "../../lib/system-trace-solver"
-import { pathPointsToSvgPath } from "../../lib/design-system/pathPointsToSvgPath"
+import { pathPointsToSvgPath } from "../../lib/utils/pathPointsToSvgPath"
 import {
   inferConnectionInterface,
   systemConnectionToSvgPath,

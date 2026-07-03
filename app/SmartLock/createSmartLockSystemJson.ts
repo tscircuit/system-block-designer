@@ -1,4 +1,4 @@
-import { LIBRARY } from "../../lib/design-system/library"
+import { LIBRARY } from "../../lib/system-block-library/library"
 import type {
   Point,
   SystemBlock,
