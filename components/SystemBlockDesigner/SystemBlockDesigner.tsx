@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { createBomArtifacts } from "../../lib/bom/createBomArtifacts"
 import type { BomArtifacts } from "../../lib/bom/types"
+import { AiChat } from "../AiChat"
 import { BomView } from "../BOMView/BomView"
 import { DesignCanvasContent } from "../DesignCanvas/DesignCanvas"
 import type { DesignCanvasProps } from "../DesignCanvas/DesignCanvas.types"
@@ -103,6 +104,22 @@ export function SystemBlockDesigner({
         canRedo={canvas.futureRef.current.length > 0}
         onUndo={canvas.undo}
         onRedo={canvas.redo}
+        assistantAction={
+          <AiChat
+            contextParams={{
+              projectTitle,
+              activeTab: canvas.activeTab,
+              systemJson: canvas.systemJson,
+              blocks: canvas.blocks,
+              ports: canvas.ports,
+              connections: canvas.connections,
+              warnings: canvas.warnings,
+              errors: canvas.errors,
+              selection: canvas.selection,
+            }}
+            onApplyActions={canvas.applyAiActions}
+          />
+        }
         actions={
           <>
             {(showSystemJsonDownload || showCircuitJsonDownload) && (

@@ -1,4 +1,5 @@
 import { SystemBlock, type SystemBlockConfig } from "../SystemBlock"
+import { LibraryCategoryName } from "../../system-block-library/types"
 import type { SystemBlockInterface } from "../../system-json/system-json"
 
 type TiSystemBlockConfig = Partial<
@@ -19,7 +20,7 @@ type PortSide = "top" | "bottom" | "left" | "right"
 export interface TiSubcircuitDefinition {
   componentName: string
   label: string
-  category: string[]
+  category: readonly [LibraryCategoryName, string]
   partNumber: string
   description: string
   icon: string
@@ -43,7 +44,7 @@ function createTiSubcircuitConfig(
     subcircuitId: config.subcircuitId,
     schSheetName: config.schSheetName,
     label: definition.label,
-    category: definition.category,
+    category: [...definition.category],
     componentName: definition.componentName,
     icon: definition.icon,
     partNumber: definition.partNumber,
@@ -72,7 +73,7 @@ export const TiSubcircuitDefinitions = {
   BatteryManagement_BQ24074: {
     componentName: "BatteryManagement_BQ24074",
     label: "Battery Charger",
-    category: ["Battery Management", "Battery Charger"],
+    category: [LibraryCategoryName.BatteryManagement, "Battery Charger"],
     partNumber: "BQ24074",
     description: "TI BQ24074 single-cell Li-ion linear battery charger.",
     icon: "battery2",
@@ -87,7 +88,7 @@ export const TiSubcircuitDefinitions = {
   BatteryManagement_BQ25895: {
     componentName: "BatteryManagement_BQ25895",
     label: "Switch-Mode Battery Charger",
-    category: ["Battery Management", "Battery Charger"],
+    category: [LibraryCategoryName.BatteryManagement, "Battery Charger"],
     partNumber: "BQ25895",
     description:
       "TI BQ25895 I2C-controlled single-cell switch-mode battery charger.",
@@ -114,7 +115,7 @@ export const TiSubcircuitDefinitions = {
   BatteryManagement_BQ27441G1: {
     componentName: "BatteryManagement_BQ27441G1",
     label: "Battery Fuel Gauge",
-    category: ["Battery Management", "Battery Monitor"],
+    category: [LibraryCategoryName.BatteryManagement, "Battery Monitor"],
     partNumber: "BQ27441-G1",
     description: "TI BQ27441-G1 single-cell battery fuel gauge.",
     icon: "monitor",
@@ -140,7 +141,7 @@ export const TiSubcircuitDefinitions = {
   WirelessMCU_CC2340R5: {
     componentName: "WirelessMCU_CC2340R5",
     label: "Bluetooth Wireless MCU",
-    category: ["Communication", "Wireless MCU"],
+    category: [LibraryCategoryName.Communication, "Wireless MCU"],
     partNumber: "CC2340R5",
     description: "TI CC2340R5 Bluetooth Low Energy wireless MCU reference.",
     icon: "antenna",
@@ -169,7 +170,7 @@ export const TiSubcircuitDefinitions = {
   WirelessMCU_CC3235SF: {
     componentName: "WirelessMCU_CC3235SF",
     label: "Wi-Fi Wireless MCU",
-    category: ["Communication", "Wireless MCU"],
+    category: [LibraryCategoryName.Communication, "Wireless MCU"],
     partNumber: "CC3235SF",
     description: "TI CC3235SF SimpleLink Wi-Fi wireless MCU reference.",
     icon: "antenna",
@@ -248,7 +249,7 @@ export const TiSubcircuitDefinitions = {
   MotorDriver_DRV8833: {
     componentName: "MotorDriver_DRV8833",
     label: "Dual H-Bridge Motor Driver",
-    category: ["Motor Driver", "H-Bridge"],
+    category: [LibraryCategoryName.MotorDriver, "H-Bridge"],
     partNumber: "DRV8833",
     description: "TI DRV8833 low-voltage dual H-bridge motor driver.",
     icon: "power",
@@ -266,7 +267,7 @@ export const TiSubcircuitDefinitions = {
   MotorDriver_DRV8876: {
     componentName: "MotorDriver_DRV8876",
     label: "H-Bridge Motor Driver",
-    category: ["Motor Driver", "H-Bridge"],
+    category: [LibraryCategoryName.MotorDriver, "H-Bridge"],
     partNumber: "DRV8876",
     description:
       "TI DRV8876 brushed DC motor driver with current feedback and fault output.",
@@ -286,7 +287,7 @@ export const TiSubcircuitDefinitions = {
   EnvironmentalSensor_HDC2080: {
     componentName: "EnvironmentalSensor_HDC2080",
     label: "Environmental Sensor",
-    category: ["Sensor", "Environmental Sensor"],
+    category: [LibraryCategoryName.Sensor, "Environmental Sensor"],
     partNumber: "HDC2080",
     description:
       "TI HDC2080 temperature and humidity sensor with I2C interface.",
@@ -317,7 +318,7 @@ export const TiSubcircuitDefinitions = {
   EnvironmentalSensor_HDC3020: {
     componentName: "EnvironmentalSensor_HDC3020",
     label: "Environmental Sensor",
-    category: ["Sensor", "Environmental Sensor"],
+    category: [LibraryCategoryName.Sensor, "Environmental Sensor"],
     partNumber: "HDC3020",
     description:
       "TI HDC3020 temperature and humidity sensor with I2C interface.",
@@ -348,7 +349,7 @@ export const TiSubcircuitDefinitions = {
   EnvironmentalSensor_HDC3022: {
     componentName: "EnvironmentalSensor_HDC3022",
     label: "Environmental Sensor",
-    category: ["Sensor", "Environmental Sensor"],
+    category: [LibraryCategoryName.Sensor, "Environmental Sensor"],
     partNumber: "HDC3022",
     description:
       "TI HDC3022 temperature and humidity sensor with I2C interface.",
@@ -379,7 +380,7 @@ export const TiSubcircuitDefinitions = {
   PowerMonitor_INA237: {
     componentName: "PowerMonitor_INA237",
     label: "Power Monitor",
-    category: ["Power", "Power Monitor"],
+    category: [LibraryCategoryName.Power, "Power Monitor"],
     partNumber: "INA237",
     description:
       "TI INA237 high-precision current, voltage, and power monitor.",
@@ -410,7 +411,7 @@ export const TiSubcircuitDefinitions = {
   Microcontroller_MSPM0G3507: {
     componentName: "Microcontroller_MSPM0G3507",
     label: "Microcontroller",
-    category: ["Processing & Security", "MCU"],
+    category: [LibraryCategoryName.ProcessingAndSecurity, "MCU"],
     partNumber: "MSPM0G3507",
     description: "TI MSPM0G3507 Arm Cortex-M0+ microcontroller reference.",
     icon: "chip",
@@ -441,7 +442,7 @@ export const TiSubcircuitDefinitions = {
   TemperatureSensor_TMP1075: {
     componentName: "TemperatureSensor_TMP1075",
     label: "Temperature Sensor",
-    category: ["Sensor", "Temperature Sensor"],
+    category: [LibraryCategoryName.Sensor, "Temperature Sensor"],
     partNumber: "TMP1075",
     description: "TI TMP1075 digital temperature sensor with I2C interface.",
     icon: "sensor",
@@ -471,7 +472,7 @@ export const TiSubcircuitDefinitions = {
   LoadSwitch_TPS22919: {
     componentName: "LoadSwitch_TPS22919",
     label: "Load Switch",
-    category: ["Power", "Load Switch"],
+    category: [LibraryCategoryName.Power, "Load Switch"],
     partNumber: "TPS22919",
     description: "TI TPS22919 5.5-V load switch reference.",
     icon: "power",
@@ -486,7 +487,7 @@ export const TiSubcircuitDefinitions = {
   BuckConverter_TPS62933: {
     componentName: "BuckConverter_TPS62933",
     label: "Buck Converter",
-    category: ["Power", "Buck Converter"],
+    category: [LibraryCategoryName.Power, "Buck Converter"],
     partNumber: "TPS62933",
     description: "TI TPS62933 high-efficiency synchronous buck converter.",
     icon: "power",
@@ -501,7 +502,7 @@ export const TiSubcircuitDefinitions = {
   BuckBoostConverter_TPS63802: {
     componentName: "BuckBoostConverter_TPS63802",
     label: "Buck-Boost Converter",
-    category: ["Power", "Buck-Boost Converter"],
+    category: [LibraryCategoryName.Power, "Buck-Boost Converter"],
     partNumber: "TPS63802",
     description: "TI TPS63802 high-efficiency buck-boost converter reference.",
     icon: "power",
@@ -516,7 +517,7 @@ export const TiSubcircuitDefinitions = {
   PowerManagement_TPS7A02: {
     componentName: "PowerManagement_TPS7A02",
     label: "Low-Dropout Regulator",
-    category: ["Power", "LDO"],
+    category: [LibraryCategoryName.Power, "LDO"],
     partNumber: "TPS7A02",
     description: "TI TPS7A02 low-IQ low-dropout voltage regulator.",
     icon: "power",
@@ -531,7 +532,7 @@ export const TiSubcircuitDefinitions = {
   PowerModule_TPSM82823: {
     componentName: "PowerModule_TPSM82823",
     label: "Power Module",
-    category: ["Power", "Buck Module"],
+    category: [LibraryCategoryName.Power, "Buck Module"],
     partNumber: "TPSM82823",
     description: "TI TPSM82823 step-down converter power module.",
     icon: "power",

@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { applyAiDesignActions } from "../AiChat/applyAiDesignActions"
+import type { AiDesignAction } from "../AiChat/aiChatTypes"
 import { LIBRARY } from "../../lib/system-block-library/library"
 import type { LibraryCategory } from "../../lib/system-block-library/types"
 import type { IconColor } from "../../lib/utils/icon-colors"
@@ -577,6 +579,28 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
     [applySelection, mutate],
   )
 
+  const applyAiActions = useCallback(
+    (actions: AiDesignAction[]) => {
+      const nextSystemJson = applyAiDesignActions(
+        systemJsonRef.current,
+        actions,
+      )
+      mutate(nextSystemJson)
+
+      const lastBlockAction = [...actions]
+        .reverse()
+        .find((action) => action.type === "upsert_block")
+      if (lastBlockAction?.type === "upsert_block") {
+        applySelection({
+          kind: "block",
+          id: lastBlockAction.block.system_block_id,
+        })
+      }
+      setActiveTab("canvas")
+    },
+    [applySelection, mutate],
+  )
+
   const deleteConnection = useCallback(
     (connectionId: string) => {
       mutate(
@@ -694,6 +718,7 @@ export function useDesignCanvasController(initialSystemJson?: SystemJson[]) {
     addBlockCentered,
     addPortToBlock,
     applyBlockSubcircuit,
+    applyAiActions,
     blockMap,
     blocks: normalized.blocks,
     categories,

@@ -1,16 +1,16 @@
 import type { IconName } from "../utils/iconPaths"
 
-export const LIBRARY_CATEGORIES = [
-  "Battery Management",
-  "Communication",
-  "Memory",
-  "Motor Driver",
-  "Power",
-  "Processing & Security",
-  "Sensor",
-] as const
+export enum LibraryCategoryName {
+  BatteryManagement = "Battery Management",
+  Communication = "Communication",
+  Memory = "Memory",
+  MotorDriver = "Motor Driver",
+  Power = "Power",
+  ProcessingAndSecurity = "Processing & Security",
+  Sensor = "Sensor",
+}
 
-export type LibraryCategoryName = (typeof LIBRARY_CATEGORIES)[number]
+export const LIBRARY_CATEGORIES = Object.values(LibraryCategoryName)
 
 export type LibraryItemCategory =
   | readonly [LibraryCategoryName]

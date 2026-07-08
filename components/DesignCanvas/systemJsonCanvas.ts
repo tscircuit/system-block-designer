@@ -31,15 +31,33 @@ export function inferConnectionInterface(
   if (CONNECTION_INTERFACES.includes(normalized as ConnectionInterface)) {
     return normalized as ConnectionInterface
   }
+  const tokens = normalized.split(/[^a-z0-9]+/).filter(Boolean)
   if (
-    ["vcc", "vdd", "vin", "vout", "gnd", "ground", "power", "supply"].includes(
-      normalized,
+    tokens.some((token) =>
+      [
+        "vcc",
+        "vdd",
+        "vin",
+        "vout",
+        "gnd",
+        "ground",
+        "power",
+        "supply",
+      ].includes(token),
     )
   ) {
     return "supply"
   }
-  if (["scl", "sda", "i2c"].includes(normalized)) return "i2c"
-  if (["sclk", "miso", "mosi", "cs", "spi"].includes(normalized)) return "spi"
+  if (tokens.some((token) => ["scl", "sda", "i2c"].includes(token))) {
+    return "i2c"
+  }
+  if (
+    tokens.some((token) =>
+      ["sclk", "miso", "mosi", "cs", "spi"].includes(token),
+    )
+  ) {
+    return "spi"
+  }
   return "gpio"
 }
 
