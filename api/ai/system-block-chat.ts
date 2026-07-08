@@ -43,6 +43,44 @@ function getOpenAiErrorMessage(payload: unknown) {
     : null
 }
 
+function getOpenAiOutputText(payload: unknown) {
+  if (!isRecord(payload)) return null
+  if (typeof payload.output_text === "string") return payload.output_text
+
+  const output = payload.output
+  if (!Array.isArray(output)) return null
+
+  for (const outputItem of output) {
+    if (!isRecord(outputItem) || !Array.isArray(outputItem.content)) continue
+
+    for (const contentItem of outputItem.content) {
+      if (
+        isRecord(contentItem) &&
+        contentItem.type === "output_text" &&
+        typeof contentItem.text === "string"
+      ) {
+        return contentItem.text
+      }
+    }
+  }
+
+  return null
+}
+
+function normalizeOpenAiPayload(payload: unknown) {
+  const outputText = getOpenAiOutputText(payload)
+  if (!outputText) return payload
+
+  try {
+    const parsed = JSON.parse(outputText)
+    if (isRecord(parsed) && typeof parsed.message === "string") return parsed
+  } catch {
+    return { message: outputText }
+  }
+
+  return { message: outputText }
+}
+
 function withConfiguredModel(openAiRequest: Record<string, unknown>) {
   if (!process.env.OPENAI_MODEL) return openAiRequest
   return { ...openAiRequest, model: process.env.OPENAI_MODEL }
@@ -73,7 +111,7 @@ async function forwardToOpenAi(openAiRequest: Record<string, unknown>) {
   return {
     statusCode: openAiResponse.status,
     payload: openAiResponse.ok
-      ? payload
+      ? normalizeOpenAiPayload(payload)
       : {
           message:
             getOpenAiErrorMessage(payload) ??
