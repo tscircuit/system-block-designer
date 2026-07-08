@@ -18,8 +18,9 @@
 }
 
 .ai-chat-trigger svg {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
+  display: block;
 }
 
 .ai-chat-panel {
@@ -81,7 +82,13 @@
   font-size: 12px;
 }
 
-.ai-chat-close {
+.ai-chat-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ai-chat-icon-button {
   width: 30px;
   height: 30px;
   border: 1px solid transparent;
@@ -93,7 +100,7 @@
   cursor: pointer;
 }
 
-.ai-chat-close:hover {
+.ai-chat-icon-button:hover {
   background: #f5f7fa;
   color: var(--ink);
 }

@@ -32,17 +32,18 @@ export function AiChat({ contextParams, onApplyActions }: AiChatProps) {
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState("")
   const [sending, setSending] = useState(false)
-  const [messages, setMessages] = useState<AiChatMessage[]>([
-    createMessage(
-      "assistant",
-      "Hi, I can help generate or edit block diagrams, review connections, answer BOM questions, and prepare output files.",
-    ),
-  ])
+  const [messages, setMessages] = useState<AiChatMessage[]>([])
 
   const context = useMemo(
     () => createAiChatDesignContext(contextParams),
     [contextParams],
   )
+
+  const startNewChat = () => {
+    setMessages([])
+    setDraft("")
+    setSending(false)
+  }
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
@@ -102,28 +103,52 @@ export function AiChat({ contextParams, onApplyActions }: AiChatProps) {
             <span>AI assistant</span>
           </div>
         </div>
-        <button
-          type="button"
-          className="ai-chat-close"
-          aria-label="Close AI chat"
-          title="Close"
-          onClick={() => setOpen(false)}
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
+        <div className="ai-chat-header-actions">
+          <button
+            type="button"
+            className="ai-chat-icon-button"
+            aria-label="Start new AI chat"
+            title="New chat"
+            onClick={startNewChat}
           >
-            <path d="M18 6 6 18" />
-            <path d="m6 6 12 12" />
-          </svg>
-        </button>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 5v14" />
+              <path d="M5 12h14" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className="ai-chat-icon-button"
+            aria-label="Close AI chat"
+            title="Close"
+            onClick={() => setOpen(false)}
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
+            </svg>
+          </button>
+        </div>
       </header>
       <MessageScroller>
         <div className="ai-chat-welcome">
