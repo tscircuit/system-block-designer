@@ -1,39 +1,43 @@
+import type { IncomingMessage, ServerResponse } from "node:http"
 import { handleSystemBlockAiChatBody } from "../../server/AiChat/systemBlockAiChatHandler"
 
-declare const process: {
-  env: Record<string, string | undefined>
+function readRequestBody(request: IncomingMessage): Promise<string> {
+  return new Promise((resolve, reject) => {
+    let body = ""
+    request.setEncoding("utf8")
+    request.on("data", (chunk) => {
+      body += chunk
+    })
+    request.on("end", () => resolve(body))
+    request.on("error", reject)
+  })
 }
 
-interface VercelRequest {
-  method?: string
-  body?: unknown
-}
-
-interface VercelResponse {
-  status(statusCode: number): VercelResponse
-  json(payload: unknown): void
-}
-
-function stringifyBody(body: unknown) {
-  return typeof body === "string" ? body : JSON.stringify(body ?? {})
+function sendJson(
+  response: ServerResponse,
+  statusCode: number,
+  payload: unknown,
+) {
+  response.statusCode = statusCode
+  response.setHeader("content-type", "application/json")
+  response.end(JSON.stringify(payload))
 }
 
 export default async function handler(
-  request: VercelRequest,
-  response: VercelResponse,
+  request: IncomingMessage,
+  response: ServerResponse,
 ) {
   if (request.method !== "POST") {
-    response.status(405).json({ message: "Method not allowed" })
+    sendJson(response, 405, { message: "Method not allowed" })
     return
   }
 
   const result = await handleSystemBlockAiChatBody(
-    stringifyBody(request.body),
+    await readRequestBody(request),
     {
       openAiApiKey: process.env.OPENAI_API_KEY,
       openAiModel: process.env.OPENAI_MODEL,
     },
   )
-
-  response.status(result.statusCode).json(result.payload)
+  sendJson(response, result.statusCode, result.payload)
 }
