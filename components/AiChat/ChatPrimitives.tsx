@@ -1,7 +1,13 @@
 import { useEffect, useRef, type ReactNode } from "react"
 import type { AiChatRole } from "./aiChatTypes"
 
-export function MessageScroller({ children }: { children: ReactNode }) {
+export function MessageScroller({
+  children,
+  className,
+}: {
+  children: ReactNode
+  className?: string
+}) {
   const scrollerRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -11,7 +17,10 @@ export function MessageScroller({ children }: { children: ReactNode }) {
   }, [children])
 
   return (
-    <div className="ai-message-scroller" ref={scrollerRef}>
+    <div
+      className={`ai-message-scroller${className ? ` ${className}` : ""}`}
+      ref={scrollerRef}
+    >
       {children}
     </div>
   )
