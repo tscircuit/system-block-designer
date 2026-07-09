@@ -6,23 +6,67 @@ import { COLORS, PAGE_SIZES } from "./constants"
 import { drawPdfText, drawText, measureTextWidth, wrapText } from "./layout"
 import type { BomPageInput, PdfFonts, PdfRenderContext } from "./types"
 
-type BomColumn = {
+type BomColumnSpec = {
+  key: keyof BomViewRow
+  label: string
+  preferredWidth: number
+  minWidth: number
+  flexGrow?: number
+  shrinkPriority?: number
+}
+
+export type BomColumn = {
   key: keyof BomViewRow
   label: string
   width: number
 }
 
-const BOM_COLUMNS: BomColumn[] = [
-  { key: "referenceDesignators", label: "Ref.\nDes.", width: 40 },
-  { key: "value", label: "Value", width: 78 },
-  { key: "manufacturer", label: "Manufacturer", width: 118 },
-  { key: "mpn", label: "MPN", width: 148 },
-  { key: "packageName", label: "Package", width: 96 },
-  { key: "description", label: "Description", width: 305.89 },
+const BOM_COLUMN_SPECS: BomColumnSpec[] = [
+  {
+    key: "referenceDesignators",
+    label: "Ref.\nDes.",
+    preferredWidth: 78,
+    minWidth: 78,
+  },
+  {
+    key: "value",
+    label: "Value",
+    preferredWidth: 78,
+    minWidth: 78,
+  },
+  {
+    key: "manufacturer",
+    label: "Manufacturer",
+    preferredWidth: 118,
+    minWidth: 96,
+    shrinkPriority: 2,
+  },
+  {
+    key: "mpn",
+    label: "MPN",
+    preferredWidth: 148,
+    minWidth: 120,
+    shrinkPriority: 3,
+  },
+  {
+    key: "packageName",
+    label: "Package",
+    preferredWidth: 96,
+    minWidth: 84,
+    shrinkPriority: 1,
+  },
+  {
+    key: "description",
+    label: "Description",
+    preferredWidth: 267.89,
+    minWidth: 180,
+    flexGrow: 1,
+    shrinkPriority: 4,
+  },
 ]
 
 const BOM_HEADER_HEIGHT = 30
-const BOM_BODY_FONT_SIZE = 7.8
+export const BOM_BODY_FONT_SIZE = 7.8
 const BOM_HEADER_FONT_SIZE = 8.8
 const BOM_HEADER_LINE_HEIGHT = 9
 const BOM_LINE_HEIGHT = 10
@@ -32,6 +76,47 @@ const BOM_MIN_ROW_HEIGHT = 28
 const BOM_TABLE_X = 22
 const BOM_TABLE_TOP = PAGE_SIZES.landscape.height - 60
 const BOM_FOOTER_Y = 14
+
+export function getBomTableWidth(
+  pageWidth = PAGE_SIZES.landscape.width,
+  tableX = BOM_TABLE_X,
+) {
+  return Math.max(1, pageWidth - tableX * 2)
+}
+
+export function getBomColumns(tableWidth = getBomTableWidth()): BomColumn[] {
+  const columns = BOM_COLUMN_SPECS.map((column) => ({
+    ...column,
+    width: column.preferredWidth,
+  }))
+  const preferredWidth = columns.reduce(
+    (total, column) => total + column.width,
+    0,
+  )
+
+  if (preferredWidth < tableWidth) {
+    distributeExtraWidth(columns, tableWidth - preferredWidth)
+  } else if (preferredWidth > tableWidth) {
+    shrinkColumnsToFit(columns, preferredWidth - tableWidth)
+  }
+
+  const widthDelta =
+    tableWidth - columns.reduce((total, column) => total + column.width, 0)
+  if (Math.abs(widthDelta) > 0.01) {
+    const adjustableColumn =
+      [...columns].reverse().find((column) => (column.flexGrow ?? 0) > 0) ??
+      columns[columns.length - 1]
+
+    if (adjustableColumn) {
+      adjustableColumn.width = Math.max(
+        adjustableColumn.minWidth,
+        adjustableColumn.width + widthDelta,
+      )
+    }
+  }
+
+  return columns.map(({ key, label, width }) => ({ key, label, width }))
+}
 
 export function paginateBomPages(
   input: BomPageInput,
@@ -105,10 +190,8 @@ function drawBomTable(
   x: number,
   y: number,
 ) {
-  const tableWidth = BOM_COLUMNS.reduce(
-    (total, column) => total + column.width,
-    0,
-  )
+  const columns = getBomColumns(getBomTableWidth(page.getSize().width, x))
+  const tableWidth = columns.reduce((total, column) => total + column.width, 0)
 
   page.drawRectangle({
     x,
@@ -121,20 +204,14 @@ function drawBomTable(
   })
 
   let columnX = x
-  for (const column of BOM_COLUMNS) {
+  for (const column of columns) {
     drawCenteredHeaderLabel(page, fonts, column.label, columnX, y, column.width)
     columnX += column.width
   }
 
   let cursor = y - BOM_HEADER_HEIGHT
   for (const [index, row] of rows.entries()) {
-    const rowLines = BOM_COLUMNS.map((column) =>
-      wrapCellValue(
-        getColumnValue(row, column.key),
-        fonts.regular,
-        column.width - BOM_CELL_PADDING_X * 2,
-      ),
-    )
+    const rowLines = getBomRowLines(row, fonts.regular, columns)
     const rowHeight = getRowHeightFromLines(rowLines)
     cursor -= rowHeight
 
@@ -149,7 +226,7 @@ function drawBomTable(
     })
 
     let cellX = x
-    for (const [columnIndex, column] of BOM_COLUMNS.entries()) {
+    for (const [columnIndex, column] of columns.entries()) {
       if (columnIndex > 0) {
         page.drawLine({
           start: { x: cellX, y: cursor },
@@ -212,15 +289,7 @@ function getAvailableTableHeight() {
 }
 
 function measureBomRowHeight(row: BomViewRow, fonts: PdfFonts) {
-  const rowLines = BOM_COLUMNS.map((column) =>
-    wrapCellValue(
-      getColumnValue(row, column.key),
-      fonts.regular,
-      column.width - BOM_CELL_PADDING_X * 2,
-    ),
-  )
-
-  return getRowHeightFromLines(rowLines)
+  return getRowHeightFromLines(getBomRowLines(row, fonts.regular))
 }
 
 function getRowHeightFromLines(rowLines: string[][]) {
@@ -240,6 +309,20 @@ function wrapCellValue(
 ) {
   const lines = wrapText(value || "—", font, BOM_BODY_FONT_SIZE, maxWidth)
   return lines.length > 0 ? lines : ["—"]
+}
+
+export function getBomRowLines(
+  row: BomViewRow,
+  font: PdfFonts["regular"],
+  columns: BomColumn[] = getBomColumns(),
+) {
+  return columns.map((column) =>
+    wrapCellValue(
+      getColumnValue(row, column.key),
+      font,
+      getBomColumnContentWidth(column.width),
+    ),
+  )
 }
 
 function expandReferenceDesignatorRows(rows: BomViewRow[]) {
@@ -277,6 +360,55 @@ function getColumnValue(row: BomViewRow, key: BomColumn["key"]) {
     return row.referenceDesignators || "—"
   }
   return row[key] || "—"
+}
+
+export function getBomColumnContentWidth(columnWidth: number) {
+  return Math.max(1, columnWidth - BOM_CELL_PADDING_X * 2)
+}
+
+function distributeExtraWidth(
+  columns: Array<BomColumnSpec & { width: number }>,
+  extraWidth: number,
+) {
+  const growableColumns = columns.filter((column) => (column.flexGrow ?? 0) > 0)
+  if (growableColumns.length === 0) {
+    columns[columns.length - 1].width += extraWidth
+    return
+  }
+
+  const totalFlexGrow = growableColumns.reduce(
+    (total, column) => total + (column.flexGrow ?? 0),
+    0,
+  )
+  for (const column of growableColumns) {
+    column.width += extraWidth * ((column.flexGrow ?? 0) / totalFlexGrow)
+  }
+}
+
+function shrinkColumnsToFit(
+  columns: Array<BomColumnSpec & { width: number }>,
+  overflowWidth: number,
+) {
+  let remainingOverflow = overflowWidth
+  const shrinkableColumns = [...columns].sort(
+    (left, right) => (right.shrinkPriority ?? 0) - (left.shrinkPriority ?? 0),
+  )
+
+  for (const column of shrinkableColumns) {
+    if (remainingOverflow <= 0.01) break
+
+    const shrinkCapacity = column.width - column.minWidth
+    if (shrinkCapacity <= 0) continue
+
+    const appliedShrink = Math.min(shrinkCapacity, remainingOverflow)
+    column.width -= appliedShrink
+    remainingOverflow -= appliedShrink
+  }
+
+  if (remainingOverflow <= 0.01) return
+
+  const fallbackColumn = columns[columns.length - 1]
+  fallbackColumn.width = Math.max(1, fallbackColumn.width - remainingOverflow)
 }
 
 function drawCenteredHeaderLabel(
