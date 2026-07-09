@@ -13,6 +13,7 @@ interface TopBarProps {
   onUndo: () => void
   onRedo: () => void
   actions?: ReactNode
+  assistantAction?: ReactNode
 }
 
 export function TopBar({
@@ -32,6 +33,7 @@ export function TopBar({
   onUndo,
   onRedo,
   actions,
+  assistantAction,
 }: TopBarProps) {
   return (
     <header className="topbar">
@@ -144,6 +146,7 @@ export function TopBar({
         {actions}
         <button className="pill">Share</button>
         <button className="pill">Settings</button>
+        {assistantAction}
         <div className="avatar">SE</div>
       </div>
     </header>

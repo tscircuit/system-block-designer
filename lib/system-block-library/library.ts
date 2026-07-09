@@ -3,7 +3,7 @@ import { TiSubcircuitDefinitions } from "../system-blocks/TiSubcircuits"
 import {
   LIBRARY_CATEGORIES,
   type LibraryCategory,
-  type LibraryCategoryName,
+  LibraryCategoryName,
   type LibraryItem,
 } from "./types"
 
@@ -40,7 +40,7 @@ function withTiDefinitionMetadata(
 
 const BASE_LIBRARY: LibraryCategory[] = [
   {
-    name: "Battery Management",
+    name: LibraryCategoryName.BatteryManagement,
     open: true,
     items: [
       { type: "Active Balancing", icon: "balance", count: 6 },
@@ -55,7 +55,7 @@ const BASE_LIBRARY: LibraryCategory[] = [
     ],
   },
   {
-    name: "Communication",
+    name: LibraryCategoryName.Communication,
     open: false,
     items: [
       { type: "Radio Transceiver", icon: "antenna", count: 12 },
@@ -67,7 +67,7 @@ const BASE_LIBRARY: LibraryCategory[] = [
     ],
   },
   {
-    name: "Memory",
+    name: LibraryCategoryName.Memory,
     open: false,
     items: [
       { type: "Flash", icon: "memory", count: 8 },
@@ -76,7 +76,7 @@ const BASE_LIBRARY: LibraryCategory[] = [
     ],
   },
   {
-    name: "Processing & Security",
+    name: LibraryCategoryName.ProcessingAndSecurity,
     open: false,
     items: [
       { type: "MCU", icon: "chip", count: 22 },
@@ -85,7 +85,7 @@ const BASE_LIBRARY: LibraryCategory[] = [
     ],
   },
   {
-    name: "Power",
+    name: LibraryCategoryName.Power,
     open: false,
     items: [
       { type: "PMIC", icon: "power", count: 11 },

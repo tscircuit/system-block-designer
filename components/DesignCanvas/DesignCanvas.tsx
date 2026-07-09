@@ -4,6 +4,7 @@ import type { DesignCanvasProps } from "./DesignCanvas.types"
 import { DesignLibrary } from "./DesignLibrary"
 import { InteractiveCanvasStage } from "./InteractiveCanvasStage"
 import { TopBar } from "./TopBar"
+import { AiChat } from "../AiChat"
 import "./design-canvas.css"
 import { useDesignCanvasController } from "./useDesignCanvasController"
 
@@ -168,6 +169,21 @@ export function DesignCanvas({
         canRedo={canvas.futureRef.current.length > 0}
         onUndo={canvas.undo}
         onRedo={canvas.redo}
+        assistantAction={
+          <AiChat
+            contextParams={{
+              projectTitle,
+              activeTab: canvas.activeTab,
+              systemJson: canvas.systemJson,
+              blocks: canvas.blocks,
+              ports: canvas.ports,
+              connections: canvas.connections,
+              warnings: canvas.warnings,
+              errors: canvas.errors,
+              selection: canvas.selection,
+            }}
+          />
+        }
         actions={
           <>
             {(showSystemJsonDownload || showCircuitJsonDownload) && (
