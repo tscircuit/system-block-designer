@@ -111,9 +111,14 @@
   padding: 24px 18px;
 }
 
+.ai-message-scroller-empty {
+  display: grid;
+  place-items: center;
+}
+
 .ai-chat-welcome {
   max-width: 300px;
-  margin: 72px auto 28px;
+  margin: 0 auto;
   text-align: center;
 }
 
@@ -253,9 +258,5 @@
 @media (max-width: 720px) {
   .ai-chat-panel {
     top: 52px;
-  }
-
-  .ai-chat-welcome {
-    margin-top: 34px;
   }
 }

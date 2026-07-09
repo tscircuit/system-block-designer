@@ -93,6 +93,8 @@ export function AiChat({ contextParams, onApplyActions }: AiChatProps) {
     }
   }
 
+  const showWelcome = messages.length === 0 && !sending
+
   const panel = open ? (
     <aside className="ai-chat-panel" aria-label="AI chat panel">
       <header className="ai-chat-header">
@@ -150,16 +152,20 @@ export function AiChat({ contextParams, onApplyActions }: AiChatProps) {
           </button>
         </div>
       </header>
-      <MessageScroller>
-        <div className="ai-chat-welcome">
-          <AiSparkleIcon />
-          <h2>System block assistant</h2>
-          <p>
-            Ask for architecture edits, missing connections, BOM alternatives,
-            or output preparation.
-          </p>
-          <small>AI might not always be accurate. Check results.</small>
-        </div>
+      <MessageScroller
+        className={showWelcome ? "ai-message-scroller-empty" : undefined}
+      >
+        {showWelcome && (
+          <div className="ai-chat-welcome">
+            <AiSparkleIcon />
+            <h2>System block assistant</h2>
+            <p>
+              Ask for architecture edits, missing connections, BOM alternatives,
+              or output preparation.
+            </p>
+            <small>AI might not always be accurate. Check results.</small>
+          </div>
+        )}
         {messages.map((message) => (
           <Message key={message.id} role={message.role}>
             <Bubble role={message.role}>{message.content}</Bubble>
