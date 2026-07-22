@@ -138,6 +138,36 @@ export const TiSubcircuitDefinitions = {
       right: ["GPOUT"],
     },
   },
+  RealTimeClock_BQ32002: {
+    componentName: "RealTimeClock_BQ32002",
+    label: "Real-Time Clock",
+    category: [LibraryCategoryName.ProcessingAndSecurity, "Real-Time Clock"],
+    partNumber: "BQ32002",
+    description: "TI BQ32002 real-time clock with I2C interface.",
+    icon: "chip",
+    size: { width: 200, height: 128 },
+    interfaces: [
+      {
+        name: "I2C1",
+        kind: "i2c",
+        i2cPins: {
+          SDA: "U1.SDA",
+          SCL: "U1.SCL",
+          VCC: "U1.VCC",
+          GND: "U1.GND",
+        },
+      },
+    ],
+    ports: {
+      top: ["VCC"],
+      bottom: ["GND"],
+      left: ["SCL", "SDA"],
+      right: ["IRQ"],
+    },
+    connectionPortExpansions: {
+      I2C: ["SCL", "SDA"],
+    },
+  },
   WirelessMCU_CC2340R5: {
     componentName: "WirelessMCU_CC2340R5",
     label: "Bluetooth Wireless MCU",
@@ -165,6 +195,56 @@ export const TiSubcircuitDefinitions = {
     connectionPortExpansions: {
       SWD: ["WMCU_SWDIO", "WMCU_SWDCK"],
       RF: ["ANT_RF", "SMA_RF"],
+    },
+  },
+  WirelessMCU_CC2745R10: {
+    componentName: "WirelessMCU_CC2745R10",
+    label: "Bluetooth Wireless MCU",
+    category: [LibraryCategoryName.Communication, "Wireless MCU"],
+    partNumber: "CC2745R10",
+    description: "TI CC2745R10 Bluetooth Low Energy wireless MCU reference.",
+    icon: "antenna",
+    size: { width: 400, height: 320 },
+    ports: {
+      top: ["WMCU_VDD", "VDDS", "VDDR", "VDDD"],
+      bottom: ["GND"],
+      left: [
+        "DIO9_SWDIO",
+        "DIO10_SWDCK",
+        "DIO0",
+        "DIO1",
+        "DIO2",
+        "DIO3",
+        "DIO4",
+        "DIO5",
+        "DIO7",
+        "DIO11",
+        "DIO12",
+        "DIO15",
+        "DIO16",
+      ],
+      right: [
+        "DIO17",
+        "DIO18",
+        "DIO19",
+        "DIO20",
+        "DIO21",
+        "DIO22",
+        "DIO23",
+        "DIO24",
+        "DIO27",
+        "DIO28",
+        "RF_TEST",
+        "RF_FEED",
+        "X32P",
+        "X32N",
+        "X48P",
+        "X48N",
+      ],
+    },
+    connectionPortExpansions: {
+      SWD: ["DIO9_SWDIO", "DIO10_SWDCK"],
+      RF: ["RF_TEST", "RF_FEED"],
     },
   },
   WirelessMCU_CC3235SF: {
@@ -439,6 +519,52 @@ export const TiSubcircuitDefinitions = {
       GPIO: ["PA0", "PA1"],
     },
   },
+  Microcontroller_MSPM33C3x: {
+    componentName: "Microcontroller_MSPM33C3x",
+    label: "Microcontroller",
+    category: [LibraryCategoryName.ProcessingAndSecurity, "MCU"],
+    partNumber: "MSPM33C3x",
+    description: "TI MSPM33C3x basic microcontroller application reference.",
+    icon: "chip",
+    size: { width: 200, height: 128 },
+    ports: {
+      top: ["V3_3"],
+      bottom: ["GND"],
+      left: ["NRST", "SWDIO", "SWCLK"],
+    },
+    connectionPortExpansions: {
+      SWD: ["SWDIO", "SWCLK"],
+    },
+  },
+  LEDDriver_TLC59116: {
+    componentName: "LEDDriver_TLC59116",
+    label: "LED Driver",
+    category: [LibraryCategoryName.Power, "LED Driver"],
+    partNumber: "TLC59116",
+    description: "TI TLC59116 16-channel I2C constant-current LED driver.",
+    icon: "power",
+    size: { width: 220, height: 140 },
+    interfaces: [
+      {
+        name: "I2C1",
+        kind: "i2c",
+        i2cPins: {
+          SDA: "U3.SDA",
+          SCL: "U3.SCL",
+          VCC: "U3.VDD",
+          GND: "U3.GND",
+        },
+      },
+    ],
+    ports: {
+      top: ["VIN_5V", "V3_3"],
+      bottom: ["GND"],
+      left: ["SCL", "SDA", "RESET"],
+    },
+    connectionPortExpansions: {
+      I2C: ["SCL", "SDA"],
+    },
+  },
   TemperatureSensor_TMP1075: {
     componentName: "TemperatureSensor_TMP1075",
     label: "Temperature Sensor",
@@ -467,6 +593,20 @@ export const TiSubcircuitDefinitions = {
     },
     connectionPortExpansions: {
       I2C: ["SCL", "SDA"],
+    },
+  },
+  TemperatureSensor_TMP1827: {
+    componentName: "TemperatureSensor_TMP1827",
+    label: "Multidrop Temperature Sensor",
+    category: [LibraryCategoryName.Sensor, "Temperature Sensor"],
+    partNumber: "TMP1827",
+    description: "TI TMP1827 two-device single-wire multidrop reference.",
+    icon: "sensor",
+    size: { width: 200, height: 128 },
+    ports: {
+      top: ["VDD"],
+      bottom: ["GND"],
+      left: ["SDQ_BUS"],
     },
   },
   LoadSwitch_TPS22919: {
@@ -499,6 +639,21 @@ export const TiSubcircuitDefinitions = {
       right: ["SW", "FB"],
     },
   },
+  BoostConverter_TPS61299X: {
+    componentName: "BoostConverter_TPS61299X",
+    label: "Boost Converter",
+    category: [LibraryCategoryName.Power, "Boost Converter"],
+    partNumber: "TPS61299X",
+    description: "TI TPS61299X synchronous boost converter reference.",
+    icon: "power",
+    size: { width: 200, height: 128 },
+    ports: {
+      top: ["VIN", "VOUT_5V"],
+      bottom: ["GND"],
+      left: ["EN"],
+      right: ["SW"],
+    },
+  },
   BuckBoostConverter_TPS63802: {
     componentName: "BuckBoostConverter_TPS63802",
     label: "Buck-Boost Converter",
@@ -529,6 +684,29 @@ export const TiSubcircuitDefinitions = {
       right: ["LOAD"],
     },
   },
+  PowerManagement_TPS6521835: {
+    componentName: "PowerManagement_TPS6521835",
+    label: "Power Management IC",
+    category: [LibraryCategoryName.Power, "PMIC"],
+    partNumber: "TPS6521835",
+    description: "TI TPS6521835 multi-rail power-management reference.",
+    icon: "power",
+    size: { width: 320, height: 240 },
+    ports: {
+      top: ["IN_BIAS", "IN_BU", "IN_LS1", "IN_LS2", "IN_LS3", "VDD", "VIO"],
+      bottom: ["GND"],
+      left: ["PB", "PFI", "PWR_EN", "IN_nCC", "PGOOD_BU", "GPO2"],
+      right: [
+        "DCDC1_OUT",
+        "DCDC2_OUT",
+        "DCDC3_OUT",
+        "DCDC4_OUT",
+        "DCDC5_OUT",
+        "DCDC6_OUT",
+        "INT_LDO",
+      ],
+    },
+  },
   PowerModule_TPSM82823: {
     componentName: "PowerModule_TPSM82823",
     label: "Power Module",
@@ -542,6 +720,124 @@ export const TiSubcircuitDefinitions = {
       bottom: ["GND"],
       left: ["PG"],
       right: ["FB"],
+    },
+  },
+  LevelShifter_TXB0104: {
+    componentName: "LevelShifter_TXB0104",
+    label: "4-Bit Level Shifter",
+    category: [LibraryCategoryName.Communication, "Level Shifter"],
+    partNumber: "TXB0104",
+    description: "TI TXB0104 four-bit bidirectional voltage-level shifter.",
+    icon: "shifter",
+    size: { width: 220, height: 148 },
+    ports: {
+      top: ["V1_8", "V3_3"],
+      bottom: ["GND"],
+      left: ["A1", "A2", "A3", "A4"],
+      right: ["B1", "B2", "B3", "B4"],
+    },
+    connectionPortExpansions: {
+      A: ["A1", "A2", "A3", "A4"],
+      B: ["B1", "B2", "B3", "B4"],
+    },
+  },
+  LevelShifter_TXS0102: {
+    componentName: "LevelShifter_TXS0102",
+    label: "2-Bit Level Shifter",
+    category: [LibraryCategoryName.Communication, "Level Shifter"],
+    partNumber: "TXS0102",
+    description: "TI TXS0102 two-bit bidirectional voltage-level shifter.",
+    icon: "shifter",
+    size: { width: 200, height: 136 },
+    ports: {
+      top: ["V1_8", "V3_3"],
+      bottom: ["GND"],
+      left: ["OE", "A1", "A2"],
+      right: ["B1", "B2"],
+    },
+    connectionPortExpansions: {
+      A: ["A1", "A2"],
+      B: ["B1", "B2"],
+    },
+  },
+  RFIDReader_TRF7960: {
+    componentName: "RFIDReader_TRF7960",
+    label: "RFID/NFC Transceiver",
+    category: [LibraryCategoryName.Communication, "NFC"],
+    partNumber: "TRF7960",
+    description: "TI TRF7960 RFID/NFC transceiver module reference.",
+    icon: "nfc",
+    size: { width: 300, height: 220 },
+    interfaces: [
+      {
+        name: "SPI1",
+        kind: "spi",
+        spiPins: {
+          CS: "U1.SLAVE_SELECT",
+          SCLK: "U1.DATA_CLK",
+          MOSI: "U1.MOSI",
+          MISO: "U1.MISO",
+        },
+      },
+    ],
+    ports: {
+      top: ["VIN_5V", "VIN_3V3"],
+      bottom: ["GND"],
+      left: [
+        "EN",
+        "EN2",
+        "SLAVE_SELECT",
+        "DATA_CLK",
+        "MOSI",
+        "MISO",
+        "IRQ",
+        "MOD",
+        "SYS_CLK",
+        "ASK_OOK",
+      ],
+      right: ["RF_50", "ANT_FEED"],
+    },
+    connectionPortExpansions: {
+      SPI: ["SLAVE_SELECT", "DATA_CLK", "MOSI", "MISO"],
+      RF: ["RF_50", "ANT_FEED"],
+    },
+  },
+  FlashMemory_W25Q128JVSIQ: {
+    componentName: "FlashMemory_W25Q128JVSIQ",
+    label: "QSPI Flash Memory",
+    category: [LibraryCategoryName.Memory, "Flash"],
+    partNumber: "W25Q128JVSIQ",
+    description: "Winbond W25Q128JVSIQ 128-Mbit QSPI flash memory reference.",
+    icon: "memory",
+    size: { width: 220, height: 148 },
+    interfaces: [
+      {
+        name: "SPI1",
+        kind: "spi",
+        spiPins: {
+          CS: "U1.CS",
+          SCLK: "U1.CLK",
+          MOSI: "U1.DI_IO0",
+          MISO: "U1.DO_IO1",
+        },
+      },
+    ],
+    ports: {
+      top: ["VCC"],
+      bottom: ["GND"],
+      left: ["QSPI_SS", "QSPI_CLK"],
+      right: ["QSPI_SD0", "QSPI_SD1", "QSPI_SD2", "QSPI_SD3"],
+    },
+    connectionPortExpansions: {
+      SPI: ["QSPI_SS", "QSPI_CLK", "QSPI_SD0", "QSPI_SD1"],
+      QSPI: [
+        "QSPI_SS",
+        "QSPI_CLK",
+        "QSPI_SD0",
+        "QSPI_SD1",
+        "QSPI_SD2",
+        "QSPI_SD3",
+      ],
     },
   },
 } satisfies Record<string, TiSubcircuitDefinition>
@@ -579,11 +875,33 @@ export class BatteryManagement_BQ27441G1 extends SystemBlock {
   }
 }
 
+export class RealTimeClock_BQ32002 extends SystemBlock {
+  constructor(config: TiSystemBlockConfig = {}) {
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.RealTimeClock_BQ32002,
+        config,
+      ),
+    )
+  }
+}
+
 export class WirelessMCU_CC2340R5 extends SystemBlock {
   constructor(config: TiSystemBlockConfig = {}) {
     super(
       createTiSubcircuitConfig(
         TiSubcircuitDefinitions.WirelessMCU_CC2340R5,
+        config,
+      ),
+    )
+  }
+}
+
+export class WirelessMCU_CC2745R10 extends SystemBlock {
+  constructor(config: TiSystemBlockConfig = {}) {
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.WirelessMCU_CC2745R10,
         config,
       ),
     )
@@ -678,11 +996,44 @@ export class Microcontroller_MSPM0G3507 extends SystemBlock {
   }
 }
 
+export class Microcontroller_MSPM33C3x extends SystemBlock {
+  constructor(config: TiSystemBlockConfig = {}) {
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.Microcontroller_MSPM33C3x,
+        config,
+      ),
+    )
+  }
+}
+
+export class LEDDriver_TLC59116 extends SystemBlock {
+  constructor(config: TiSystemBlockConfig = {}) {
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.LEDDriver_TLC59116,
+        config,
+      ),
+    )
+  }
+}
+
 export class TemperatureSensor_TMP1075 extends SystemBlock {
   constructor(config: TiSystemBlockConfig = {}) {
     super(
       createTiSubcircuitConfig(
         TiSubcircuitDefinitions.TemperatureSensor_TMP1075,
+        config,
+      ),
+    )
+  }
+}
+
+export class TemperatureSensor_TMP1827 extends SystemBlock {
+  constructor(config: TiSystemBlockConfig = {}) {
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.TemperatureSensor_TMP1827,
         config,
       ),
     )
@@ -711,6 +1062,17 @@ export class BuckConverter_TPS62933 extends SystemBlock {
   }
 }
 
+export class BoostConverter_TPS61299X extends SystemBlock {
+  constructor(config: TiSystemBlockConfig = {}) {
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.BoostConverter_TPS61299X,
+        config,
+      ),
+    )
+  }
+}
+
 export class BuckBoostConverter_TPS63802 extends SystemBlock {
   constructor(config: TiSystemBlockConfig = {}) {
     super(
@@ -733,6 +1095,17 @@ export class PowerManagement_TPS7A02 extends SystemBlock {
   }
 }
 
+export class PowerManagement_TPS6521835 extends SystemBlock {
+  constructor(config: TiSystemBlockConfig = {}) {
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.PowerManagement_TPS6521835,
+        config,
+      ),
+    )
+  }
+}
+
 export class PowerModule_TPSM82823 extends SystemBlock {
   constructor(config: TiSystemBlockConfig = {}) {
     super(
@@ -744,11 +1117,57 @@ export class PowerModule_TPSM82823 extends SystemBlock {
   }
 }
 
+export class LevelShifter_TXB0104 extends SystemBlock {
+  constructor(config: TiSystemBlockConfig = {}) {
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.LevelShifter_TXB0104,
+        config,
+      ),
+    )
+  }
+}
+
+export class LevelShifter_TXS0102 extends SystemBlock {
+  constructor(config: TiSystemBlockConfig = {}) {
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.LevelShifter_TXS0102,
+        config,
+      ),
+    )
+  }
+}
+
+export class RFIDReader_TRF7960 extends SystemBlock {
+  constructor(config: TiSystemBlockConfig = {}) {
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.RFIDReader_TRF7960,
+        config,
+      ),
+    )
+  }
+}
+
+export class FlashMemory_W25Q128JVSIQ extends SystemBlock {
+  constructor(config: TiSystemBlockConfig = {}) {
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.FlashMemory_W25Q128JVSIQ,
+        config,
+      ),
+    )
+  }
+}
+
 export const TiSystemBlockClasses = {
   BatteryManagement_BQ24074,
   BatteryManagement_BQ25895,
   BatteryManagement_BQ27441G1,
+  RealTimeClock_BQ32002,
   WirelessMCU_CC2340R5,
+  WirelessMCU_CC2745R10,
   WirelessMCU_CC3235SF,
   MotorDriver_DRV8833,
   MotorDriver_DRV8876,
@@ -757,12 +1176,21 @@ export const TiSystemBlockClasses = {
   EnvironmentalSensor_HDC3022,
   PowerMonitor_INA237,
   Microcontroller_MSPM0G3507,
+  Microcontroller_MSPM33C3x,
+  LEDDriver_TLC59116,
   TemperatureSensor_TMP1075,
+  TemperatureSensor_TMP1827,
   LoadSwitch_TPS22919,
   BuckConverter_TPS62933,
+  BoostConverter_TPS61299X,
   BuckBoostConverter_TPS63802,
   PowerManagement_TPS7A02,
+  PowerManagement_TPS6521835,
   PowerModule_TPSM82823,
+  LevelShifter_TXB0104,
+  LevelShifter_TXS0102,
+  RFIDReader_TRF7960,
+  FlashMemory_W25Q128JVSIQ,
 } as const
 
 export type TiSystemBlockName = keyof typeof TiSystemBlockClasses

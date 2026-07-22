@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test"
+import { TiSubcircuitComponents } from "@tsci/tscircuit.ti"
 import {
   BatteryManagement_BQ24074,
   BuckBoostConverter_TPS63802,
@@ -9,26 +10,9 @@ import {
 } from "../../lib/system-blocks/TiSubcircuits"
 
 test("exports a system block class for every TI subcircuit", () => {
-  expect(Object.keys(TiSystemBlockClasses).sort()).toEqual([
-    "BatteryManagement_BQ24074",
-    "BatteryManagement_BQ25895",
-    "BatteryManagement_BQ27441G1",
-    "BuckBoostConverter_TPS63802",
-    "BuckConverter_TPS62933",
-    "EnvironmentalSensor_HDC2080",
-    "EnvironmentalSensor_HDC3020",
-    "EnvironmentalSensor_HDC3022",
-    "LoadSwitch_TPS22919",
-    "Microcontroller_MSPM0G3507",
-    "MotorDriver_DRV8833",
-    "MotorDriver_DRV8876",
-    "PowerManagement_TPS7A02",
-    "PowerModule_TPSM82823",
-    "PowerMonitor_INA237",
-    "TemperatureSensor_TMP1075",
-    "WirelessMCU_CC2340R5",
-    "WirelessMCU_CC3235SF",
-  ])
+  expect(Object.keys(TiSystemBlockClasses).sort()).toEqual(
+    Object.keys(TiSubcircuitComponents).sort(),
+  )
 })
 
 test("TI subcircuit blocks render their matching TSX component names", () => {
