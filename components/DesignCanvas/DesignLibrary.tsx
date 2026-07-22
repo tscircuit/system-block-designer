@@ -1,6 +1,6 @@
 import { useMemo } from "react"
-import { Icon } from "../../lib/utils/icons"
 import type { LibraryCategory } from "../../lib/system-block-library/types"
+import { Icon } from "../../lib/utils/icons"
 
 interface DesignLibraryProps {
   categories: LibraryCategory[]
@@ -76,7 +76,15 @@ export function DesignLibrary({
                 className="cat-head"
                 onClick={() => !query && onToggleCategory(category.name)}
               >
-                <span className="t">{category.name}</span>
+                <span className="cat-title">
+                  <span className="t">{category.name}</span>
+                  <span
+                    className="cat-count"
+                    aria-label={`${category.count} ${category.count === 1 ? "chip" : "chips"}`}
+                  >
+                    {category.count}
+                  </span>
+                </span>
                 <svg
                   className="chev"
                   width="16"

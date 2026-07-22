@@ -29,5 +29,6 @@ export interface LibraryItem {
 export interface LibraryCategory {
   name: LibraryCategoryName
   open: boolean
+  count: number
   items: LibraryItem[]
 }
