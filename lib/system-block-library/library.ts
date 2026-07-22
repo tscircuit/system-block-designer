@@ -1,5 +1,5 @@
-import { ICON_PATHS, type IconName } from "../utils/iconPaths"
 import { TiSubcircuitDefinitions } from "../system-blocks/TiSubcircuits"
+import { ICON_PATHS, type IconName } from "../utils/iconPaths"
 import {
   LIBRARY_CATEGORIES,
   type LibraryCategory,
@@ -38,7 +38,7 @@ function withTiDefinitionMetadata(
   }
 }
 
-const BASE_LIBRARY: LibraryCategory[] = [
+const BASE_LIBRARY: Array<Omit<LibraryCategory, "count">> = [
   {
     name: LibraryCategoryName.BatteryManagement,
     open: true,
@@ -108,6 +108,10 @@ const BASE_CATEGORY_NAMES = new Set(
   BASE_LIBRARY.map((category) => category.name),
 )
 
+function countCategoryItems(items: LibraryItem[]) {
+  return items.reduce((total, item) => total + item.count, 0)
+}
+
 export const LIBRARY: LibraryCategory[] = [
   ...BASE_LIBRARY.map((category) => {
     const baseItemTypes = new Set(category.items.map((item) => item.type))
@@ -128,51 +132,57 @@ export const LIBRARY: LibraryCategory[] = [
         ),
       )
 
+    const items = [
+      ...category.items.map((item) => {
+        const definitions =
+          item.type === category.name
+            ? Array.from(tiItems.values()).flat()
+            : (tiItems.get(item.type) ?? [])
+
+        return withTiDefinitionMetadata(
+          {
+            ...item,
+            count: definitions.length,
+            category:
+              item.type === category.name
+                ? [category.name]
+                : [category.name, item.type],
+          },
+          definitions,
+        )
+      }),
+      ...missingTiItems,
+    ]
+
     return {
       ...category,
-      items: [
-        ...category.items.map((item) => {
-          const definitions =
-            item.type === category.name
-              ? Array.from(tiItems.values()).flat()
-              : (tiItems.get(item.type) ?? [])
-
-          return withTiDefinitionMetadata(
-            {
-              ...item,
-              count: definitions.length,
-              category:
-                item.type === category.name
-                  ? [category.name]
-                  : [category.name, item.type],
-            },
-            definitions,
-          )
-        }),
-        ...missingTiItems,
-      ],
+      count: countCategoryItems(items),
+      items,
     }
   }),
   ...Array.from(tiByCategory.keys())
     .filter((categoryName) => !BASE_CATEGORY_NAMES.has(categoryName))
-    .map(
-      (categoryName): LibraryCategory => ({
+    .map((categoryName): LibraryCategory => {
+      const items = Array.from(tiByCategory.get(categoryName)!.entries()).map(
+        ([itemType, definitions]) =>
+          withTiDefinitionMetadata(
+            {
+              type: itemType,
+              icon: toLibraryIconName(definitions[0]?.icon),
+              count: definitions.length,
+              category: [categoryName, itemType],
+            },
+            definitions,
+          ),
+      )
+
+      return {
         name: categoryName,
         open: false,
-        items: Array.from(tiByCategory.get(categoryName)!.entries()).map(
-          ([itemType, definitions]) =>
-            withTiDefinitionMetadata(
-              {
-                type: itemType,
-                icon: toLibraryIconName(definitions[0]?.icon),
-                count: definitions.length,
-                category: [categoryName, itemType],
-              },
-              definitions,
-            ),
-        ),
-      }),
-    ),
+        count: countCategoryItems(items),
+        items,
+      }
+    }),
 ]
 
 const ALL_ITEMS = LIBRARY.flatMap((category) => category.items)
