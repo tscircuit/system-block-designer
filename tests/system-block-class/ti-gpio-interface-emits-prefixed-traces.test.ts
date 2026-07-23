@@ -32,7 +32,7 @@ test("TI GPIO connection renders block diagram and schematic snapshots", async (
       system_diagram_id: systemDiagramId,
       system_port_id: "controller_gpio1",
       system_block_id: "controller_a",
-      label: "GPIO1",
+      label: "PA0",
       side_of_block: "right",
     },
     {
@@ -40,7 +40,7 @@ test("TI GPIO connection renders block diagram and schematic snapshots", async (
       system_diagram_id: systemDiagramId,
       system_port_id: "controller_gpio2",
       system_block_id: "controller_a",
-      label: "GPIO2",
+      label: "PA1",
       side_of_block: "right",
     },
     ...target.getSystemBlockJson(),
@@ -49,7 +49,7 @@ test("TI GPIO connection renders block diagram and schematic snapshots", async (
       system_diagram_id: systemDiagramId,
       system_port_id: "wireless_mcu_gpio1",
       system_block_id: "wireless_mcu",
-      label: "GPIO1",
+      label: "DIO3",
       side_of_block: "left",
     },
     {
@@ -57,7 +57,7 @@ test("TI GPIO connection renders block diagram and schematic snapshots", async (
       system_diagram_id: systemDiagramId,
       system_port_id: "wireless_mcu_gpio2",
       system_block_id: "wireless_mcu",
-      label: "GPIO2",
+      label: "DIO4",
       side_of_block: "left",
     },
     {

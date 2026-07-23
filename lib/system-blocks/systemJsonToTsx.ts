@@ -290,6 +290,8 @@ function createInterfaceTraces(
   const match = findMatchingInterface(
     sourceBlock.json,
     targetBlock.json,
+    sourcePort.label,
+    targetPort.label,
     connection.label,
   )
   if (!match) return []
@@ -309,17 +311,38 @@ function createInterfaceTraces(
 function findMatchingInterface(
   sourceBlock: SystemBlockJson,
   targetBlock: SystemBlockJson,
+  sourcePortLabel: string | undefined,
+  targetPortLabel: string | undefined,
   connectionLabel: string | undefined,
 ): {
   sourceInterface: MatchedInterface
   targetInterface: MatchedInterface
   pinNames: string[]
 } | null {
-  const normalizedLabel = connectionLabel?.trim().toLowerCase()
-  if (!normalizedLabel) return null
-
   const sourceInterfaces = sourceBlock.interfaces ?? []
   const targetInterfaces = targetBlock.interfaces ?? []
+  const normalizedSourcePortLabel = sourcePortLabel?.trim().toLowerCase()
+  const normalizedTargetPortLabel = targetPortLabel?.trim().toLowerCase()
+  const sourcePortInterface = normalizedSourcePortLabel
+    ? sourceInterfaces.find(
+        (candidate) =>
+          candidate.name.toLowerCase() === normalizedSourcePortLabel,
+      )
+    : undefined
+  const targetPortInterface = normalizedTargetPortLabel
+    ? targetInterfaces.find(
+        (candidate) =>
+          candidate.name.toLowerCase() === normalizedTargetPortLabel,
+      )
+    : undefined
+  const portInterfaceMatch = matchInterfacePair(
+    sourcePortInterface,
+    targetPortInterface,
+  )
+  if (portInterfaceMatch) return portInterfaceMatch
+
+  const normalizedLabel = connectionLabel?.trim().toLowerCase()
+  if (!normalizedLabel) return null
 
   for (const sourceInterface of sourceInterfaces) {
     const sourceSubcircuitPinSelectors =
@@ -343,38 +366,54 @@ function findMatchingInterface(
     })
     if (!targetInterface) continue
 
-    const targetSubcircuitPinSelectors =
-      getSubcircuitPinSelectorsByInterfacePinName(targetInterface)
-    if (!targetSubcircuitPinSelectors) continue
-
-    const sourcePinNames = Object.keys(sourceSubcircuitPinSelectors)
-    const pinNames = sourcePinNames.filter(
-      (pinName) => pinName in targetSubcircuitPinSelectors,
-    )
-    const requiredPinNames = getRequiredPinNames(sourceInterface.kind)
-    const hasRequiredPins =
-      requiredPinNames.length > 0
-        ? requiredPinNames.every((pinName) => pinNames.includes(pinName))
-        : pinNames.length === sourcePinNames.length
-
-    if (hasRequiredPins) {
-      return {
-        sourceInterface: {
-          ...sourceInterface,
-          subcircuitPinSelectorsByInterfacePinName:
-            sourceSubcircuitPinSelectors,
-        },
-        targetInterface: {
-          ...targetInterface,
-          subcircuitPinSelectorsByInterfacePinName:
-            targetSubcircuitPinSelectors,
-        },
-        pinNames,
-      }
-    }
+    const interfaceMatch = matchInterfacePair(sourceInterface, targetInterface)
+    if (interfaceMatch) return interfaceMatch
   }
 
   return null
+}
+
+function matchInterfacePair(
+  sourceInterface: SystemBlockInterface | undefined,
+  targetInterface: SystemBlockInterface | undefined,
+): {
+  sourceInterface: MatchedInterface
+  targetInterface: MatchedInterface
+  pinNames: string[]
+} | null {
+  if (!sourceInterface || !targetInterface) return null
+  if (sourceInterface.kind !== targetInterface.kind) return null
+
+  const sourceSubcircuitPinSelectors =
+    getSubcircuitPinSelectorsByInterfacePinName(sourceInterface)
+  const targetSubcircuitPinSelectors =
+    getSubcircuitPinSelectorsByInterfacePinName(targetInterface)
+  if (!sourceSubcircuitPinSelectors || !targetSubcircuitPinSelectors) {
+    return null
+  }
+
+  const sourcePinNames = Object.keys(sourceSubcircuitPinSelectors)
+  const pinNames = sourcePinNames.filter(
+    (pinName) => pinName in targetSubcircuitPinSelectors,
+  )
+  const requiredPinNames = getRequiredPinNames(sourceInterface.kind)
+  const hasRequiredPins =
+    requiredPinNames.length > 0
+      ? requiredPinNames.every((pinName) => pinNames.includes(pinName))
+      : pinNames.length === sourcePinNames.length
+  if (!hasRequiredPins) return null
+
+  return {
+    sourceInterface: {
+      ...sourceInterface,
+      subcircuitPinSelectorsByInterfacePinName: sourceSubcircuitPinSelectors,
+    },
+    targetInterface: {
+      ...targetInterface,
+      subcircuitPinSelectorsByInterfacePinName: targetSubcircuitPinSelectors,
+    },
+    pinNames,
+  }
 }
 
 function getSubcircuitPinSelectorsByInterfacePinName(
