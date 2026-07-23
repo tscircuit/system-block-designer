@@ -1,8 +1,6 @@
 import { expect, test } from "bun:test"
-import {
-  FlashMemory_W25Q128JVSIQ,
-  RFIDReader_TRF7960,
-} from "../../lib/system-blocks/TiSubcircuits"
+import { FlashMemory_W25Q128JVSIQ } from "../../lib/system-blocks/CommonSubcircuits"
+import { RFIDReader_TRF7960 } from "../../lib/system-blocks/TiSubcircuits"
 import type { SystemJson } from "../../lib/system-json/system-json"
 import { createTiInterfaceSnapshot } from "./fixtures/create-ti-interface-snapshot"
 

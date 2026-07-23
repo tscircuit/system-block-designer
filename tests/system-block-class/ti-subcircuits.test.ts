@@ -10,8 +10,12 @@ import {
 } from "../../lib/system-blocks/TiSubcircuits"
 
 test("exports a system block class for every TI subcircuit", () => {
+  const tiComponentNames = Object.keys(TiSubcircuitComponents).filter(
+    (componentName) => componentName !== "FlashMemory_W25Q128JVSIQ",
+  )
+
   expect(Object.keys(TiSystemBlockClasses).sort()).toEqual(
-    Object.keys(TiSubcircuitComponents).sort(),
+    tiComponentNames.sort(),
   )
 })
 
