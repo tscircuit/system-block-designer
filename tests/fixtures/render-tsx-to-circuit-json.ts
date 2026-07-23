@@ -5,6 +5,10 @@ export async function renderTsxToCircuitJson(tsx: string) {
   const tiPackageBundle = await Bun.file(
     new URL("../../node_modules/@tsci/tscircuit.ti/index.cjs", import.meta.url),
   ).text()
+  // The common Experiments flash is circuit-equivalent to the component in
+  // the currently installed TI package. Supply that bundle under the new
+  // package name until the common package release containing it is available.
+  const commonPackageBundle = tiPackageBundle
 
   try {
     if (tsx.includes("export default")) {
@@ -12,6 +16,7 @@ export async function renderTsxToCircuitJson(tsx: string) {
         fsMap: {
           "index.circuit.tsx": tsx,
           "node_modules/@tsci/tscircuit.ti/index.js": tiPackageBundle,
+          "node_modules/@tscircuit/common/index.js": commonPackageBundle,
         },
         mainComponentPath: "index.circuit.tsx",
       })

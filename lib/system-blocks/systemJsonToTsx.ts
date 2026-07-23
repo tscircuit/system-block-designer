@@ -10,12 +10,13 @@ import type {
 } from "../system-json/system-json"
 import { SystemBlock as SystemBlockTsx } from "./SystemBlock"
 import {
-  TiSubcircuitDefinitions,
-  TiSystemBlockClasses,
-  type TiSystemBlockName,
-} from "./TiSubcircuits"
+  SUBCIRCUIT_IMPORT_PATH_BY_COMPONENT_NAME,
+  SubcircuitDefinitions,
+  SystemBlockClasses,
+  type SystemBlockName,
+} from "./SubcircuitRegistry"
 
-type TiBlockConstructor = new (config: {
+type SystemBlockConstructor = new (config: {
   systemBlockId?: string
   center?: SystemBlockJson["center"]
   size?: SystemBlockJson["size"]
@@ -24,16 +25,16 @@ type TiBlockConstructor = new (config: {
   schSheetName?: string
 }) => SystemBlockTsx
 
-interface TiRuntimeBlock {
+interface RuntimeBlock {
   json: SystemBlockJson
-  componentName: TiSystemBlockName
+  componentName: SystemBlockName
   instanceName: string
   instance: SystemBlockTsx
 }
 
-interface TiRuntimeBlockInput {
+interface RuntimeBlockInput {
   json: SystemBlockJson
-  componentName: TiSystemBlockName
+  componentName: SystemBlockName
 }
 
 interface InterfaceTrace {
@@ -49,23 +50,41 @@ export interface SystemJsonToTsxProject {
   files: Record<string, string>
 }
 
-const TI_COMPONENT_NAMES = new Set(Object.keys(TiSystemBlockClasses))
+const COMPONENT_NAMES = new Set(Object.keys(SystemBlockClasses))
 
-const TI_DEFINITIONS = Object.values(TiSubcircuitDefinitions)
+const SUBCIRCUIT_DEFINITIONS = Object.values(SubcircuitDefinitions)
 
 export function systemJsonToTsx(systemJson: SystemJson[]) {
   const { runtimeBlocks, interfaceTraces } =
     createConnectedRuntimeBlocks(systemJson)
-  const imports = Array.from(
-    new Set(runtimeBlocks.map((runtimeBlock) => runtimeBlock.componentName)),
-  ).sort()
+  const imports = createSubcircuitImports(runtimeBlocks)
   const board = createBoardTsx(runtimeBlocks, interfaceTraces)
 
-  return `import { ${imports.join(", ")} } from "@tsci/tscircuit.ti"
+  return `${imports.join("\n")}
 
 export default () => (
 ${indent(board, 2)}
 )`
+}
+
+function createSubcircuitImports(runtimeBlocks: RuntimeBlock[]) {
+  const componentNamesByImportPath = new Map<string, Set<SystemBlockName>>()
+
+  for (const runtimeBlock of runtimeBlocks) {
+    const importPath =
+      SUBCIRCUIT_IMPORT_PATH_BY_COMPONENT_NAME[runtimeBlock.componentName]
+    const componentNames =
+      componentNamesByImportPath.get(importPath) ?? new Set<SystemBlockName>()
+    componentNames.add(runtimeBlock.componentName)
+    componentNamesByImportPath.set(importPath, componentNames)
+  }
+
+  return Array.from(componentNamesByImportPath.entries())
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(
+      ([importPath, componentNames]) =>
+        `import { ${Array.from(componentNames).sort().join(", ")} } from ${JSON.stringify(importPath)}`,
+    )
 }
 
 export function systemJsonToTsxProject(
@@ -90,7 +109,7 @@ function createConnectedRuntimeBlocks(systemJson: SystemJson[]) {
   )
   const runtimeBlockInputs = blocks
     .map(createRuntimeBlockInput)
-    .filter((block): block is TiRuntimeBlockInput => block !== null)
+    .filter((block): block is RuntimeBlockInput => block !== null)
   const instanceNameByBlockId = createInstanceNameByBlockId(runtimeBlockInputs)
   const runtimeBlocks = runtimeBlockInputs.map((runtimeBlockInput) =>
     createRuntimeBlock(
@@ -102,7 +121,9 @@ function createConnectedRuntimeBlocks(systemJson: SystemJson[]) {
   )
 
   if (runtimeBlocks.length === 0) {
-    throw new Error("No TI subcircuit blocks were found in the system JSON")
+    throw new Error(
+      "No supported subcircuit blocks were found in the system JSON",
+    )
   }
 
   const runtimeBlockById = new Map(
@@ -122,7 +143,7 @@ function createConnectedRuntimeBlocks(systemJson: SystemJson[]) {
 }
 
 function createBoardTsx(
-  runtimeBlocks: TiRuntimeBlock[],
+  runtimeBlocks: RuntimeBlock[],
   interfaceTraces: InterfaceTrace[],
 ) {
   // One schematic sheet per block. Each block's subcircuit is pinned to its sheet
@@ -152,8 +173,8 @@ ${children}
 
 function createRuntimeBlockInput(
   block: SystemBlockJson,
-): TiRuntimeBlockInput | null {
-  const componentName = getTiComponentName(block)
+): RuntimeBlockInput | null {
+  const componentName = getComponentName(block)
   if (!componentName) return null
 
   return {
@@ -164,10 +185,10 @@ function createRuntimeBlockInput(
 
 function createRuntimeBlock(
   block: SystemBlockJson,
-  componentName: TiSystemBlockName,
+  componentName: SystemBlockName,
   instanceName: string,
-): TiRuntimeBlock {
-  const BlockClass = TiSystemBlockClasses[componentName] as TiBlockConstructor
+): RuntimeBlock {
+  const BlockClass = SystemBlockClasses[componentName] as SystemBlockConstructor
   const instance = new BlockClass({
     systemBlockId: block.system_block_id,
     center: block.center,
@@ -186,7 +207,7 @@ function createRuntimeBlock(
   }
 }
 
-function createInstanceNameByBlockId(runtimeBlocks: TiRuntimeBlockInput[]) {
+function createInstanceNameByBlockId(runtimeBlocks: RuntimeBlockInput[]) {
   const instanceNameByBlockId = new Map<string, string>()
   const usedNames = new Set<string>()
 
@@ -226,9 +247,9 @@ const BROAD_CATEGORY_NAMES = new Set([
 
 function getSemanticInstanceNameCandidates(
   block: SystemBlockJson,
-  componentName: TiSystemBlockName,
+  componentName: SystemBlockName,
 ) {
-  const definition = TI_DEFINITIONS.find(
+  const definition = SUBCIRCUIT_DEFINITIONS.find(
     (candidate) => candidate.componentName === componentName,
   )
   const candidates = [
@@ -251,7 +272,7 @@ function getSemanticInstanceNameCandidates(
   )
 }
 
-function getComponentFamilyName(componentName: TiSystemBlockName) {
+function getComponentFamilyName(componentName: SystemBlockName) {
   return componentName.replace(/_[^_]+$/, "")
 }
 
@@ -273,7 +294,7 @@ function getUniqueIdentifier(base: string, usedNames: Set<string>) {
 function createInterfaceTraces(
   connection: SystemConnection,
   portById: Map<string, SystemPort>,
-  runtimeBlockById: Map<string, TiRuntimeBlock>,
+  runtimeBlockById: Map<string, RuntimeBlock>,
 ): InterfaceTrace[] {
   if (!connection.source_system_port_id || !connection.target_system_port_id) {
     return []
@@ -509,21 +530,21 @@ function createSubcircuitPinSelector(
     .join(" > ")
 }
 
-function getTiComponentName(block: SystemBlockJson): TiSystemBlockName | null {
-  if (block.subcircuit_id && TI_COMPONENT_NAMES.has(block.subcircuit_id)) {
-    return block.subcircuit_id as TiSystemBlockName
+function getComponentName(block: SystemBlockJson): SystemBlockName | null {
+  if (block.subcircuit_id && COMPONENT_NAMES.has(block.subcircuit_id)) {
+    return block.subcircuit_id as SystemBlockName
   }
 
-  if (block.label && TI_COMPONENT_NAMES.has(block.label)) {
-    return block.label as TiSystemBlockName
+  if (block.label && COMPONENT_NAMES.has(block.label)) {
+    return block.label as SystemBlockName
   }
 
   const partNumber = normalizePartNumber(block.part_number)
   const definition =
-    TI_DEFINITIONS.find(
+    SUBCIRCUIT_DEFINITIONS.find(
       (candidate) => normalizePartNumber(candidate.partNumber) === partNumber,
     ) ??
-    TI_DEFINITIONS.find(
+    SUBCIRCUIT_DEFINITIONS.find(
       (candidate) =>
         candidate.label === block.label &&
         candidate.category.every(
@@ -531,7 +552,7 @@ function getTiComponentName(block: SystemBlockJson): TiSystemBlockName | null {
         ),
     )
 
-  return definition?.componentName as TiSystemBlockName | null
+  return definition?.componentName as SystemBlockName | null
 }
 
 function normalizePartNumber(partNumber: string | undefined) {

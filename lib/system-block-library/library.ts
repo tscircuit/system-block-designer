@@ -1,4 +1,4 @@
-import { TiSubcircuitDefinitions } from "../system-blocks/TiSubcircuits"
+import { SubcircuitDefinitions } from "../system-blocks/SubcircuitRegistry"
 import { ICON_PATHS, type IconName } from "../utils/iconPaths"
 import {
   LIBRARY_CATEGORIES,
@@ -7,7 +7,7 @@ import {
   type LibraryItem,
 } from "./types"
 
-const TI_DEFINITIONS = Object.values(TiSubcircuitDefinitions)
+const SUBCIRCUIT_DEFINITIONS = Object.values(SubcircuitDefinitions)
 const LIBRARY_CATEGORY_NAMES = new Set<string>(LIBRARY_CATEGORIES)
 
 function toLibraryCategoryName(value: string): LibraryCategoryName {
@@ -23,9 +23,9 @@ function toLibraryIconName(value: string | undefined): IconName {
   throw new Error(`Unknown library icon: ${value}`)
 }
 
-function withTiDefinitionMetadata(
+function withSubcircuitDefinitionMetadata(
   item: LibraryItem,
-  definitions: typeof TI_DEFINITIONS,
+  definitions: typeof SUBCIRCUIT_DEFINITIONS,
 ): LibraryItem {
   const definition = definitions[0]
   if (!definition) return item
@@ -95,14 +95,17 @@ const BASE_LIBRARY: Array<Omit<LibraryCategory, "count">> = [
   },
 ]
 
-const tiByCategory = TI_DEFINITIONS.reduce((byCategory, definition) => {
-  const [rawCategoryName, itemType = rawCategoryName] = definition.category
-  const categoryName = toLibraryCategoryName(rawCategoryName)
-  const byItemType = byCategory.get(categoryName) ?? new Map()
-  byItemType.set(itemType, [...(byItemType.get(itemType) ?? []), definition])
-  byCategory.set(categoryName, byItemType)
-  return byCategory
-}, new Map<LibraryCategoryName, Map<string, typeof TI_DEFINITIONS>>())
+const subcircuitsByCategory = SUBCIRCUIT_DEFINITIONS.reduce(
+  (byCategory, definition) => {
+    const [rawCategoryName, itemType = rawCategoryName] = definition.category
+    const categoryName = toLibraryCategoryName(rawCategoryName)
+    const byItemType = byCategory.get(categoryName) ?? new Map()
+    byItemType.set(itemType, [...(byItemType.get(itemType) ?? []), definition])
+    byCategory.set(categoryName, byItemType)
+    return byCategory
+  },
+  new Map<LibraryCategoryName, Map<string, typeof SUBCIRCUIT_DEFINITIONS>>(),
+)
 
 const BASE_CATEGORY_NAMES = new Set(
   BASE_LIBRARY.map((category) => category.name),
@@ -115,13 +118,13 @@ function countCategoryItems(items: LibraryItem[]) {
 export const LIBRARY: LibraryCategory[] = [
   ...BASE_LIBRARY.map((category) => {
     const baseItemTypes = new Set(category.items.map((item) => item.type))
-    const tiItems =
-      tiByCategory.get(category.name) ??
-      new Map<string, typeof TI_DEFINITIONS>()
-    const missingTiItems = Array.from(tiItems.entries())
+    const subcircuitItems =
+      subcircuitsByCategory.get(category.name) ??
+      new Map<string, typeof SUBCIRCUIT_DEFINITIONS>()
+    const missingSubcircuitItems = Array.from(subcircuitItems.entries())
       .filter(([itemType]) => !baseItemTypes.has(itemType))
       .map(([itemType, definitions]) =>
-        withTiDefinitionMetadata(
+        withSubcircuitDefinitionMetadata(
           {
             type: itemType,
             icon: toLibraryIconName(definitions[0]?.icon),
@@ -136,10 +139,10 @@ export const LIBRARY: LibraryCategory[] = [
       ...category.items.map((item) => {
         const definitions =
           item.type === category.name
-            ? Array.from(tiItems.values()).flat()
-            : (tiItems.get(item.type) ?? [])
+            ? Array.from(subcircuitItems.values()).flat()
+            : (subcircuitItems.get(item.type) ?? [])
 
-        return withTiDefinitionMetadata(
+        return withSubcircuitDefinitionMetadata(
           {
             ...item,
             count: definitions.length,
@@ -151,7 +154,7 @@ export const LIBRARY: LibraryCategory[] = [
           definitions,
         )
       }),
-      ...missingTiItems,
+      ...missingSubcircuitItems,
     ]
 
     return {
@@ -160,20 +163,21 @@ export const LIBRARY: LibraryCategory[] = [
       items,
     }
   }),
-  ...Array.from(tiByCategory.keys())
+  ...Array.from(subcircuitsByCategory.keys())
     .filter((categoryName) => !BASE_CATEGORY_NAMES.has(categoryName))
     .map((categoryName): LibraryCategory => {
-      const items = Array.from(tiByCategory.get(categoryName)!.entries()).map(
-        ([itemType, definitions]) =>
-          withTiDefinitionMetadata(
-            {
-              type: itemType,
-              icon: toLibraryIconName(definitions[0]?.icon),
-              count: definitions.length,
-              category: [categoryName, itemType],
-            },
-            definitions,
-          ),
+      const items = Array.from(
+        subcircuitsByCategory.get(categoryName)!.entries(),
+      ).map(([itemType, definitions]) =>
+        withSubcircuitDefinitionMetadata(
+          {
+            type: itemType,
+            icon: toLibraryIconName(definitions[0]?.icon),
+            count: definitions.length,
+            category: [categoryName, itemType],
+          },
+          definitions,
+        ),
       )
 
       return {
