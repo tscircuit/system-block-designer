@@ -23,15 +23,15 @@ test("system block designer 01 TSX export includes TI I2C traces", () => {
     '<Microcontroller_MSPM0G3507 name="controller" schSheetName="controller" />',
   )
   expect(files["index.circuit.tsx"]).toContain(
-    '<trace from=".controller > .U1 > .PA1" to=".sensor > .U1 > .SDA" />',
+    '<trace from=".controller > .U1 > .PA1" to=".sensor > .U1 > .I2C_SDA" />',
   )
   expect(files["index.circuit.tsx"]).toContain(
-    '<trace from=".controller > .U1 > .PA0" to=".sensor > .U1 > .SCL" />',
+    '<trace from=".controller > .U1 > .PA0" to=".sensor > .U1 > .I2C_SCL" />',
   )
   expect(files["index.circuit.tsx"]).toContain(
-    '<trace from=".controller > .U1 > .PA1" to=".power_monitor > .U1 > .SDA" />',
+    '<trace from=".controller > .U1 > .PA1" to=".power_monitor > .U1 > .I2C_SDA" />',
   )
   expect(files["index.circuit.tsx"]).toContain(
-    '<trace from=".controller > .U1 > .PA0" to=".power_monitor > .U1 > .SCL" />',
+    '<trace from=".controller > .U1 > .PA0" to=".power_monitor > .U1 > .I2C_SCL" />',
   )
 })

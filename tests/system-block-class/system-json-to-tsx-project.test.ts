@@ -48,8 +48,8 @@ test("TI system blocks include per-subcircuit I2C interface definitions", () => 
     name: "I2C1",
     kind: "i2c",
     i2cPins: {
-      SDA: "U1.SDA",
-      SCL: "U1.SCL",
+      SDA: "U1.I2C_SDA",
+      SCL: "U1.I2C_SCL",
       VCC: "U1.VDD",
       GND: "U1.GND",
     },
@@ -72,10 +72,10 @@ test("systemJsonToTsxProject matches I2C interfaces and emits cross-subcircuit t
   const tsx = files["index.circuit.tsx"]
 
   expect(tsx).toContain(
-    '<trace from=".controller > .U1 > .PA1" to=".sensor > .U1 > .SDA" />',
+    '<trace from=".controller > .U1 > .PA1" to=".sensor > .U1 > .I2C_SDA" />',
   )
   expect(tsx).toContain(
-    '<trace from=".controller > .U1 > .PA0" to=".sensor > .U1 > .SCL" />',
+    '<trace from=".controller > .U1 > .PA0" to=".sensor > .U1 > .I2C_SCL" />',
   )
   expect(tsx).toContain(
     '<trace from=".controller > .U1 > .VDD" to=".sensor > .U1 > .VDD" />',

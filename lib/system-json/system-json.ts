@@ -13,7 +13,7 @@ export const Size = z.object({
 })
 export type Size = z.infer<typeof Size>
 
-export const SystemBlockInterfaceKind = z.enum(["i2c", "spi"])
+export const SystemBlockInterfaceKind = z.enum(["gpio", "i2c", "spi"])
 export type SystemBlockInterfaceKind = z.infer<typeof SystemBlockInterfaceKind>
 
 export const SystemBlockInterfacePinName = z.string()
@@ -37,6 +37,7 @@ export type SystemBlockInterfacePinMap = z.infer<
 export const SystemBlockInterface = z.object({
   name: z.string(),
   kind: SystemBlockInterfaceKind,
+  gpioPins: SystemBlockInterfacePinMap.optional(),
   i2cPins: SystemBlockInterfacePinMap.optional(),
   spiPins: SystemBlockInterfacePinMap.optional(),
 })

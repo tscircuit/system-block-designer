@@ -69,6 +69,17 @@ function toSnakeCase(value: string): string {
     .toLowerCase()
 }
 
+function createGpioInterface(
+  name: string,
+  pinSelector: string,
+): SystemBlockInterface {
+  return {
+    name,
+    kind: "gpio",
+    gpioPins: { GPIO: pinSelector },
+  }
+}
+
 export const TiSubcircuitDefinitions = {
   BatteryManagement_BQ24074: {
     componentName: "BatteryManagement_BQ24074",
@@ -99,8 +110,8 @@ export const TiSubcircuitDefinitions = {
         name: "I2C1",
         kind: "i2c",
         i2cPins: {
-          SDA: "U1.SDA",
-          SCL: "U1.SCL",
+          SDA: "U1.I2C_SDA",
+          SCL: "U1.I2C_SCL",
           GND: "U1.GND",
         },
       },
@@ -125,11 +136,12 @@ export const TiSubcircuitDefinitions = {
         name: "I2C1",
         kind: "i2c",
         i2cPins: {
-          SDA: "U1.SDA",
-          SCL: "U1.SCL",
+          SDA: "U1.I2C_SDA",
+          SCL: "U1.I2C_SCL",
           GND: "U1.PGND",
         },
       },
+      createGpioInterface("GPIO", "U1.GPIO_GPOUT"),
     ],
     ports: {
       top: ["PACKP", "VSYS"],
@@ -151,8 +163,8 @@ export const TiSubcircuitDefinitions = {
         name: "I2C1",
         kind: "i2c",
         i2cPins: {
-          SDA: "U1.SDA",
-          SCL: "U1.SCL",
+          SDA: "U1.I2C_SDA",
+          SCL: "U1.I2C_SCL",
           VCC: "U1.VCC",
           GND: "U1.GND",
         },
@@ -176,6 +188,10 @@ export const TiSubcircuitDefinitions = {
     description: "TI CC2340R5 Bluetooth Low Energy wireless MCU reference.",
     icon: "antenna",
     size: { width: 360, height: 280 },
+    interfaces: [
+      createGpioInterface("GPIO1", "U1.GPIO_DIO3"),
+      createGpioInterface("GPIO2", "U1.GPIO_DIO4"),
+    ],
     ports: {
       top: ["VDDS", "VDDR", "WMCU_VDD"],
       bottom: ["GND"],
@@ -205,6 +221,29 @@ export const TiSubcircuitDefinitions = {
     description: "TI CC2745R10 Bluetooth Low Energy wireless MCU reference.",
     icon: "antenna",
     size: { width: 400, height: 320 },
+    interfaces: [
+      createGpioInterface("GPIO0", "U1.GPIO_DIO0"),
+      createGpioInterface("GPIO1", "U1.GPIO_DIO1"),
+      createGpioInterface("GPIO2", "U1.GPIO_DIO2"),
+      createGpioInterface("GPIO3", "U1.GPIO_DIO3"),
+      createGpioInterface("GPIO4", "U1.GPIO_DIO4"),
+      createGpioInterface("GPIO5", "U1.GPIO_DIO5"),
+      createGpioInterface("GPIO7", "U1.GPIO_DIO7"),
+      createGpioInterface("GPIO11", "U1.GPIO_DIO11"),
+      createGpioInterface("GPIO12", "U1.GPIO_DIO12"),
+      createGpioInterface("GPIO15", "U1.GPIO_DIO15"),
+      createGpioInterface("GPIO16", "U1.GPIO_DIO16"),
+      createGpioInterface("GPIO17", "U1.GPIO_DIO17"),
+      createGpioInterface("GPIO18", "U1.GPIO_DIO18"),
+      createGpioInterface("GPIO19", "U1.GPIO_DIO19"),
+      createGpioInterface("GPIO20", "U1.GPIO_DIO20"),
+      createGpioInterface("GPIO21", "U1.GPIO_DIO21"),
+      createGpioInterface("GPIO22", "U1.GPIO_DIO22"),
+      createGpioInterface("GPIO23", "U1.GPIO_DIO23"),
+      createGpioInterface("GPIO24", "U1.GPIO_DIO24"),
+      createGpioInterface("GPIO27", "U1.GPIO_DIO27"),
+      createGpioInterface("GPIO28", "U1.GPIO_DIO28"),
+    ],
     ports: {
       top: ["WMCU_VDD", "VDDS", "VDDR", "VDDD"],
       bottom: ["GND"],
@@ -378,8 +417,8 @@ export const TiSubcircuitDefinitions = {
         name: "I2C1",
         kind: "i2c",
         i2cPins: {
-          SDA: "U1.SDA",
-          SCL: "U1.SCL",
+          SDA: "U1.I2C_SDA",
+          SCL: "U1.I2C_SCL",
           VCC: "U1.VDD",
           GND: "U1.GND",
         },
@@ -409,8 +448,8 @@ export const TiSubcircuitDefinitions = {
         name: "I2C1",
         kind: "i2c",
         i2cPins: {
-          SDA: "U1.SDA",
-          SCL: "U1.SCL",
+          SDA: "U1.I2C_SDA",
+          SCL: "U1.I2C_SCL",
           VCC: "U1.VDD",
           GND: "U1.GND",
         },
@@ -440,8 +479,8 @@ export const TiSubcircuitDefinitions = {
         name: "I2C1",
         kind: "i2c",
         i2cPins: {
-          SDA: "U1.SDA",
-          SCL: "U1.SCL",
+          SDA: "U1.I2C_SDA",
+          SCL: "U1.I2C_SCL",
           VCC: "U1.VDD",
           GND: "U1.GND",
         },
@@ -471,8 +510,8 @@ export const TiSubcircuitDefinitions = {
         name: "I2C1",
         kind: "i2c",
         i2cPins: {
-          SDA: "U1.SDA",
-          SCL: "U1.SCL",
+          SDA: "U1.I2C_SDA",
+          SCL: "U1.I2C_SCL",
           VCC: "U1.VS",
           GND: "U1.GND",
         },
@@ -507,6 +546,8 @@ export const TiSubcircuitDefinitions = {
           GND: "U1.GND",
         },
       },
+      createGpioInterface("GPIO1", "U1.GPIO_PA0"),
+      createGpioInterface("GPIO2", "U1.GPIO_PA1"),
     ],
     ports: {
       top: ["VDD"],
@@ -549,8 +590,8 @@ export const TiSubcircuitDefinitions = {
         name: "I2C1",
         kind: "i2c",
         i2cPins: {
-          SDA: "U3.SDA",
-          SCL: "U3.SCL",
+          SDA: "U3.I2C_SDA",
+          SCL: "U3.I2C_SCL",
           VCC: "U3.VDD",
           GND: "U3.GND",
         },
@@ -578,8 +619,8 @@ export const TiSubcircuitDefinitions = {
         name: "I2C1",
         kind: "i2c",
         i2cPins: {
-          SDA: "U1.SDA",
-          SCL: "U1.SCL",
+          SDA: "U1.I2C_SDA",
+          SCL: "U1.I2C_SCL",
           VCC: "U1.VDD",
           GND: "U1.GND",
         },
@@ -692,6 +733,16 @@ export const TiSubcircuitDefinitions = {
     description: "TI TPS6521835 multi-rail power-management reference.",
     icon: "power",
     size: { width: 320, height: 240 },
+    interfaces: [
+      {
+        name: "I2C1",
+        kind: "i2c",
+        i2cPins: {
+          SDA: "U1.I2C_SDA",
+          SCL: "U1.I2C_SCL",
+        },
+      },
+    ],
     ports: {
       top: ["IN_BIAS", "IN_BU", "IN_LS1", "IN_LS2", "IN_LS3", "VDD", "VIO"],
       bottom: ["GND"],
@@ -773,10 +824,10 @@ export const TiSubcircuitDefinitions = {
         name: "SPI1",
         kind: "spi",
         spiPins: {
-          CS: "U1.SLAVE_SELECT",
-          SCLK: "U1.DATA_CLK",
-          MOSI: "U1.MOSI",
-          MISO: "U1.MISO",
+          CS: "U1.SPI_CS",
+          SCLK: "U1.SPI_SCK",
+          MOSI: "U1.SPI_MOSI",
+          MISO: "U1.SPI_MISO",
         },
       },
     ],
@@ -815,10 +866,10 @@ export const TiSubcircuitDefinitions = {
         name: "SPI1",
         kind: "spi",
         spiPins: {
-          CS: "U1.CS",
-          SCLK: "U1.CLK",
-          MOSI: "U1.DI_IO0",
-          MISO: "U1.DO_IO1",
+          CS: "U1.SPI_CS",
+          SCLK: "U1.SPI_SCK",
+          MOSI: "U1.SPI_MOSI",
+          MISO: "U1.SPI_MISO",
         },
       },
     ],

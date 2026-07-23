@@ -380,15 +380,17 @@ function findMatchingInterface(
 function getSubcircuitPinSelectorsByInterfacePinName(
   interfaceDefinition: SystemBlockInterface,
 ): SystemBlockInterfacePinMap | undefined {
+  if (interfaceDefinition.kind === "gpio") return interfaceDefinition.gpioPins
   if (interfaceDefinition.kind === "i2c") return interfaceDefinition.i2cPins
   if (interfaceDefinition.kind === "spi") return interfaceDefinition.spiPins
-  return interfaceDefinition.i2cPins ?? interfaceDefinition.spiPins
+  return undefined
 }
 
 function getRequiredPinNames(
   interfaceKind: SystemBlockInterfaceKind,
 ): SystemBlockInterfacePinName[] {
   if (interfaceKind === "i2c") return ["SDA", "SCL"]
+  if (interfaceKind === "spi") return ["CS", "SCLK", "MOSI", "MISO"]
   return []
 }
 

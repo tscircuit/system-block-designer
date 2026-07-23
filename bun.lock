@@ -6,7 +6,7 @@
       "name": "system-block-designer",
       "dependencies": {
         "@resvg/resvg-wasm": "^2.6.2",
-        "@tsci/tscircuit.ti": "^1.0.76",
+        "@tsci/tscircuit.ti": "^1.0.77",
         "@tscircuit/eval": "^0.0.970",
         "@tscircuit/krt-wasm": "^0.1.6",
         "@tscircuit/solver-utils": "^0.0.16",
@@ -305,7 +305,7 @@
 
     "@thednp/dommatrix": ["@thednp/dommatrix@3.0.4", "", {}, "sha512-xpKtQZqFOuAPfQDbePIh9f48YKfmULV7z9C+anPBSHiOG4P+T3ct7Cx2AZOoUeXbxiDkz7SONANy1bB7p2uysg=="],
 
-    "@tsci/tscircuit.ti": ["@tsci/tscircuit.ti@1.0.76", "https://npm.tscircuit.com/package_files/download?package_name=tscircuit%2Fti&package_file_id=cc7ce010-200c-42f2-bcd5-ef2e7e02aa66&package_release_version=1.0.76&file_path=dist%2Fpackage.tgz", {}, "sha512-9Q/F+/jpZNpavz1CL00xJdm2JkRjNyviPibmANwSP/uDa0UIhXWjKh0uTkkvKv6ivHNER7wDlqFEfbQSzn+vnQ=="],
+    "@tsci/tscircuit.ti": ["@tsci/tscircuit.ti@1.0.77", "https://npm.tscircuit.com/package_files/download?package_name=tscircuit%2Fti&package_file_id=3880e35b-3ca5-4adb-96e1-8d9b7f472b61&package_release_version=1.0.77&file_path=dist%2Fpackage.tgz", {}, "sha512-WBHcvqvp7eaKr/HMmKJCeWzHuDuV4bU+Zr4LgYcUP4NbLiZRI0/v29BLKW9e9qVI6kgEPNF1CE61dc00uN/1iA=="],
 
     "@tscircuit/alphabet": ["@tscircuit/alphabet@0.0.25", "", { "peerDependencies": { "typescript": "^5.0.0" } }, "sha512-PWLjptI6AlLEtF/wjN1N8uC+n3G7vtg0j3xKE1fgWHDhahtnlQRqHDrtPSLlkIR9aJjRfjplzLuaUEaCRvJmZA=="],
 
