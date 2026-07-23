@@ -69,17 +69,6 @@ function toSnakeCase(value: string): string {
     .toLowerCase()
 }
 
-function createGpioInterface(
-  name: string,
-  pinSelector: string,
-): SystemBlockInterface {
-  return {
-    name,
-    kind: "gpio",
-    gpioPins: { GPIO: pinSelector },
-  }
-}
-
 export const TiSubcircuitDefinitions = {
   BatteryManagement_BQ24074: {
     componentName: "BatteryManagement_BQ24074",
@@ -141,7 +130,13 @@ export const TiSubcircuitDefinitions = {
           GND: "U1.PGND",
         },
       },
-      createGpioInterface("GPIO", "U1.GPIO_GPOUT"),
+      {
+        name: "GPIO",
+        kind: "gpio",
+        gpioPins: {
+          GPOUT: "U1.GPIO_GPOUT",
+        },
+      },
     ],
     ports: {
       top: ["PACKP", "VSYS"],
@@ -189,8 +184,14 @@ export const TiSubcircuitDefinitions = {
     icon: "antenna",
     size: { width: 360, height: 280 },
     interfaces: [
-      createGpioInterface("DIO3", "U1.GPIO_DIO3"),
-      createGpioInterface("DIO4", "U1.GPIO_DIO4"),
+      {
+        name: "GPIO",
+        kind: "gpio",
+        gpioPins: {
+          DIO3: "U1.GPIO_DIO3",
+          DIO4: "U1.GPIO_DIO4",
+        },
+      },
     ],
     ports: {
       top: ["VDDS", "VDDR", "WMCU_VDD"],
@@ -222,27 +223,33 @@ export const TiSubcircuitDefinitions = {
     icon: "antenna",
     size: { width: 400, height: 320 },
     interfaces: [
-      createGpioInterface("DIO0", "U1.GPIO_DIO0"),
-      createGpioInterface("DIO1", "U1.GPIO_DIO1"),
-      createGpioInterface("DIO2", "U1.GPIO_DIO2"),
-      createGpioInterface("DIO3", "U1.GPIO_DIO3"),
-      createGpioInterface("DIO4", "U1.GPIO_DIO4"),
-      createGpioInterface("DIO5", "U1.GPIO_DIO5"),
-      createGpioInterface("DIO7", "U1.GPIO_DIO7"),
-      createGpioInterface("DIO11", "U1.GPIO_DIO11"),
-      createGpioInterface("DIO12", "U1.GPIO_DIO12"),
-      createGpioInterface("DIO15", "U1.GPIO_DIO15"),
-      createGpioInterface("DIO16", "U1.GPIO_DIO16"),
-      createGpioInterface("DIO17", "U1.GPIO_DIO17"),
-      createGpioInterface("DIO18", "U1.GPIO_DIO18"),
-      createGpioInterface("DIO19", "U1.GPIO_DIO19"),
-      createGpioInterface("DIO20", "U1.GPIO_DIO20"),
-      createGpioInterface("DIO21", "U1.GPIO_DIO21"),
-      createGpioInterface("DIO22", "U1.GPIO_DIO22"),
-      createGpioInterface("DIO23", "U1.GPIO_DIO23"),
-      createGpioInterface("DIO24", "U1.GPIO_DIO24"),
-      createGpioInterface("DIO27", "U1.GPIO_DIO27"),
-      createGpioInterface("DIO28", "U1.GPIO_DIO28"),
+      {
+        name: "GPIO",
+        kind: "gpio",
+        gpioPins: {
+          DIO0: "U1.GPIO_DIO0",
+          DIO1: "U1.GPIO_DIO1",
+          DIO2: "U1.GPIO_DIO2",
+          DIO3: "U1.GPIO_DIO3",
+          DIO4: "U1.GPIO_DIO4",
+          DIO5: "U1.GPIO_DIO5",
+          DIO7: "U1.GPIO_DIO7",
+          DIO11: "U1.GPIO_DIO11",
+          DIO12: "U1.GPIO_DIO12",
+          DIO15: "U1.GPIO_DIO15",
+          DIO16: "U1.GPIO_DIO16",
+          DIO17: "U1.GPIO_DIO17",
+          DIO18: "U1.GPIO_DIO18",
+          DIO19: "U1.GPIO_DIO19",
+          DIO20: "U1.GPIO_DIO20",
+          DIO21: "U1.GPIO_DIO21",
+          DIO22: "U1.GPIO_DIO22",
+          DIO23: "U1.GPIO_DIO23",
+          DIO24: "U1.GPIO_DIO24",
+          DIO27: "U1.GPIO_DIO27",
+          DIO28: "U1.GPIO_DIO28",
+        },
+      },
     ],
     ports: {
       top: ["WMCU_VDD", "VDDS", "VDDR", "VDDD"],
@@ -305,11 +312,17 @@ export const TiSubcircuitDefinitions = {
           MISO: "U2.FLASH_SPI_DIN",
         },
       },
-      createGpioInterface("SFL_CLK", "U2.FLASH_SPI_CLK"),
-      createGpioInterface("P01_GPIO_10", "U2.GPIO10"),
-      createGpioInterface("P02_GPIO_11", "U2.GPIO11"),
-      createGpioInterface("P03_GPIO_12", "U2.GPIO12"),
-      createGpioInterface("P04_GPIO_13", "U2.GPIO13"),
+      {
+        name: "GPIO",
+        kind: "gpio",
+        gpioPins: {
+          SFL_CLK: "U2.FLASH_SPI_CLK",
+          P01_GPIO_10: "U2.GPIO10",
+          P02_GPIO_11: "U2.GPIO11",
+          P03_GPIO_12: "U2.GPIO12",
+          P04_GPIO_13: "U2.GPIO13",
+        },
+      },
     ],
     ports: {
       top: [
@@ -551,8 +564,14 @@ export const TiSubcircuitDefinitions = {
           GND: "U1.GND",
         },
       },
-      createGpioInterface("PA0", "U1.GPIO_PA0"),
-      createGpioInterface("PA1", "U1.GPIO_PA1"),
+      {
+        name: "GPIO",
+        kind: "gpio",
+        gpioPins: {
+          PA0: "U1.GPIO_PA0",
+          PA1: "U1.GPIO_PA1",
+        },
+      },
     ],
     ports: {
       top: ["VDD"],
@@ -747,7 +766,13 @@ export const TiSubcircuitDefinitions = {
           SCL: "U1.I2C_SCL",
         },
       },
-      createGpioInterface("GPO2", "U1.GPO2"),
+      {
+        name: "GPIO",
+        kind: "gpio",
+        gpioPins: {
+          GPO2: "U1.GPO2",
+        },
+      },
     ],
     ports: {
       top: ["IN_BIAS", "IN_BU", "IN_LS1", "IN_LS2", "IN_LS3", "VDD", "VIO"],
@@ -788,14 +813,20 @@ export const TiSubcircuitDefinitions = {
     icon: "shifter",
     size: { width: 220, height: 148 },
     interfaces: [
-      createGpioInterface("A1", "U1.IO_A1"),
-      createGpioInterface("A2", "U1.IO_A2"),
-      createGpioInterface("A3", "U1.IO_A3"),
-      createGpioInterface("A4", "U1.IO_A4"),
-      createGpioInterface("B1", "U1.IO_B1"),
-      createGpioInterface("B2", "U1.IO_B2"),
-      createGpioInterface("B3", "U1.IO_B3"),
-      createGpioInterface("B4", "U1.IO_B4"),
+      {
+        name: "GPIO",
+        kind: "gpio",
+        gpioPins: {
+          A1: "U1.IO_A1",
+          A2: "U1.IO_A2",
+          A3: "U1.IO_A3",
+          A4: "U1.IO_A4",
+          B1: "U1.IO_B1",
+          B2: "U1.IO_B2",
+          B3: "U1.IO_B3",
+          B4: "U1.IO_B4",
+        },
+      },
     ],
     ports: {
       top: ["V1_8", "V3_3"],
@@ -817,11 +848,17 @@ export const TiSubcircuitDefinitions = {
     icon: "shifter",
     size: { width: 200, height: 136 },
     interfaces: [
-      createGpioInterface("OE", "U1.OE"),
-      createGpioInterface("A1", "U1.IO_A1"),
-      createGpioInterface("A2", "U1.IO_A2"),
-      createGpioInterface("B1", "U1.IO_B1"),
-      createGpioInterface("B2", "U1.IO_B2"),
+      {
+        name: "GPIO",
+        kind: "gpio",
+        gpioPins: {
+          OE: "U1.OE",
+          A1: "U1.IO_A1",
+          A2: "U1.IO_A2",
+          B1: "U1.IO_B1",
+          B2: "U1.IO_B2",
+        },
+      },
     ],
     ports: {
       top: ["V1_8", "V3_3"],
@@ -853,13 +890,19 @@ export const TiSubcircuitDefinitions = {
           MISO: "U1.SPI_MISO",
         },
       },
-      createGpioInterface("EN", "U1.EN"),
-      createGpioInterface("DATA_CLK", "U1.SPI_SCK"),
-      createGpioInterface("IRQ", "U1.IRQ"),
-      createGpioInterface("MOD", "U1.MOD"),
-      createGpioInterface("MOSI", "U1.SPI_MOSI"),
-      createGpioInterface("MISO", "U1.SPI_MISO"),
-      createGpioInterface("SYS_CLK", "U1.SYS_CLK"),
+      {
+        name: "GPIO",
+        kind: "gpio",
+        gpioPins: {
+          EN: "U1.EN",
+          DATA_CLK: "U1.SPI_SCK",
+          IRQ: "U1.IRQ",
+          MOD: "U1.MOD",
+          MOSI: "U1.SPI_MOSI",
+          MISO: "U1.SPI_MISO",
+          SYS_CLK: "U1.SYS_CLK",
+        },
+      },
     ],
     ports: {
       top: ["VIN_5V", "VIN_3V3"],
@@ -902,8 +945,14 @@ export const TiSubcircuitDefinitions = {
           MISO: "U1.SPI_MISO",
         },
       },
-      createGpioInterface("QSPI_SS", "U1.SPI_CS"),
-      createGpioInterface("QSPI_CLK", "U1.SPI_SCK"),
+      {
+        name: "GPIO",
+        kind: "gpio",
+        gpioPins: {
+          QSPI_SS: "U1.SPI_CS",
+          QSPI_CLK: "U1.SPI_SCK",
+        },
+      },
     ],
     ports: {
       top: ["VCC"],

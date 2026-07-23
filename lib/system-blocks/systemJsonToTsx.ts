@@ -321,6 +321,14 @@ function findMatchingInterface(
 } | null {
   const sourceInterfaces = sourceBlock.interfaces ?? []
   const targetInterfaces = targetBlock.interfaces ?? []
+  const gpioPortMatch = matchGpioPortPair(
+    sourceInterfaces,
+    targetInterfaces,
+    sourcePortLabel,
+    targetPortLabel,
+  )
+  if (gpioPortMatch) return gpioPortMatch
+
   const normalizedSourcePortLabel = sourcePortLabel?.trim().toLowerCase()
   const normalizedTargetPortLabel = targetPortLabel?.trim().toLowerCase()
   const sourcePortInterface = normalizedSourcePortLabel
@@ -368,6 +376,63 @@ function findMatchingInterface(
 
     const interfaceMatch = matchInterfacePair(sourceInterface, targetInterface)
     if (interfaceMatch) return interfaceMatch
+  }
+
+  return null
+}
+
+function matchGpioPortPair(
+  sourceInterfaces: SystemBlockInterface[],
+  targetInterfaces: SystemBlockInterface[],
+  sourcePortLabel: string | undefined,
+  targetPortLabel: string | undefined,
+): {
+  sourceInterface: MatchedInterface
+  targetInterface: MatchedInterface
+  pinNames: string[]
+} | null {
+  const sourcePin = findGpioPinForPort(sourceInterfaces, sourcePortLabel)
+  const targetPin = findGpioPinForPort(targetInterfaces, targetPortLabel)
+  if (!sourcePin || !targetPin) return null
+
+  return {
+    sourceInterface: {
+      ...sourcePin.interfaceDefinition,
+      subcircuitPinSelectorsByInterfacePinName: {
+        GPIO: sourcePin.pinSelector,
+      },
+    },
+    targetInterface: {
+      ...targetPin.interfaceDefinition,
+      subcircuitPinSelectorsByInterfacePinName: {
+        GPIO: targetPin.pinSelector,
+      },
+    },
+    pinNames: ["GPIO"],
+  }
+}
+
+function findGpioPinForPort(
+  interfaces: SystemBlockInterface[],
+  portLabel: string | undefined,
+): {
+  interfaceDefinition: SystemBlockInterface
+  pinSelector: string
+} | null {
+  const normalizedPortLabel = portLabel?.trim().toLowerCase()
+  if (!normalizedPortLabel) return null
+
+  for (const interfaceDefinition of interfaces) {
+    if (interfaceDefinition.kind !== "gpio") continue
+    const pinEntry = Object.entries(interfaceDefinition.gpioPins ?? {}).find(
+      ([pinName]) => pinName.toLowerCase() === normalizedPortLabel,
+    )
+    if (pinEntry) {
+      return {
+        interfaceDefinition,
+        pinSelector: pinEntry[1],
+      }
+    }
   }
 
   return null
