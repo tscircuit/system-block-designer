@@ -1,14 +1,12 @@
 import { expect, test } from "bun:test"
-import { convertCircuitJsonToStackedSchematicSheetsSvg } from "circuit-to-svg"
 import { WirelessMCU_CC3235SF } from "../../lib/system-blocks/TiSubcircuits"
 import { systemJsonToTsxProject } from "../../lib/system-blocks/systemJsonToTsx"
 import type {
   SystemConnection,
   SystemJson,
 } from "../../lib/system-json/system-json"
-import { renderTsxToCircuitJson } from "../fixtures/render-tsx-to-circuit-json"
 
-test("systemJsonToTsxProject matches SPI interfaces and renders the schematic snapshot", async () => {
+test("systemJsonToTsxProject resolves a concrete SPI-labeled port without expanding its bus", () => {
   const systemDiagramId = "system_diagram_0"
   const wifiA = new WirelessMCU_CC3235SF({
     systemDiagramId,
@@ -47,23 +45,8 @@ test("systemJsonToTsxProject matches SPI interfaces and renders the schematic sn
   expect(tsx).toContain(
     '<trace from=".wifi_a > .U2 > .FLASH_SPI_CLK" to=".wifi_b > .U2 > .FLASH_SPI_CLK" />',
   )
-  expect(tsx).toContain(
-    '<trace from=".wifi_a > .U2 > .FLASH_SPI_DOUT" to=".wifi_b > .U2 > .FLASH_SPI_DOUT" />',
-  )
-  expect(tsx).toContain(
-    '<trace from=".wifi_a > .U2 > .FLASH_SPI_CS" to=".wifi_b > .U2 > .FLASH_SPI_CS" />',
-  )
-  expect(tsx).toContain(
-    '<trace from=".wifi_a > .U2 > .FLASH_SPI_DIN" to=".wifi_b > .U2 > .FLASH_SPI_DIN" />',
-  )
-
-  const circuitJson = await renderTsxToCircuitJson(tsx)
-  const schematicSvg = convertCircuitJsonToStackedSchematicSheetsSvg(
-    circuitJson as any,
-  )
-
-  await expect(schematicSvg).toMatchSvgSnapshot(import.meta.path)
-}, 60_000)
+  expect(tsx.match(/<trace /g)).toHaveLength(1)
+})
 
 function connection({
   systemDiagramId,

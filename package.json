@@ -17,7 +17,7 @@
 	},
 	"dependencies": {
 		"@resvg/resvg-wasm": "^2.6.2",
-		"@tsci/tscircuit.ti": "^1.0.76",
+		"@tsci/tscircuit.ti": "^1.0.77",
 		"@tscircuit/eval": "^0.0.970",
 		"@tscircuit/krt-wasm": "^0.1.6",
 		"@tscircuit/solver-utils": "^0.0.16",

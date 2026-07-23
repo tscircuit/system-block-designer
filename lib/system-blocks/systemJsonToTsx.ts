@@ -290,6 +290,8 @@ function createInterfaceTraces(
   const match = findMatchingInterface(
     sourceBlock.json,
     targetBlock.json,
+    sourcePort.label,
+    targetPort.label,
     connection.label,
   )
   if (!match) return []
@@ -309,17 +311,46 @@ function createInterfaceTraces(
 function findMatchingInterface(
   sourceBlock: SystemBlockJson,
   targetBlock: SystemBlockJson,
+  sourcePortLabel: string | undefined,
+  targetPortLabel: string | undefined,
   connectionLabel: string | undefined,
 ): {
   sourceInterface: MatchedInterface
   targetInterface: MatchedInterface
   pinNames: string[]
 } | null {
-  const normalizedLabel = connectionLabel?.trim().toLowerCase()
-  if (!normalizedLabel) return null
-
   const sourceInterfaces = sourceBlock.interfaces ?? []
   const targetInterfaces = targetBlock.interfaces ?? []
+  const gpioPortMatch = matchGpioPortPair(
+    sourceInterfaces,
+    targetInterfaces,
+    sourcePortLabel,
+    targetPortLabel,
+  )
+  if (gpioPortMatch) return gpioPortMatch
+
+  const normalizedSourcePortLabel = sourcePortLabel?.trim().toLowerCase()
+  const normalizedTargetPortLabel = targetPortLabel?.trim().toLowerCase()
+  const sourcePortInterface = normalizedSourcePortLabel
+    ? sourceInterfaces.find(
+        (candidate) =>
+          candidate.name.toLowerCase() === normalizedSourcePortLabel,
+      )
+    : undefined
+  const targetPortInterface = normalizedTargetPortLabel
+    ? targetInterfaces.find(
+        (candidate) =>
+          candidate.name.toLowerCase() === normalizedTargetPortLabel,
+      )
+    : undefined
+  const portInterfaceMatch = matchInterfacePair(
+    sourcePortInterface,
+    targetPortInterface,
+  )
+  if (portInterfaceMatch) return portInterfaceMatch
+
+  const normalizedLabel = connectionLabel?.trim().toLowerCase()
+  if (!normalizedLabel) return null
 
   for (const sourceInterface of sourceInterfaces) {
     const sourceSubcircuitPinSelectors =
@@ -343,33 +374,63 @@ function findMatchingInterface(
     })
     if (!targetInterface) continue
 
-    const targetSubcircuitPinSelectors =
-      getSubcircuitPinSelectorsByInterfacePinName(targetInterface)
-    if (!targetSubcircuitPinSelectors) continue
+    const interfaceMatch = matchInterfacePair(sourceInterface, targetInterface)
+    if (interfaceMatch) return interfaceMatch
+  }
 
-    const sourcePinNames = Object.keys(sourceSubcircuitPinSelectors)
-    const pinNames = sourcePinNames.filter(
-      (pinName) => pinName in targetSubcircuitPinSelectors,
+  return null
+}
+
+function matchGpioPortPair(
+  sourceInterfaces: SystemBlockInterface[],
+  targetInterfaces: SystemBlockInterface[],
+  sourcePortLabel: string | undefined,
+  targetPortLabel: string | undefined,
+): {
+  sourceInterface: MatchedInterface
+  targetInterface: MatchedInterface
+  pinNames: string[]
+} | null {
+  const sourcePin = findGpioPinForPort(sourceInterfaces, sourcePortLabel)
+  const targetPin = findGpioPinForPort(targetInterfaces, targetPortLabel)
+  if (!sourcePin || !targetPin) return null
+
+  return {
+    sourceInterface: {
+      ...sourcePin.interfaceDefinition,
+      subcircuitPinSelectorsByInterfacePinName: {
+        GPIO: sourcePin.pinSelector,
+      },
+    },
+    targetInterface: {
+      ...targetPin.interfaceDefinition,
+      subcircuitPinSelectorsByInterfacePinName: {
+        GPIO: targetPin.pinSelector,
+      },
+    },
+    pinNames: ["GPIO"],
+  }
+}
+
+function findGpioPinForPort(
+  interfaces: SystemBlockInterface[],
+  portLabel: string | undefined,
+): {
+  interfaceDefinition: SystemBlockInterface
+  pinSelector: string
+} | null {
+  const normalizedPortLabel = portLabel?.trim().toLowerCase()
+  if (!normalizedPortLabel) return null
+
+  for (const interfaceDefinition of interfaces) {
+    if (interfaceDefinition.kind !== "gpio") continue
+    const pinEntry = Object.entries(interfaceDefinition.gpioPins ?? {}).find(
+      ([pinName]) => pinName.toLowerCase() === normalizedPortLabel,
     )
-    const requiredPinNames = getRequiredPinNames(sourceInterface.kind)
-    const hasRequiredPins =
-      requiredPinNames.length > 0
-        ? requiredPinNames.every((pinName) => pinNames.includes(pinName))
-        : pinNames.length === sourcePinNames.length
-
-    if (hasRequiredPins) {
+    if (pinEntry) {
       return {
-        sourceInterface: {
-          ...sourceInterface,
-          subcircuitPinSelectorsByInterfacePinName:
-            sourceSubcircuitPinSelectors,
-        },
-        targetInterface: {
-          ...targetInterface,
-          subcircuitPinSelectorsByInterfacePinName:
-            targetSubcircuitPinSelectors,
-        },
-        pinNames,
+        interfaceDefinition,
+        pinSelector: pinEntry[1],
       }
     }
   }
@@ -377,18 +438,63 @@ function findMatchingInterface(
   return null
 }
 
+function matchInterfacePair(
+  sourceInterface: SystemBlockInterface | undefined,
+  targetInterface: SystemBlockInterface | undefined,
+): {
+  sourceInterface: MatchedInterface
+  targetInterface: MatchedInterface
+  pinNames: string[]
+} | null {
+  if (!sourceInterface || !targetInterface) return null
+  if (sourceInterface.kind !== targetInterface.kind) return null
+
+  const sourceSubcircuitPinSelectors =
+    getSubcircuitPinSelectorsByInterfacePinName(sourceInterface)
+  const targetSubcircuitPinSelectors =
+    getSubcircuitPinSelectorsByInterfacePinName(targetInterface)
+  if (!sourceSubcircuitPinSelectors || !targetSubcircuitPinSelectors) {
+    return null
+  }
+
+  const sourcePinNames = Object.keys(sourceSubcircuitPinSelectors)
+  const pinNames = sourcePinNames.filter(
+    (pinName) => pinName in targetSubcircuitPinSelectors,
+  )
+  const requiredPinNames = getRequiredPinNames(sourceInterface.kind)
+  const hasRequiredPins =
+    requiredPinNames.length > 0
+      ? requiredPinNames.every((pinName) => pinNames.includes(pinName))
+      : pinNames.length === sourcePinNames.length
+  if (!hasRequiredPins) return null
+
+  return {
+    sourceInterface: {
+      ...sourceInterface,
+      subcircuitPinSelectorsByInterfacePinName: sourceSubcircuitPinSelectors,
+    },
+    targetInterface: {
+      ...targetInterface,
+      subcircuitPinSelectorsByInterfacePinName: targetSubcircuitPinSelectors,
+    },
+    pinNames,
+  }
+}
+
 function getSubcircuitPinSelectorsByInterfacePinName(
   interfaceDefinition: SystemBlockInterface,
 ): SystemBlockInterfacePinMap | undefined {
+  if (interfaceDefinition.kind === "gpio") return interfaceDefinition.gpioPins
   if (interfaceDefinition.kind === "i2c") return interfaceDefinition.i2cPins
   if (interfaceDefinition.kind === "spi") return interfaceDefinition.spiPins
-  return interfaceDefinition.i2cPins ?? interfaceDefinition.spiPins
+  return undefined
 }
 
 function getRequiredPinNames(
   interfaceKind: SystemBlockInterfaceKind,
 ): SystemBlockInterfacePinName[] {
   if (interfaceKind === "i2c") return ["SDA", "SCL"]
+  if (interfaceKind === "spi") return ["CS", "SCLK", "MOSI", "MISO"]
   return []
 }
 
