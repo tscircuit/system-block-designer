@@ -29,7 +29,7 @@
         "@types/react": "^19.1.0",
         "@types/react-dom": "^19.1.0",
         "bun-match-svg": "^0.0.15",
-        "circuit-json": "^0.0.442",
+        "circuit-json": "^0.0.451",
         "circuit-to-svg": "^0.0.370",
         "pdf-to-png-converter": "^4.1.1",
         "pngjs": "^7.0.0",
@@ -477,7 +477,7 @@
 
     "chownr": ["chownr@1.1.4", "", {}, "sha512-jJ0bqzaylmJtVnNgzTeSOs8DPavpbYgEr/b0YL8/2GO3xJEhInFmhKMUnEJQjZumK7KXGFhUy89PrsJWlakBVg=="],
 
-    "circuit-json": ["circuit-json@0.0.442", "", {}, "sha512-hEPLKmVUVV6cHnqHBNajuKiChbRPm3G7aMUF1BeZeAqs//LtSAcfhKwakccsfL55FxXHrzmEvHE46TxfFFudQA=="],
+    "circuit-json": ["circuit-json@0.0.451", "", { "peerDependencies": { "format-si-unit": "*" } }, "sha512-qNsRjwpAfTAi81deXSEHh4GKgdFQXQiBKFhbnWZdjEgKf5j/j16cN9nAIMzL4+3K4AcAYCe2rUXjBhz0XQSlaw=="],
 
     "circuit-json-to-bom-csv": ["circuit-json-to-bom-csv@0.0.9", "", { "dependencies": { "format-si-prefix": "^0.3.2", "papaparse": "^5.4.1" }, "peerDependencies": { "typescript": "^5.0.0" } }, "sha512-FbpYQW40WjpTJle1aCzHQ9yu/L0XgIRPWEfCYANcsg7zakP3Q/pEwr80uCJ5PkdnOStF1z3P3SomOH94z26EMg=="],
 
@@ -1198,8 +1198,6 @@
     "tscircuit/@tscircuit/eval": ["@tscircuit/eval@0.0.1039", "", { "peerDependencies": { "@tscircuit/core": "*", "circuit-json": "*", "typescript": "^5.0.0", "zod": "3" } }, "sha512-GGlfawJv9fVM91HKe0I/TYD0EO2xLkWxzfiY/F11Vm9KNbsZdm9/TB2GEEpAV1+eEm3eMNs184hq6xDfm9pB/A=="],
 
     "tscircuit/@tscircuit/krt-wasm": ["@tscircuit/krt-wasm@0.1.6", "", { "peerDependencies": { "tscircuit": "*" } }, "sha512-XRj8SIgWro1t56TieLhkOtRVsptq3cwzBtdbDEkRB2YiyX4V/r0zneii+c5I8F3D8rJUz4+GswGpPeO4eV8x8w=="],
-
-    "tscircuit/circuit-json": ["circuit-json@0.0.451", "", { "peerDependencies": { "format-si-unit": "*" } }, "sha512-qNsRjwpAfTAi81deXSEHh4GKgdFQXQiBKFhbnWZdjEgKf5j/j16cN9nAIMzL4+3K4AcAYCe2rUXjBhz0XQSlaw=="],
 
     "tscircuit/circuit-to-svg": ["circuit-to-svg@0.0.391", "", { "dependencies": { "@types/node": "^22.5.5", "bun-types": "^1.1.40", "calculate-elbow": "0.0.12", "debug": "^4.4.3", "svg-path-commander": "^2.1.11", "svgson": "^5.3.1", "transformation-matrix": "^2.16.1" }, "peerDependencies": { "@tscircuit/alphabet": "*" } }, "sha512-TMh2vieRiFXQ0Pjkp9eCDT6oyyJ0BGYtZHDfzZNubcJH5JjYNTV9116BG6Vkv+Lot2nz3aUnZplg9+4Z6gTJIQ=="],
 
