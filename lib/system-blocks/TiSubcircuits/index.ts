@@ -70,6 +70,36 @@ function toSnakeCase(value: string): string {
 }
 
 export const TiSubcircuitDefinitions = {
+  BatteryManagement_BQ24072: {
+    componentName: "BatteryManagement_BQ24072",
+    label: "Battery Charger",
+    category: [LibraryCategoryName.BatteryManagement, "Battery Charger"],
+    partNumber: "BQ24072",
+    description: "TI BQ24072 single-cell Li-ion linear battery charger.",
+    icon: "battery2",
+    size: { width: 220, height: 148 },
+    ports: {
+      top: ["IN", "OUT", "BAT"],
+      bottom: ["GND"],
+      left: ["TS", "ILIM", "ISET", "TMR"],
+      right: ["N_CE", "EN1", "EN2", "N_CHG", "N_PGOOD", "TD"],
+    },
+  },
+  BatteryManagement_BQ24073: {
+    componentName: "BatteryManagement_BQ24073",
+    label: "Battery Charger",
+    category: [LibraryCategoryName.BatteryManagement, "Battery Charger"],
+    partNumber: "BQ24073",
+    description: "TI BQ24073 single-cell Li-ion linear battery charger.",
+    icon: "battery2",
+    size: { width: 220, height: 148 },
+    ports: {
+      top: ["IN", "OUT", "BAT"],
+      bottom: ["GND"],
+      left: ["TS", "ILIM", "ISET", "TMR"],
+      right: ["N_CE", "EN1", "EN2", "N_CHG", "N_PGOOD", "TD"],
+    },
+  },
   BatteryManagement_BQ24074: {
     componentName: "BatteryManagement_BQ24074",
     label: "Battery Charger",
@@ -173,6 +203,50 @@ export const TiSubcircuitDefinitions = {
     },
     connectionPortExpansions: {
       I2C: ["SCL", "SDA"],
+    },
+  },
+  BluetoothController_CC2564C: {
+    componentName: "BluetoothController_CC2564C",
+    label: "Bluetooth Controller",
+    category: [LibraryCategoryName.Communication, "Bluetooth Controller"],
+    partNumber: "CC2564C",
+    description:
+      "TI CC2564C dual-mode Bluetooth controller with RF matching and clocks.",
+    icon: "antenna",
+    size: { width: 300, height: 220 },
+    interfaces: [
+      {
+        name: "HCI_CONTROL",
+        kind: "gpio",
+        gpioPins: {
+          HCI_TX: "U1A.HCI_TX",
+          HCI_RX: "U1A.HCI_RX",
+          HCI_RTS: "U1A.HCI_RTS",
+          HCI_CTS: "U1A.HCI_CTS",
+          N_SHUTD: "U1A.N_SHUTD",
+          SLOW_CLK: "U1A.SLOW_CLK",
+        },
+      },
+      {
+        name: "PCM_AUDIO",
+        kind: "gpio",
+        gpioPins: {
+          AUD_CLK: "U1A.AUD_CLK",
+          AUD_FSYNC: "U1A.AUD_FSYNC",
+          AUD_OUT: "U1A.AUD_OUT",
+          AUD_IN: "U1A.AUD_IN",
+        },
+      },
+    ] as SystemBlockInterface[],
+    ports: {
+      top: ["VBAT", "VDD_IO", "VCC_1V8_32K"],
+      bottom: ["GND"],
+      left: ["HCI_TX", "HCI_RX", "HCI_RTS", "HCI_CTS", "N_SHUTD", "SLOW_CLK"],
+      right: ["AUD_CLK", "AUD_FSYNC", "AUD_OUT", "AUD_IN", "ANT_FEED"],
+    },
+    connectionPortExpansions: {
+      HCI_UART: ["HCI_TX", "HCI_RX", "HCI_RTS", "HCI_CTS"],
+      PCM_AUDIO: ["AUD_CLK", "AUD_FSYNC", "AUD_OUT", "AUD_IN"],
     },
   },
   WirelessMCU_CC2340R5: {
@@ -545,6 +619,134 @@ export const TiSubcircuitDefinitions = {
       I2C: ["SCL", "SDA"],
     },
   },
+  BluetoothAudioHost_MSP430F5229: {
+    componentName: "BluetoothAudioHost_MSP430F5229",
+    label: "Bluetooth Audio Host",
+    category: [
+      LibraryCategoryName.ProcessingAndSecurity,
+      "Bluetooth Audio Host",
+    ],
+    partNumber: "MSP430F5229",
+    description:
+      "TI MSP430F5229 host controller for CC2564C Bluetooth audio designs.",
+    icon: "chip",
+    size: { width: 300, height: 220 },
+    interfaces: [
+      {
+        name: "I2C1",
+        kind: "i2c",
+        i2cPins: {
+          SDA: "U10.I2C_SDA",
+          SCL: "U10.I2C_SCL",
+        },
+      },
+      {
+        name: "HCI_CONTROL",
+        kind: "gpio",
+        gpioPins: {
+          CC_HCI_TX: "U10.UART_RXD",
+          CC_HCI_RX: "U10.UART_TXD",
+          CC_HCI_RTS: "U10.P1_4",
+          CC_HCI_CTS: "U10.P1_5",
+          CC_N_SHUTD: "U10.P1_7",
+          CC_SLOW_CLK: "R10.pin2",
+          AUDIO_RESET: "U10.P2_0",
+        },
+      },
+    ],
+    ports: {
+      top: ["VCC_5229", "DVIO_1V8", "VDD_1V8_LDO", "VDD_2V8_LDO"],
+      bottom: ["GND"],
+      left: [
+        "CC_HCI_TX",
+        "CC_HCI_RX",
+        "CC_HCI_RTS",
+        "CC_HCI_CTS",
+        "CC_N_SHUTD",
+        "CC_SLOW_CLK",
+      ],
+      right: ["I2C_SCL", "I2C_SDA", "AUDIO_RESET", "LED1", "LED2", "LED3"],
+    },
+    connectionPortExpansions: {
+      I2C: ["I2C_SCL", "I2C_SDA"],
+      HCI_UART: ["CC_HCI_TX", "CC_HCI_RX", "CC_HCI_RTS", "CC_HCI_CTS"],
+    },
+  },
+  AudioAmplifier_TAS2505: {
+    componentName: "AudioAmplifier_TAS2505",
+    label: "Audio Amplifier",
+    category: [LibraryCategoryName.Power, "Audio Amplifier"],
+    partNumber: "TAS2505",
+    description:
+      "TI TAS2505 digital-input class-D speaker amplifier reference circuit.",
+    icon: "power",
+    size: { width: 260, height: 184 },
+    interfaces: [
+      {
+        name: "I2C1",
+        kind: "i2c",
+        i2cPins: {
+          SDA: "U1.SDA",
+          SCL: "U1.SCL",
+        },
+      },
+      {
+        name: "PCM_AUDIO",
+        kind: "gpio",
+        gpioPins: {
+          BCLK: "U1.BCLK",
+          WCLK: "U1.WCLK",
+          MCLK: "U1.MCLK",
+          DIN: "U1.DIN",
+          DOUT: "U1.GPIO_DOUT",
+          N_RST: "U1.N_RST",
+        },
+      },
+    ],
+    ports: {
+      top: ["SVDD", "AVDD", "DVDD", "IOVDD"],
+      bottom: ["GND"],
+      left: ["I2C_SCL", "I2C_SDA", "N_RST", "BCLK", "WCLK", "MCLK", "DIN"],
+      right: ["DOUT", "SPKP", "SPKM", "HPOUT"],
+    },
+    connectionPortExpansions: {
+      I2C: ["I2C_SCL", "I2C_SDA"],
+      PCM_AUDIO: ["BCLK", "WCLK", "DIN"],
+    },
+  },
+  TargetSocket_MSPTS430D8: {
+    componentName: "TargetSocket_MSPTS430D8",
+    label: "MSP430 Target Socket",
+    category: [LibraryCategoryName.ProcessingAndSecurity, "Development Board"],
+    partNumber: "MSP-TS430D8",
+    description: "TI MSP-TS430D8 Spy-Bi-Wire target socket reference board.",
+    icon: "chip",
+    size: { width: 220, height: 156 },
+    interfaces: [
+      {
+        name: "GPIO",
+        kind: "gpio",
+        gpioPins: {
+          P1_2: "U1.P1_2",
+          P1_5: "U1.P1_5",
+          P1_6: "U1.P1_6",
+          P1_7: "U1.P1_7",
+          SBWTCK: "U1.TST_SBWTCK",
+          SBWTDIO: "U1.RST_SBWTDIO",
+        },
+      },
+    ],
+    ports: {
+      top: ["VCC"],
+      bottom: ["GND"],
+      left: ["SBWTCK", "SBWTDIO"],
+      right: ["P1_2", "P1_5", "P1_6", "P1_7"],
+    },
+    connectionPortExpansions: {
+      SBW: ["SBWTCK", "SBWTDIO"],
+      GPIO: ["P1_2", "P1_5", "P1_6", "P1_7"],
+    },
+  },
   Microcontroller_MSPM0G3507: {
     componentName: "Microcontroller_MSPM0G3507",
     label: "Microcontroller",
@@ -747,6 +949,51 @@ export const TiSubcircuitDefinitions = {
       bottom: ["GND"],
       left: ["EN"],
       right: ["LOAD"],
+    },
+  },
+  PowerManagement_TLV755P: {
+    componentName: "PowerManagement_TLV755P",
+    label: "3.3 V Low-Dropout Regulator",
+    category: [LibraryCategoryName.Power, "LDO"],
+    partNumber: "TLV755P",
+    description: "TI TLV755P 500-mA fixed-output low-dropout regulator.",
+    icon: "power",
+    size: { width: 180, height: 120 },
+    ports: {
+      top: ["VIN"],
+      bottom: ["GND"],
+      left: ["EN"],
+      right: ["VOUT_3V3"],
+    },
+  },
+  PowerManagement_TPS7A20: {
+    componentName: "PowerManagement_TPS7A20",
+    label: "3.3 V Low-Dropout Regulator",
+    category: [LibraryCategoryName.Power, "LDO"],
+    partNumber: "TPS7A20",
+    description: "TI TPS7A20 low-noise fixed-output low-dropout regulator.",
+    icon: "power",
+    size: { width: 180, height: 120 },
+    ports: {
+      top: ["VIN"],
+      bottom: ["GND"],
+      left: ["EN"],
+      right: ["VOUT_3V3"],
+    },
+  },
+  PowerManagement_TPS7A2018: {
+    componentName: "PowerManagement_TPS7A2018",
+    label: "1.8 V Low-Dropout Regulator",
+    category: [LibraryCategoryName.Power, "LDO"],
+    partNumber: "TPS7A2018",
+    description: "TI TPS7A2018 fixed 1.8 V low-dropout regulator.",
+    icon: "power",
+    size: { width: 180, height: 120 },
+    ports: {
+      top: ["VIN"],
+      bottom: ["GND"],
+      left: ["EN"],
+      right: ["VOUT_1V8"],
     },
   },
   PowerManagement_TPS6521835: {
@@ -974,6 +1221,28 @@ export const TiSubcircuitDefinitions = {
   },
 } satisfies Record<string, TiSubcircuitDefinition>
 
+export class BatteryManagement_BQ24072 extends SystemBlock {
+  constructor(config: TiSystemBlockConfig = {}) {
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.BatteryManagement_BQ24072,
+        config,
+      ),
+    )
+  }
+}
+
+export class BatteryManagement_BQ24073 extends SystemBlock {
+  constructor(config: TiSystemBlockConfig = {}) {
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.BatteryManagement_BQ24073,
+        config,
+      ),
+    )
+  }
+}
+
 export class BatteryManagement_BQ24074 extends SystemBlock {
   constructor(config: TiSystemBlockConfig = {}) {
     super(
@@ -1012,6 +1281,17 @@ export class RealTimeClock_BQ32002 extends SystemBlock {
     super(
       createTiSubcircuitConfig(
         TiSubcircuitDefinitions.RealTimeClock_BQ32002,
+        config,
+      ),
+    )
+  }
+}
+
+export class BluetoothController_CC2564C extends SystemBlock {
+  constructor(config: TiSystemBlockConfig = {}) {
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.BluetoothController_CC2564C,
         config,
       ),
     )
@@ -1111,6 +1391,39 @@ export class PowerMonitor_INA237 extends SystemBlock {
     super(
       createTiSubcircuitConfig(
         TiSubcircuitDefinitions.PowerMonitor_INA237,
+        config,
+      ),
+    )
+  }
+}
+
+export class BluetoothAudioHost_MSP430F5229 extends SystemBlock {
+  constructor(config: TiSystemBlockConfig = {}) {
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.BluetoothAudioHost_MSP430F5229,
+        config,
+      ),
+    )
+  }
+}
+
+export class AudioAmplifier_TAS2505 extends SystemBlock {
+  constructor(config: TiSystemBlockConfig = {}) {
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.AudioAmplifier_TAS2505,
+        config,
+      ),
+    )
+  }
+}
+
+export class TargetSocket_MSPTS430D8 extends SystemBlock {
+  constructor(config: TiSystemBlockConfig = {}) {
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.TargetSocket_MSPTS430D8,
         config,
       ),
     )
@@ -1227,6 +1540,39 @@ export class PowerManagement_TPS7A02 extends SystemBlock {
   }
 }
 
+export class PowerManagement_TLV755P extends SystemBlock {
+  constructor(config: TiSystemBlockConfig = {}) {
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.PowerManagement_TLV755P,
+        config,
+      ),
+    )
+  }
+}
+
+export class PowerManagement_TPS7A20 extends SystemBlock {
+  constructor(config: TiSystemBlockConfig = {}) {
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.PowerManagement_TPS7A20,
+        config,
+      ),
+    )
+  }
+}
+
+export class PowerManagement_TPS7A2018 extends SystemBlock {
+  constructor(config: TiSystemBlockConfig = {}) {
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.PowerManagement_TPS7A2018,
+        config,
+      ),
+    )
+  }
+}
+
 export class PowerManagement_TPS6521835 extends SystemBlock {
   constructor(config: TiSystemBlockConfig = {}) {
     super(
@@ -1294,10 +1640,13 @@ export class FlashMemory_W25Q128JVSIQ extends SystemBlock {
 }
 
 export const TiSystemBlockClasses = {
+  BatteryManagement_BQ24072,
+  BatteryManagement_BQ24073,
   BatteryManagement_BQ24074,
   BatteryManagement_BQ25895,
   BatteryManagement_BQ27441G1,
   RealTimeClock_BQ32002,
+  BluetoothController_CC2564C,
   WirelessMCU_CC2340R5,
   WirelessMCU_CC2745R10,
   WirelessMCU_CC3235SF,
@@ -1307,6 +1656,9 @@ export const TiSystemBlockClasses = {
   EnvironmentalSensor_HDC3020,
   EnvironmentalSensor_HDC3022,
   PowerMonitor_INA237,
+  BluetoothAudioHost_MSP430F5229,
+  AudioAmplifier_TAS2505,
+  TargetSocket_MSPTS430D8,
   Microcontroller_MSPM0G3507,
   Microcontroller_MSPM33C3x,
   LEDDriver_TLC59116,
@@ -1317,6 +1669,9 @@ export const TiSystemBlockClasses = {
   BoostConverter_TPS61299X,
   BuckBoostConverter_TPS63802,
   PowerManagement_TPS7A02,
+  PowerManagement_TLV755P,
+  PowerManagement_TPS7A20,
+  PowerManagement_TPS7A2018,
   PowerManagement_TPS6521835,
   PowerModule_TPSM82823,
   LevelShifter_TXB0104,
