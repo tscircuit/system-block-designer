@@ -11,7 +11,7 @@ test("design library category counts equal their displayed chip totals", () => {
     Communication: 7,
     Memory: 1,
     "Processing & Security": 5,
-    Power: 13,
+    Power: 14,
     "Motor Driver": 2,
     Sensor: 5,
   })

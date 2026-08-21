@@ -1,6 +1,6 @@
-import { SystemBlock, type SystemBlockConfig } from "../SystemBlock"
 import { LibraryCategoryName } from "../../system-block-library/types"
 import type { SystemBlockInterface } from "../../system-json/system-json"
+import { SystemBlock, type SystemBlockConfig } from "../SystemBlock"
 
 type TiSystemBlockConfig = Partial<
   Pick<
@@ -996,6 +996,21 @@ export const TiSubcircuitDefinitions = {
       right: ["VOUT_1V8"],
     },
   },
+  PowerManagement_TPS7A2028: {
+    componentName: "PowerManagement_TPS7A2028",
+    label: "2.8 V Low-Dropout Regulator",
+    category: [LibraryCategoryName.Power, "LDO"],
+    partNumber: "TPS7A2028",
+    description: "TI TPS7A2028 fixed 2.8 V low-dropout regulator.",
+    icon: "power",
+    size: { width: 180, height: 120 },
+    ports: {
+      top: ["VIN"],
+      bottom: ["GND"],
+      left: ["EN"],
+      right: ["VOUT_2V8"],
+    },
+  },
   PowerManagement_TPS6521835: {
     componentName: "PowerManagement_TPS6521835",
     label: "Power Management IC",
@@ -1573,6 +1588,17 @@ export class PowerManagement_TPS7A2018 extends SystemBlock {
   }
 }
 
+export class PowerManagement_TPS7A2028 extends SystemBlock {
+  constructor(config: TiSystemBlockConfig = {}) {
+    super(
+      createTiSubcircuitConfig(
+        TiSubcircuitDefinitions.PowerManagement_TPS7A2028,
+        config,
+      ),
+    )
+  }
+}
+
 export class PowerManagement_TPS6521835 extends SystemBlock {
   constructor(config: TiSystemBlockConfig = {}) {
     super(
@@ -1672,6 +1698,7 @@ export const TiSystemBlockClasses = {
   PowerManagement_TLV755P,
   PowerManagement_TPS7A20,
   PowerManagement_TPS7A2018,
+  PowerManagement_TPS7A2028,
   PowerManagement_TPS6521835,
   PowerModule_TPSM82823,
   LevelShifter_TXB0104,
