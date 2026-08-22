@@ -8,6 +8,7 @@ import {
 import type {
   SystemBlock,
   SystemConnection,
+  SystemPort,
 } from "../../lib/system-json/system-json"
 import {
   TiSubcircuitDefinitions,
@@ -25,6 +26,9 @@ const TI_DEFINITIONS: TiSubcircuitDefinition[] = Object.values(
 interface BlockPropertiesSidebarProps {
   block: SystemBlock | null
   connection: SystemConnection | null
+  blocks: SystemBlock[]
+  connections: SystemConnection[]
+  ports: SystemPort[]
   onClose: () => void
   onApplySubcircuit: (blockId: string, subcircuitId: string) => void
   onUpdateBlockIconColor: (blockId: string, iconColor: IconColor) => void
@@ -37,6 +41,9 @@ interface BlockPropertiesSidebarProps {
 export function BlockPropertiesSidebar({
   block,
   connection,
+  blocks,
+  connections,
+  ports,
   onClose,
   onApplySubcircuit,
   onUpdateBlockIconColor,
@@ -53,6 +60,45 @@ export function BlockPropertiesSidebar({
       ),
     )
   }, [block])
+
+  const blockLinks = useMemo(() => {
+    if (!block) return []
+
+    const portMap = new Map(ports.map((port) => [port.system_port_id, port]))
+    const blockMap = new Map(
+      blocks.map((candidate) => [candidate.system_block_id, candidate]),
+    )
+
+    return connections.flatMap((candidate) => {
+      const sourcePort = candidate.source_system_port_id
+        ? portMap.get(candidate.source_system_port_id)
+        : undefined
+      const targetPort = candidate.target_system_port_id
+        ? portMap.get(candidate.target_system_port_id)
+        : undefined
+      const isSource = sourcePort?.system_block_id === block.system_block_id
+      const isTarget = targetPort?.system_block_id === block.system_block_id
+      if (!isSource && !isTarget) return []
+
+      const localPort = isSource ? sourcePort : targetPort
+      const remotePort = isSource ? targetPort : sourcePort
+      const remoteBlock = remotePort
+        ? blockMap.get(remotePort.system_block_id)
+        : undefined
+
+      return [
+        {
+          id: candidate.system_connection_id,
+          interfaceName: inferConnectionInterface(candidate.label),
+          localPortName: localPort?.label,
+          remoteBlockName:
+            remoteBlock?.label ??
+            remoteBlock?.system_block_id ??
+            "Unknown Block",
+        },
+      ]
+    })
+  }, [block, blocks, connections, ports])
 
   useEffect(() => {
     if (!block) return
@@ -76,7 +122,7 @@ export function BlockPropertiesSidebar({
       >
         <div className="settings-panel link-settings-panel">
           <div className="settings-panel-header">
-            <span className="settings-title">Link and ports settings</span>
+            <h2 className="settings-title">Link &amp; Port Properties</h2>
             <button
               className="props-close"
               type="button"
@@ -92,6 +138,7 @@ export function BlockPropertiesSidebar({
                 stroke="currentColor"
                 strokeWidth="2.4"
                 strokeLinecap="round"
+                aria-hidden="true"
               >
                 <path d="M18 6 6 18" />
                 <path d="m6 6 12 12" />
@@ -131,8 +178,6 @@ export function BlockPropertiesSidebar({
     block.category.length > 1
       ? block.category
       : ["System Block", block.category[0] ?? blockName]
-  const parentPath = categoryPath.slice(0, -1).join(" / ")
-  const currentCategory = categoryPath[categoryPath.length - 1] ?? blockName
   const selectedDefinition = subcircuitOptions.find(
     (definition) => definition.componentName === selectedSubcircuitId,
   )
@@ -150,27 +195,10 @@ export function BlockPropertiesSidebar({
       data-testid="block-functional-settings-container"
       aria-label="Block functional settings"
     >
-      <div className="settings-collapse">
-        <button
-          className="settings-collapse-header"
-          type="button"
-          aria-expanded="true"
-        >
-          <span className="settings-collapse-title">Selected Block</span>
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="m6 9 6 6 6-6" />
-          </svg>
-        </button>
+      <div className="settings-panel block-settings-panel">
+        <div className="settings-panel-header block-settings-header">
+          <h2 className="settings-title">Block Properties</h2>
+        </div>
         <div className="selected-block-summary">
           <div
             className="selected-block-icon"
@@ -181,7 +209,7 @@ export function BlockPropertiesSidebar({
           </div>
           <div className="selected-block-copy">
             <strong>{blockName}</strong>
-            <span>{currentCategory}</span>
+            <span>{categoryPath.join(" / ")}</span>
           </div>
         </div>
         <button
@@ -199,26 +227,18 @@ export function BlockPropertiesSidebar({
             stroke="currentColor"
             strokeWidth="2.4"
             strokeLinecap="round"
+            aria-hidden="true"
           >
             <path d="M18 6 6 18" />
             <path d="m6 6 12 12" />
           </svg>
         </button>
-      </div>
-
-      <div className="settings-panel">
-        <span className="settings-title">{blockName} block settings</span>
         <section className="settings-section">
-          <div
-            className="functionality-hierarchy"
-            data-testid="functionality-hierarchy-container"
-          >
-            {parentPath && <span>{parentPath} / </span>}
-            <strong>{currentCategory}</strong>
-          </div>
           <label className="settings-field part-select-field">
-            <span>Part number / subcircuit</span>
+            <span>Subcircuit</span>
             <select
+              name="subcircuit"
+              autoComplete="off"
               data-testid="block-subcircuit-select"
               value={selectedSubcircuitId}
               disabled={subcircuitOptions.length === 0}
@@ -256,88 +276,108 @@ export function BlockPropertiesSidebar({
               </ul>
             </div>
           )}
-          <button
-            className="apply-updates"
-            type="button"
-            disabled={!hasPendingSubcircuit}
-            onClick={() => {
-              if (!selectedSubcircuitId) return
-              onApplySubcircuit(block.system_block_id, selectedSubcircuitId)
-            }}
-          >
-            Apply updates
-          </button>
-          <div className="settings-divider" role="separator" />
-          <div className="settings-fields">
-            <label className="settings-field block-name-field">
-              <span>Block Name</span>
-              <input
-                data-testid="block-name-input"
-                type="text"
-                value={blockName}
-                readOnly
-              />
-            </label>
-            <label className="settings-field icon-color-field">
-              <span>Icon Color</span>
-              <div className="icon-color-control">
-                <button
-                  className="icon-color-select"
-                  type="button"
-                  aria-expanded={iconColorPickerOpen}
-                  data-testid="block-color-select"
-                  onClick={() => setIconColorPickerOpen((current) => !current)}
-                >
-                  <span className="icon-color-preview">
-                    <span
-                      className="icon-color-swatch"
-                      style={{ background: iconColor }}
-                    />
-                    <span
-                      className="icon-color-icon"
-                      style={{ color: iconColor }}
-                    >
-                      <BlockIcon name={block.icon ?? "chip"} size={20} />
-                    </span>
-                  </span>
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
+          {hasPendingSubcircuit && (
+            <button
+              className="apply-updates"
+              type="button"
+              onClick={() => {
+                if (!selectedSubcircuitId) return
+                onApplySubcircuit(block.system_block_id, selectedSubcircuitId)
+              }}
+            >
+              Use Selected Subcircuit
+            </button>
+          )}
+          <div className="settings-field icon-color-field">
+            <span id="icon-color-label">Icon Color</span>
+            <div className="icon-color-control">
+              <button
+                className="icon-color-select"
+                type="button"
+                aria-labelledby="icon-color-label icon-color-value"
+                aria-expanded={iconColorPickerOpen}
+                aria-controls="icon-color-palette"
+                data-testid="block-color-select"
+                onClick={() => setIconColorPickerOpen((current) => !current)}
+              >
+                <span id="icon-color-value" className="sr-only">
+                  Current color: {iconColor}
+                </span>
+                <span className="icon-color-preview">
+                  <span
+                    className="icon-color-swatch"
+                    style={{ background: iconColor }}
+                  />
+                  <span
+                    className="icon-color-icon"
+                    style={{ color: iconColor }}
                   >
-                    <path d="m6 9 6 6 6-6" />
-                  </svg>
-                </button>
-                <div
-                  className="icon-color-palette"
-                  data-open={iconColorPickerOpen ? "true" : "false"}
+                    <BlockIcon name={block.icon ?? "chip"} size={20} />
+                  </span>
+                </span>
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
                 >
-                  {ICON_COLOR_PALETTE.map((color) => (
-                    <button
-                      key={color}
-                      className="icon-color-option"
-                      type="button"
-                      title={color}
-                      aria-label={`Set icon color to ${color}`}
-                      aria-pressed={color === iconColor}
-                      data-testid={`block-color-option-${color.slice(1)}`}
-                      style={{ background: color }}
-                      onClick={() => {
-                        onUpdateBlockIconColor(block.system_block_id, color)
-                        setIconColorPickerOpen(false)
-                      }}
-                    />
-                  ))}
-                </div>
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+              <div
+                id="icon-color-palette"
+                className="icon-color-palette"
+                data-open={iconColorPickerOpen ? "true" : "false"}
+                role="group"
+                aria-label="Icon colors"
+              >
+                {ICON_COLOR_PALETTE.map((color) => (
+                  <button
+                    key={color}
+                    className="icon-color-option"
+                    type="button"
+                    title={color}
+                    aria-label={`Set icon color to ${color}`}
+                    aria-pressed={color === iconColor}
+                    data-testid={`block-color-option-${color.slice(1)}`}
+                    style={{ background: color }}
+                    onClick={() => {
+                      onUpdateBlockIconColor(block.system_block_id, color)
+                      setIconColorPickerOpen(false)
+                    }}
+                  />
+                ))}
               </div>
-            </label>
+            </div>
           </div>
+          <section className="block-links" aria-labelledby="block-links-title">
+            <div className="block-links-heading">
+              <h3 id="block-links-title">Links</h3>
+              <span className="block-links-count">{blockLinks.length}</span>
+            </div>
+            {blockLinks.length > 0 ? (
+              <ul>
+                {blockLinks.map((link) => (
+                  <li key={link.id}>
+                    <span className="block-link-endpoint">
+                      {link.remoteBlockName}
+                    </span>
+                    <span className="block-link-interface">
+                      {link.interfaceName}
+                      {link.localPortName ? ` · ${link.localPortName}` : ""}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No links yet. Connect this block to see them here.</p>
+            )}
+          </section>
         </section>
       </div>
     </aside>
