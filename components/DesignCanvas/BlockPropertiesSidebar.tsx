@@ -9,17 +9,15 @@ import type {
   SystemBlock,
   SystemConnection,
 } from "../../lib/system-json/system-json"
-import {
-  TiSubcircuitDefinitions,
-  type TiSubcircuitDefinition,
-} from "../../lib/system-blocks/TiSubcircuits"
+import { SubcircuitDefinitions } from "../../lib/system-blocks/SubcircuitRegistry"
+import type { SubcircuitDefinition } from "../../lib/system-blocks/SubcircuitDefinition"
 import {
   CONNECTION_INTERFACES,
   inferConnectionInterface,
 } from "./systemJsonCanvas"
 
-const TI_DEFINITIONS: TiSubcircuitDefinition[] = Object.values(
-  TiSubcircuitDefinitions,
+const SUBCIRCUIT_DEFINITIONS: SubcircuitDefinition[] = Object.values(
+  SubcircuitDefinitions,
 )
 
 interface BlockPropertiesSidebarProps {
@@ -47,7 +45,7 @@ export function BlockPropertiesSidebar({
 
   const subcircuitOptions = useMemo(() => {
     if (!block) return []
-    return TI_DEFINITIONS.filter((definition) =>
+    return SUBCIRCUIT_DEFINITIONS.filter((definition) =>
       block.category.every(
         (categoryPart, index) => definition.category[index] === categoryPart,
       ),

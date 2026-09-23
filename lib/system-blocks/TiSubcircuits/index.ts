@@ -1188,52 +1188,6 @@ export const TiSubcircuitDefinitions = {
       RF: ["RF_50", "ANT_FEED"],
     },
   },
-  FlashMemory_W25Q128JVSIQ: {
-    componentName: "FlashMemory_W25Q128JVSIQ",
-    label: "QSPI Flash Memory",
-    category: [LibraryCategoryName.Memory, "Flash"],
-    partNumber: "W25Q128JVSIQ",
-    description: "Winbond W25Q128JVSIQ 128-Mbit QSPI flash memory reference.",
-    icon: "memory",
-    size: { width: 220, height: 148 },
-    interfaces: [
-      {
-        name: "SPI1",
-        kind: "spi",
-        spiPins: {
-          CS: "U1.SPI_CS",
-          SCLK: "U1.SPI_SCK",
-          MOSI: "U1.SPI_MOSI",
-          MISO: "U1.SPI_MISO",
-        },
-      },
-      {
-        name: "GPIO",
-        kind: "gpio",
-        gpioPins: {
-          QSPI_SS: "U1.SPI_CS",
-          QSPI_CLK: "U1.SPI_SCK",
-        },
-      },
-    ],
-    ports: {
-      top: ["VCC"],
-      bottom: ["GND"],
-      left: ["QSPI_SS", "QSPI_CLK"],
-      right: ["QSPI_SD0", "QSPI_SD1", "QSPI_SD2", "QSPI_SD3"],
-    },
-    connectionPortExpansions: {
-      SPI: ["QSPI_SS", "QSPI_CLK", "QSPI_SD0", "QSPI_SD1"],
-      QSPI: [
-        "QSPI_SS",
-        "QSPI_CLK",
-        "QSPI_SD0",
-        "QSPI_SD1",
-        "QSPI_SD2",
-        "QSPI_SD3",
-      ],
-    },
-  },
 } satisfies Record<string, TiSubcircuitDefinition>
 
 export class BatteryManagement_BQ24072 extends SystemBlock {
@@ -1654,17 +1608,6 @@ export class RFIDReader_TRF7960 extends SystemBlock {
   }
 }
 
-export class FlashMemory_W25Q128JVSIQ extends SystemBlock {
-  constructor(config: TiSystemBlockConfig = {}) {
-    super(
-      createTiSubcircuitConfig(
-        TiSubcircuitDefinitions.FlashMemory_W25Q128JVSIQ,
-        config,
-      ),
-    )
-  }
-}
-
 export const TiSystemBlockClasses = {
   BatteryManagement_BQ24072,
   BatteryManagement_BQ24073,
@@ -1704,7 +1647,6 @@ export const TiSystemBlockClasses = {
   LevelShifter_TXB0104,
   LevelShifter_TXS0102,
   RFIDReader_TRF7960,
-  FlashMemory_W25Q128JVSIQ,
 } as const
 
 export type TiSystemBlockName = keyof typeof TiSystemBlockClasses

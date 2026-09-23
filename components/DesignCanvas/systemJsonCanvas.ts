@@ -3,9 +3,9 @@ import { pathPointsToSvgPath } from "../../lib/utils/pathPointsToSvgPath"
 import { midpointOfLongestSegment } from "../../lib/system-trace-solver/geometry"
 import { solveSystemJsonTraceLines } from "../../lib/system-trace-solver"
 import {
-  TiSystemBlockClasses,
-  type TiSystemBlockName,
-} from "../../lib/system-blocks/TiSubcircuits"
+  SystemBlockClasses,
+  type SystemBlockName,
+} from "../../lib/system-blocks/SubcircuitRegistry"
 import type {
   Point,
   SystemBlock,
@@ -198,9 +198,8 @@ export function createSystemJsonForLibraryBlock({
   const item = findLibraryItem(type)
   if (!item || item.count === 0) return null
 
-  if (item.subcircuitId && item.subcircuitId in TiSystemBlockClasses) {
-    const BlockClass =
-      TiSystemBlockClasses[item.subcircuitId as TiSystemBlockName]
+  if (item.subcircuitId && item.subcircuitId in SystemBlockClasses) {
+    const BlockClass = SystemBlockClasses[item.subcircuitId as SystemBlockName]
     const block = new BlockClass({
       systemDiagramId: system_diagram_id,
       systemBlockId: blockId,

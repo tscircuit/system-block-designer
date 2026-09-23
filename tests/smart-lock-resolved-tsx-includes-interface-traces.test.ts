@@ -9,6 +9,13 @@ test("smart lock resolved TSX includes each interface trace", () => {
     .map((line) => line.trim())
     .filter((line) => line.startsWith("<trace "))
 
+  expect(tsx).toContain(
+    'import { FlashMemory_W25Q128JVSIQ } from "@tscircuit/common"',
+  )
+  expect(tsx).not.toContain(
+    'FlashMemory_W25Q128JVSIQ } from "@tsci/tscircuit.ti"',
+  )
+
   expect(traceLines).toEqual([
     '<trace from=".radio_transceiver > .U2 > .FLASH_SPI_CLK" to=".radio_level_shifter > .U1 > .IO_A1" />',
     '<trace from=".radio_transceiver > .U2 > .GPIO10" to=".radio_level_shifter > .U1 > .IO_A2" />',

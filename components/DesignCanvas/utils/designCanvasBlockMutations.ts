@@ -1,8 +1,8 @@
 import {
-  TiSubcircuitDefinitions,
-  TiSystemBlockClasses,
-  type TiSystemBlockName,
-} from "../../../lib/system-blocks/TiSubcircuits"
+  SubcircuitDefinitions,
+  SystemBlockClasses,
+  type SystemBlockName,
+} from "../../../lib/system-blocks/SubcircuitRegistry"
 import type {
   SystemBlock,
   SystemJson,
@@ -10,8 +10,8 @@ import type {
 } from "../../../lib/system-json/system-json"
 import { normalizeSystemJson } from "../systemJsonCanvas"
 
-const TI_DEFINITION_BY_COMPONENT_NAME = new Map(
-  Object.values(TiSubcircuitDefinitions).map((definition) => [
+const DEFINITION_BY_COMPONENT_NAME = new Map(
+  Object.values(SubcircuitDefinitions).map((definition) => [
     definition.componentName,
     definition,
   ]),
@@ -52,8 +52,8 @@ export function replaceBlockSubcircuitInSystemJson(
   blockId: string,
   subcircuitId: string,
 ) {
-  const definition = TI_DEFINITION_BY_COMPONENT_NAME.get(subcircuitId)
-  if (!definition || !(subcircuitId in TiSystemBlockClasses)) return null
+  const definition = DEFINITION_BY_COMPONENT_NAME.get(subcircuitId)
+  if (!definition || !(subcircuitId in SystemBlockClasses)) return null
 
   const current = normalizeSystemJson(systemJson)
   const block = current.blocks.find(
@@ -61,7 +61,7 @@ export function replaceBlockSubcircuitInSystemJson(
   )
   if (!block) return null
 
-  const BlockClass = TiSystemBlockClasses[subcircuitId as TiSystemBlockName]
+  const BlockClass = SystemBlockClasses[subcircuitId as SystemBlockName]
   const replacementBlock = new BlockClass({
     systemDiagramId: block.system_diagram_id,
     systemBlockId: block.system_block_id,

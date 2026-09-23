@@ -1,7 +1,7 @@
 import { updateConnectionPaths } from "../../components/DesignCanvas/systemJsonCanvas"
 import type { SystemBlock as SystemBlockInstance } from "../../lib/system-blocks/SystemBlock"
+import { FlashMemory_W25Q128JVSIQ } from "../../lib/system-blocks/CommonSubcircuits"
 import {
-  FlashMemory_W25Q128JVSIQ,
   LevelShifter_TXB0104,
   LevelShifter_TXS0102,
   Microcontroller_MSPM0G3507,

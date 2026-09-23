@@ -7,7 +7,11 @@ import {
 } from "../lib/system-blocks/TiSubcircuits"
 
 test("the design library includes every TI subcircuit", () => {
-  for (const componentName of Object.keys(TiSubcircuitComponents)) {
+  const tiComponentNames = Object.keys(TiSubcircuitComponents).filter(
+    (componentName) => componentName !== "FlashMemory_W25Q128JVSIQ",
+  )
+
+  for (const componentName of tiComponentNames) {
     const definition =
       TiSubcircuitDefinitions[
         componentName as keyof typeof TiSubcircuitDefinitions
@@ -27,4 +31,7 @@ test("the design library includes every TI subcircuit", () => {
       `${componentName} library item`,
     ).toBe(true)
   }
+
+  expect(TiSubcircuitDefinitions).not.toHaveProperty("FlashMemory_W25Q128JVSIQ")
+  expect(TiSystemBlockClasses).not.toHaveProperty("FlashMemory_W25Q128JVSIQ")
 })
