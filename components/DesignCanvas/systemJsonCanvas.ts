@@ -271,8 +271,8 @@ export function routeTemporaryConnectionPath(
 ) {
   return pathPointsToSvgPath(
     createConnectionPathPoints(source, sourceDirection, target, {
-      x: -sourceDirection.x || 1,
-      y: 0,
+      x: -sourceDirection.x,
+      y: -sourceDirection.y,
     }),
   )
 }
